@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useState as useModalState } from "react";
 
 function SageLogo() {
   return (
@@ -284,6 +285,91 @@ export default function PreviewOnboarding() {
       <div className="text-center text-[15px] text-[#8a9a5b] font-medium mt-2">
         Great progress! You can add more information or see what I've learned about you.
       </div>
+      {/* Generate My Profile Button */}
+      <GenerateProfileButton
+        linkedinComplete={linkedinProgress === 4}
+        resumeComplete={resumeUploaded}
+        questionsComplete={questionsCompleted}
+      />
+    </div>
+  );
+}
+
+function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComplete }: { linkedinComplete: boolean; resumeComplete: boolean; questionsComplete: boolean }) {
+  const [loading, setLoading] = useModalState(false);
+  const [showModal, setShowModal] = useModalState(false);
+  const [profile, setProfile] = useModalState("");
+  const [error, setError] = useModalState("");
+  const allComplete = linkedinComplete && resumeComplete && questionsComplete;
+
+  async function handleGenerateProfile() {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await fetch('/api/generate-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: 'temp-user-id' }),
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        setError(err.error || 'Failed to generate profile');
+        setLoading(false);
+        return;
+      }
+      const data = await response.json();
+      setProfile(data.profile);
+      setShowModal(true);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('onboarding_psych_profile', data.profile);
+      }
+    } catch (e) {
+      setError('Failed to generate profile');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleShare() {
+    if (navigator.share) {
+      navigator.share({
+        title: 'My Sage Psychographic Profile',
+        text: profile,
+        url: window.location.href
+      });
+    } else {
+      navigator.clipboard.writeText(profile);
+      alert('Profile copied to clipboard!');
+    }
+  }
+
+  return (
+    <div className="w-full max-w-md flex flex-col items-center mt-6">
+      <button
+        className={`w-full py-3 rounded-xl text-lg font-semibold transition mb-2 ${allComplete ? 'bg-[#55613b] text-white hover:bg-[#8a9a5b]' : 'bg-[#ececec] text-[#bdbdbd] cursor-not-allowed'}`}
+        disabled={!allComplete || loading}
+        onClick={handleGenerateProfile}
+      >
+        {loading ? 'Generating Profile...' : 'Generate My Profile'}
+      </button>
+      {error && <div className="text-red-500 text-center mb-2">{error}</div>}
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full relative animate-fade-in">
+            <button className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl" onClick={() => setShowModal(false)}>&times;</button>
+            <h2 className="text-2xl font-bold text-center mb-4 text-[#8a9a5b]">Your Psychographic Profile</h2>
+            <div className="whitespace-pre-line text-text text-base mb-6" style={{ maxHeight: 320, overflowY: 'auto' }}>{profile}</div>
+            <button
+              className="w-full py-2 rounded-xl bg-[#8a9a5b] text-white font-semibold text-lg hover:bg-[#6d7a4a] mb-2"
+              onClick={handleShare}
+            >
+              Share
+            </button>
+            <div className="text-center text-xs text-[#bdbdbd]">You can copy or share this profile on social media.</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
