@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useRef } from "react";
+import { writeFile } from 'fs';
 
 function SageLogo() {
   return (
@@ -63,6 +64,12 @@ export default function OnboardingQuestions() {
     if (typeof window !== 'undefined') {
       localStorage.setItem('onboarding_questions', JSON.stringify(updated));
     }
+    // Save to onboarding_questions.json for backend
+    fetch('/api/save-questions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated),
+    });
   }
 
   const allFilled = Object.values(answers).every(ans => ans.trim().length > 0);
