@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 function SageLogo() {
   return (
@@ -63,6 +64,30 @@ const options = [
 
 export default function PreviewOnboarding() {
   const [selected, setSelected] = useState("questions");
+  const [linkedinProgress, setLinkedinProgress] = useState(0);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const data = localStorage.getItem('onboarding_linkedin_data');
+      if (data) {
+        try {
+          const parsed = JSON.parse(data);
+          const filled = [parsed.about, parsed.experience, parsed.education, parsed.recommendations].filter(v => v && v.trim().length > 0).length;
+          setLinkedinProgress(filled);
+          if (filled > 0) setSelected('linkedin');
+        } catch {}
+      } else {
+        setLinkedinProgress(0);
+      }
+    }
+  }, []);
+  const router = useRouter();
+
+  function handleOptionClick(key: string) {
+    setSelected(key);
+    if (key === "linkedin") {
+      router.push("/onboarding/linkedin");
+    }
+  }
 
   return (
     <div className="min-h-screen bg-primary flex flex-col items-center py-8 px-2 font-sans" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>
@@ -74,7 +99,7 @@ export default function PreviewOnboarding() {
         {options.map(opt => (
           <button
             key={opt.key}
-            onClick={() => setSelected(opt.key)}
+            onClick={() => handleOptionClick(opt.key)}
             className={`flex items-center w-full rounded-xl border transition p-4 text-left shadow-sm focus:outline-none ${selected === opt.key ? 'border-[#8a9a5b] bg-[#f8faf6]' : 'border-card bg-white hover:bg-card'} group`}
             type="button"
           >
@@ -84,12 +109,27 @@ export default function PreviewOnboarding() {
               <div className="text-text/70 text-sm">{opt.desc}</div>
             </div>
             <div className="ml-4">
-              {selected === opt.key ? (
-                <span className="inline-block w-6 h-6 rounded-full border-2 border-[#8a9a5b] bg-[#8a9a5b] flex items-center justify-center">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                </span>
+              {opt.key === 'linkedin' ? (
+                linkedinProgress === 4 ? (
+                  <span className="inline-block w-6 h-6 rounded-full border-2 border-[#8a9a5b] bg-[#8a9a5b] flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </span>
+                ) : linkedinProgress > 0 ? (
+                  <span className="inline-block w-6 h-6 rounded-full border-2 border-[#8a9a5b] bg-white flex items-center justify-center relative">
+                    <span className="absolute left-0 top-0 h-full rounded-full bg-[#8a9a5b]" style={{ width: `${linkedinProgress * 25}%` }}></span>
+                    <span className="relative z-10 block w-full h-full rounded-full"></span>
+                  </span>
+                ) : (
+                  <span className="inline-block w-6 h-6 rounded-full border-2 border-card bg-white"></span>
+                )
               ) : (
-                <span className="inline-block w-6 h-6 rounded-full border-2 border-card bg-white"></span>
+                selected === opt.key ? (
+                  <span className="inline-block w-6 h-6 rounded-full border-2 border-[#8a9a5b] bg-[#8a9a5b] flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </span>
+                ) : (
+                  <span className="inline-block w-6 h-6 rounded-full border-2 border-card bg-white"></span>
+                )
               )}
             </div>
           </button>
