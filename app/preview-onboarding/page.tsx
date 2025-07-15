@@ -1,0 +1,103 @@
+"use client";
+import { useState } from "react";
+
+function SageLogo() {
+  return (
+    <div className="flex flex-col items-center mb-6">
+      <div className="relative w-16 h-16 flex items-center justify-center rounded-full shadow-xl bg-gradient-to-br from-[#f3f4f6] to-[#ececec]">
+        {/* Inner gradient circle */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#8a9a5b] to-[#55613b] flex items-center justify-center">
+          {/* Plus sign - sharp, no glow */}
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+            <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"/>
+          </svg>
+        </div>
+        {/* Yellow dot - smaller, between circles */}
+        <div className="absolute" style={{ top: '18%', right: '18%' }}>
+          <div className="w-2.5 h-2.5 rounded-full bg-[#ffe082] shadow" />
+        </div>
+      </div>
+      <h1 className="mt-4 text-xl text-text font-normal font-sans" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>Sage</h1>
+    </div>
+  );
+}
+
+const options = [
+  {
+    key: "linkedin",
+    icon: (
+      <svg className="w-7 h-7 text-highlight" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+        <rect x="4" y="4" width="16" height="16" rx="3" fill="#F1F0ED" stroke="#C1CFC0" />
+        <rect x="7" y="10" width="2" height="6" rx="1" fill="#C1CFC0" />
+        <rect x="11" y="10" width="2" height="6" rx="1" fill="#C1CFC0" />
+        <circle cx="8" cy="8" r="1" fill="#C1CFC0" />
+      </svg>
+    ),
+    title: "Paste my LinkedIn summary",
+    desc: "Quick and easy way to share your background",
+  },
+  {
+    key: "resume",
+    icon: (
+      <svg className="w-7 h-7 text-highlight" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+        <rect x="4" y="4" width="16" height="16" rx="3" fill="#F1F0ED" stroke="#C1CFC0" />
+        <path d="M8 8h8M8 12h8M8 16h4" stroke="#C1CFC0" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    ),
+    title: "Upload my resume",
+    desc: "Let me review your professional experience",
+  },
+  {
+    key: "questions",
+    icon: (
+      <svg className="w-7 h-7 text-highlight" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+        <rect x="4" y="4" width="16" height="16" rx="3" fill="#F1F0ED" stroke="#C1CFC0" />
+        <path d="M12 8v4" stroke="#8a9a5b" strokeWidth="2" strokeLinecap="round" />
+        <circle cx="12" cy="16" r="1" fill="#8a9a5b" />
+      </svg>
+    ),
+    title: "Answer a few questions",
+    desc: "We'll have a brief conversation to get started",
+  },
+];
+
+export default function PreviewOnboarding() {
+  const [selected, setSelected] = useState("questions");
+
+  return (
+    <div className="min-h-screen bg-primary flex flex-col items-center py-8 px-2 font-sans" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>
+      <SageLogo />
+      <h2 className="text-3xl font-bold text-text mt-2 mb-4">Welcome</h2>
+      <p className="text-text text-center text-base mb-1">Help me get to know you so I can guide you better.</p>
+      <p className="text-text/70 text-center text-sm mb-8 max-w-md">You can paste your LinkedIn summary, upload your resume, or answer a few questions. Whatever works for you.</p>
+      <div className="flex flex-col gap-4 w-full max-w-md mb-8">
+        {options.map(opt => (
+          <button
+            key={opt.key}
+            onClick={() => setSelected(opt.key)}
+            className={`flex items-center w-full rounded-xl border transition p-4 text-left shadow-sm focus:outline-none ${selected === opt.key ? 'border-[#8a9a5b] bg-[#f8faf6]' : 'border-card bg-white hover:bg-card'} group`}
+            type="button"
+          >
+            <div className="mr-4 flex-shrink-0">{opt.icon}</div>
+            <div className="flex-1">
+              <div className="text-text font-medium text-base mb-1">{opt.title}</div>
+              <div className="text-text/70 text-sm">{opt.desc}</div>
+            </div>
+            <div className="ml-4">
+              {selected === opt.key ? (
+                <span className="inline-block w-6 h-6 rounded-full border-2 border-[#8a9a5b] bg-[#8a9a5b] flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </span>
+              ) : (
+                <span className="inline-block w-6 h-6 rounded-full border-2 border-card bg-white"></span>
+              )}
+            </div>
+          </button>
+        ))}
+      </div>
+      <div className="text-center text-[15px] text-[#8a9a5b] font-medium mt-2">
+        Great progress! You can add more information or see what I've learned about you.
+      </div>
+    </div>
+  );
+} 
