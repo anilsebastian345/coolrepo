@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 function SageLogo() {
@@ -20,6 +20,37 @@ function SageLogo() {
       </div>
       <h1 className="mt-4 text-xl text-text font-normal font-sans" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>Sage</h1>
     </div>
+  );
+}
+
+function CircularProgress({ percent }: { percent: number }) {
+  const radius = 12;
+  const stroke = 3;
+  const normalizedRadius = radius - stroke / 2;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDashoffset = circumference - (percent / 100) * circumference;
+  return (
+    <svg height={radius * 2} width={radius * 2}>
+      <circle
+        stroke="#e5e7eb"
+        fill="white"
+        strokeWidth={stroke}
+        r={normalizedRadius}
+        cx={radius}
+        cy={radius}
+      />
+      <circle
+        stroke="#8a9a5b"
+        fill="transparent"
+        strokeWidth={stroke}
+        strokeDasharray={circumference + ' ' + circumference}
+        style={{ strokeDashoffset, transition: 'stroke-dashoffset 0.5s' }}
+        strokeLinecap="round"
+        r={normalizedRadius}
+        cx={radius}
+        cy={radius}
+      />
+    </svg>
   );
 }
 
@@ -65,8 +96,13 @@ const options = [
 export default function PreviewOnboarding() {
   const [selected, setSelected] = useState("questions");
   const [linkedinProgress, setLinkedinProgress] = useState(0);
+  const [resumeUploaded, setResumeUploaded] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // Check LinkedIn progress
       const data = localStorage.getItem('onboarding_linkedin_data');
       if (data) {
         try {
@@ -78,11 +114,64 @@ export default function PreviewOnboarding() {
       } else {
         setLinkedinProgress(0);
       }
+      
+      // Check if resume was uploaded
+      const resumeData = localStorage.getItem('onboarding_resume_uploaded');
+      if (resumeData) {
+        setResumeUploaded(true);
+        if (resumeData === 'true') setSelected('resume');
+      }
     }
   }, []);
   const router = useRouter();
 
+  async function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('resume', file);
+
+      const response = await fetch('/api/upload-resume', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Upload failed');
+      }
+
+      const result = await response.json();
+      
+      // Store upload state
+      localStorage.setItem('onboarding_resume_uploaded', 'true');
+      localStorage.setItem('onboarding_resume_data', JSON.stringify({
+        fileId: result.fileId,
+        fileName: result.fileName,
+        uploadedAt: new Date().toISOString()
+      }));
+      
+      setResumeUploaded(true);
+      setSelected('resume');
+      
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert(error instanceof Error ? error.message : 'Failed to upload resume');
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
   function handleOptionClick(key: string) {
+    if (key === "resume") {
+      fileInputRef.current?.click();
+      return;
+    }
+    
     setSelected(key);
     if (key === "linkedin") {
       router.push("/onboarding/linkedin");
@@ -95,6 +184,16 @@ export default function PreviewOnboarding() {
       <h2 className="text-3xl font-bold text-text mt-2 mb-4">Welcome</h2>
       <p className="text-text text-center text-base mb-1">Help me get to know you so I can guide you better.</p>
       <p className="text-text/70 text-center text-sm mb-8 max-w-md">You can paste your LinkedIn summary, upload your resume, or answer a few questions. Whatever works for you.</p>
+      
+      {/* Hidden file input for resume upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf,.doc,.docx"
+        onChange={handleFileUpload}
+        className="hidden"
+      />
+      
       <div className="flex flex-col gap-4 w-full max-w-md mb-8">
         {options.map(opt => (
           <button
@@ -111,13 +210,39 @@ export default function PreviewOnboarding() {
             <div className="ml-4">
               {opt.key === 'linkedin' ? (
                 linkedinProgress === 4 ? (
-                  <span className="inline-block w-6 h-6 rounded-full border-2 border-[#8a9a5b] bg-[#8a9a5b] flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  <span className="inline-block w-7 h-7 flex items-center justify-center">
+                    <span className="absolute">
+                      <CircularProgress percent={100} />
+                    </span>
+                    <span className="absolute flex items-center justify-center w-7 h-7">
+                      <svg className="w-4 h-4 text-[#8a9a5b]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    </span>
                   </span>
                 ) : linkedinProgress > 0 ? (
-                  <span className="inline-block w-6 h-6 rounded-full border-2 border-[#8a9a5b] bg-white flex items-center justify-center relative">
-                    <span className="absolute left-0 top-0 h-full rounded-full bg-[#8a9a5b]" style={{ width: `${linkedinProgress * 25}%` }}></span>
-                    <span className="relative z-10 block w-full h-full rounded-full"></span>
+                  <span className="inline-block w-7 h-7 flex items-center justify-center">
+                    <CircularProgress percent={linkedinProgress * 25} />
+                  </span>
+                ) : (
+                  <span className="inline-block w-7 h-7 flex items-center justify-center">
+                    <CircularProgress percent={0} />
+                  </span>
+                )
+              ) : opt.key === 'resume' ? (
+                resumeUploaded ? (
+                  <span className="inline-block w-7 h-7 flex items-center justify-center">
+                    <span className="absolute">
+                      <CircularProgress percent={100} />
+                    </span>
+                    <span className="absolute flex items-center justify-center w-7 h-7">
+                      <svg className="w-4 h-4 text-[#8a9a5b]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    </span>
+                  </span>
+                ) : isUploading ? (
+                  <span className="inline-block w-7 h-7 flex items-center justify-center">
+                    <svg className="w-4 h-4 text-[#8a9a5b] animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
                   </span>
                 ) : (
                   <span className="inline-block w-6 h-6 rounded-full border-2 border-card bg-white"></span>
