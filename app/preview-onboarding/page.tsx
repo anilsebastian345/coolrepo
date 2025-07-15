@@ -98,6 +98,7 @@ export default function PreviewOnboarding() {
   const [linkedinProgress, setLinkedinProgress] = useState(0);
   const [resumeUploaded, setResumeUploaded] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [questionsCompleted, setQuestionsCompleted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   useEffect(() => {
@@ -121,6 +122,10 @@ export default function PreviewOnboarding() {
         setResumeUploaded(true);
         if (resumeData === 'true') setSelected('resume');
       }
+
+      // Check if questions were completed
+      const questionsDone = localStorage.getItem('onboarding_questions_completed');
+      if (questionsDone === 'true') setQuestionsCompleted(true);
     }
   }, []);
   const router = useRouter();
@@ -171,7 +176,10 @@ export default function PreviewOnboarding() {
       fileInputRef.current?.click();
       return;
     }
-    
+    if (key === "questions") {
+      router.push("/onboarding/questions");
+      return;
+    }
     setSelected(key);
     if (key === "linkedin") {
       router.push("/onboarding/linkedin");
@@ -243,6 +251,19 @@ export default function PreviewOnboarding() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
+                  </span>
+                ) : (
+                  <span className="inline-block w-6 h-6 rounded-full border-2 border-card bg-white"></span>
+                )
+              ) : opt.key === 'questions' ? (
+                questionsCompleted ? (
+                  <span className="inline-block w-7 h-7 flex items-center justify-center">
+                    <span className="absolute">
+                      <CircularProgress percent={100} />
+                    </span>
+                    <span className="absolute flex items-center justify-center w-7 h-7">
+                      <svg className="w-4 h-4 text-[#8a9a5b]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    </span>
                   </span>
                 ) : (
                   <span className="inline-block w-6 h-6 rounded-full border-2 border-card bg-white"></span>
