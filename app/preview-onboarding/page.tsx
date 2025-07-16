@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useState as useModalState } from "react";
+import ProfileModal from "../components/ProfileModal";
 
 function SageLogo() {
   return (
@@ -300,46 +301,92 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
   const [showModal, setShowModal] = useModalState(false);
   const [profile, setProfile] = useModalState("");
   const [error, setError] = useModalState("");
+  const [streamingContent, setStreamingContent] = useModalState("");
+  const [isStreaming, setIsStreaming] = useModalState(false);
   const allComplete = linkedinComplete && resumeComplete && questionsComplete;
 
   async function handleGenerateProfile() {
     setLoading(true);
     setError("");
+    setStreamingContent("");
+    setIsStreaming(false);
+    
     try {
       const response = await fetch('/api/generate-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: 'temp-user-id' }),
       });
+      
       if (!response.ok) {
         const err = await response.json();
         setError(err.error || 'Failed to generate profile');
         setLoading(false);
         return;
       }
-      const data = await response.json();
-      setProfile(data.profile);
-      setShowModal(true);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('onboarding_psych_profile', data.profile);
+
+      // Check if it's a cached response
+      const contentType = response.headers.get('content-type');
+      if (contentType?.includes('application/json')) {
+        const data = await response.json();
+        setProfile(data.profile);
+        setShowModal(true);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('onboarding_psych_profile', data.profile);
+        }
+        setLoading(false);
+        return;
       }
+
+      // Handle streaming response
+      setIsStreaming(true);
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('No response body');
+      }
+
+      let fullProfile = '';
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = new TextDecoder().decode(value);
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              
+              if (data.complete && data.profile) {
+                // Final complete profile
+                setProfile(data.profile);
+                setShowModal(true);
+                setIsStreaming(false);
+                
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem('onboarding_psych_profile', data.profile);
+                }
+                setLoading(false);
+                return;
+              } else if (data.partial && data.content) {
+                // Partial content update
+                fullProfile += data.content;
+                setStreamingContent(fullProfile);
+              }
+            } catch (e) {
+              // Skip invalid JSON
+            }
+          }
+        }
+      }
+      
     } catch (e) {
       setError('Failed to generate profile');
+      setIsStreaming(false);
     } finally {
       setLoading(false);
-    }
-  }
-
-  function handleShare() {
-    if (navigator.share) {
-      navigator.share({
-        title: 'My Sage Psychographic Profile',
-        text: profile,
-        url: window.location.href
-      });
-    } else {
-      navigator.clipboard.writeText(profile);
-      alert('Profile copied to clipboard!');
     }
   }
 
@@ -350,26 +397,30 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
         disabled={!allComplete || loading}
         onClick={handleGenerateProfile}
       >
-        {loading ? 'Generating Profile...' : 'Generate My Profile'}
+        {loading ? (isStreaming ? 'Generating...' : 'Generating Profile...') : 'Generate My Profile'}
       </button>
+      
       {error && <div className="text-red-500 text-center mb-2">{error}</div>}
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full relative animate-fade-in">
-            <button className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl" onClick={() => setShowModal(false)}>&times;</button>
-            <h2 className="text-2xl font-bold text-center mb-4 text-[#8a9a5b]">Your Psychographic Profile</h2>
-            <div className="whitespace-pre-line text-text text-base mb-6" style={{ maxHeight: 320, overflowY: 'auto' }}>{profile}</div>
-            <button
-              className="w-full py-2 rounded-xl bg-[#8a9a5b] text-white font-semibold text-lg hover:bg-[#6d7a4a] mb-2"
-              onClick={handleShare}
-            >
-              Share
-            </button>
-            <div className="text-center text-xs text-[#bdbdbd]">You can copy or share this profile on social media.</div>
+      
+      {/* Streaming indicator */}
+      {isStreaming && (
+        <div className="w-full bg-gray-100 rounded-lg p-4 mb-4">
+          <div className="flex items-center mb-2">
+            <div className="w-4 h-4 bg-[#8a9a5b] rounded-full animate-pulse mr-2"></div>
+            <span className="text-sm text-gray-600">Generating your profile...</span>
+          </div>
+          <div className="text-xs text-gray-500">
+            {streamingContent.length > 0 ? 'Profile is being created...' : 'Starting generation...'}
           </div>
         </div>
       )}
+      
+      {/* Profile Modal */}
+      <ProfileModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        profileJson={profile}
+      />
     </div>
   );
 } 
