@@ -2,33 +2,27 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useState as useModalState } from "react";
+import Link from "next/link";
 import ProfileModal from "../components/ProfileModal";
 
 function SageLogo() {
   return (
-    <div className="flex flex-col items-center mb-8">
-      {/* Glassmorphism-style card for profile icon */}
-      <div className="relative w-20 h-20 flex items-center justify-center rounded-2xl shadow-2xl bg-white/80 backdrop-blur-sm border border-white/20 mb-4">
-        {/* Inner gradient circle with enhanced styling */}
-        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#9DC183] via-[#8a9a5b] to-[#55613b] flex items-center justify-center shadow-lg">
-          {/* Plus sign with improved styling */}
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-            <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/>
+    <Link href="/" className="flex flex-col items-center mb-8 hover:scale-105 transition-transform duration-200">
+      <div className="relative w-24 h-24 flex items-center justify-center rounded-full shadow-xl bg-gradient-to-br from-[#f3f4f6] to-[#ececec]">
+        {/* Inner gradient circle */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#8a9a5b] to-[#55613b] flex items-center justify-center">
+          {/* Plus sign - sharp, no glow */}
+          <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none">
+            <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"/>
           </svg>
         </div>
-        {/* Enhanced yellow dot */}
-        <div className="absolute" style={{ top: '12%', right: '12%' }}>
-          <div className="w-3 h-3 rounded-full bg-gradient-to-br from-[#FFE082] to-[#FFB74D] shadow-md" />
+        {/* Yellow dot - smaller, between circles */}
+        <div className="absolute" style={{ top: '14%', right: '14%' }}>
+          <div className="w-3 h-3 rounded-full bg-[#ffe082] shadow" />
         </div>
       </div>
-      {/* Sage name with soft gradient background */}
-      <div className="relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-[#9DC183]/10 to-[#8a9a5b]/10 rounded-lg blur-sm"></div>
-        <h1 className="relative text-2xl font-semibold text-[#2d3748] tracking-tight" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-          Sage
-        </h1>
-      </div>
-    </div>
+      <h1 className="mt-6 text-3xl text-text font-normal font-sans" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>Sage</h1>
+    </Link>
   );
 }
 
