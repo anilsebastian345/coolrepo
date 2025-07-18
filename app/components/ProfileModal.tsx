@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface ProfileData {
   archetype: string;
@@ -59,6 +59,8 @@ export default function ProfileModal({ isOpen, onClose, profileJson }: ProfileMo
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [isSharing, setIsSharing] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
+  // Track expanded state for each section
+  const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     if (profileJson) {
@@ -116,13 +118,18 @@ export default function ProfileModal({ isOpen, onClose, profileJson }: ProfileMo
     handleShare();
   };
 
+  // Toggle section expansion
+  const toggleSection = (key: string) => {
+    setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   if (!isOpen || !profile) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden animate-fade-in">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden animate-fade-in flex flex-col">
         {/* Header */}
-        <div className="relative p-8 bg-gradient-to-br from-[#f8faf6] to-[#e8f0e3] border-b border-gray-100">
+        <div className="relative p-8 bg-gradient-to-br from-[#f8faf6] to-[#e8f0e3] border-b border-gray-100 shrink-0">
           <button
             onClick={onClose}
             className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110"
@@ -147,27 +154,47 @@ export default function ProfileModal({ isOpen, onClose, profileJson }: ProfileMo
         </div>
 
         {/* Content */}
-        <div className="p-8 overflow-y-auto max-h-[60vh]">
-          <div className="grid gap-6">
+        <div className="p-8 overflow-y-auto grow">
+          <div className="grid gap-8">
             {Object.entries(profile).map(([key, value]) => {
               if (key === 'archetype' || key === 'summary') return null;
-              
+              const isExpanded = expandedSections[key];
+              const displayText = isExpanded || typeof value !== 'string' || value.length <= 120
+                ? value
+                : value.slice(0, 120) + '...';
               return (
                 <div
                   key={key}
-                  className="group bg-gradient-to-r from-[#f8faf6] to-[#f1f5f1] rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
+                  className="group bg-white rounded-2xl p-6 border border-gray-100 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] flex flex-col"
+                  style={{ background: 'linear-gradient(135deg, #f8faf6 60%, #f1f5f1 100%)' }}
                 >
-                  <div className="flex items-center mb-4">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#8a9a5b] to-[#55613b] flex items-center justify-center mr-4 shadow-lg">
-                      <span className="text-xl">{sectionIcons[key as keyof typeof sectionIcons]}</span>
+                  <div className="flex items-center mb-3">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center mr-3 text-2xl bg-[#f3f4f6] border border-[#e2e8f0] shadow-sm">
+                      <span>{sectionIcons[key as keyof typeof sectionIcons]}</span>
                     </div>
-                    <h3 className="text-xl font-semibold text-[#2d3748] capitalize">
-                      {key.replace(/_/g, ' ')}
+                    <h3 className="text-lg font-semibold text-[#2d3748] capitalize tracking-tight">
+                      {key.replace(/_/g, ' ').replace('and', '&')}
                     </h3>
                   </div>
-                  <p className="text-[#4a5568] leading-relaxed text-lg">
-                    {value}
+                  <p className="text-[#4a5568] leading-relaxed text-base mb-2">
+                    {displayText}
                   </p>
+                  {typeof value === 'string' && value.length > 120 && (
+                    <button
+                      className="mt-1 text-sm text-[#8a9a5b] hover:underline focus:outline-none font-medium flex items-center gap-1"
+                      onClick={() => toggleSection(key)}
+                    >
+                      {isExpanded ? (
+                        <>
+                          Show Less <span className="text-xs">▲</span>
+                        </>
+                      ) : (
+                        <>
+                          Show More <span className="text-xs">▼</span>
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
               );
             })}
@@ -175,7 +202,7 @@ export default function ProfileModal({ isOpen, onClose, profileJson }: ProfileMo
         </div>
 
         {/* Footer */}
-        <div className="p-6 bg-gray-50 border-t border-gray-100">
+        <div className="p-6 bg-gray-50 border-t border-gray-100 shrink-0">
           <div className="flex gap-4 justify-center">
             <button
               onClick={handleShare}
@@ -221,30 +248,3 @@ export default function ProfileModal({ isOpen, onClose, profileJson }: ProfileMo
     </div>
   );
 }
-
-// Add these styles to your globals.css
-const styles = `
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes fade-in-up {
-  from { 
-    opacity: 0; 
-    transform: translateY(20px); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
-  }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out;
-}
-
-.animate-fade-in-up {
-  animation: fade-in-up 0.5s ease-out;
-}
-`; 
