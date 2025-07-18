@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
@@ -98,12 +100,27 @@ export default function Home() {
       </div>
 
       {/* Preview Onboarding Link */}
-      <Link href="/preview-onboarding" className="text-gray-500 underline underline-offset-2 hover:text-amber-700 transition text-sm flex items-center justify-center space-x-1">
+      <Link href="/preview-onboarding" className="text-gray-500 underline underline-offset-2 hover:text-amber-700 transition text-sm flex items-center justify-center space-x-1 mb-8">
         <span>Preview Onboarding</span>
         <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
         </svg>
       </Link>
+
+      {/* Main Action Buttons */}
+      <div className="flex flex-row items-center justify-center gap-4 mb-8">
+        <button
+          className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#8a9a5b] to-[#55613b] text-white font-semibold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none"
+        >
+          See what I have learned
+        </button>
+        <button
+          onClick={() => router.push('/chat')}
+          className="px-6 py-3 rounded-xl bg-white border border-[#8a9a5b] text-[#55613b] font-semibold shadow hover:bg-[#f8faf6] hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none"
+        >
+          Let's chat
+        </button>
+      </div>
 
       {/* Loading Overlay */}
       {isLoading && (

@@ -103,6 +103,7 @@ export default function PreviewOnboarding() {
   const [isUploading, setIsUploading] = useState(false);
   const [questionsCompleted, setQuestionsCompleted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -131,7 +132,6 @@ export default function PreviewOnboarding() {
       if (questionsDone === 'true') setQuestionsCompleted(true);
     }
   }, []);
-  const router = useRouter();
 
   async function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -329,12 +329,13 @@ export default function PreviewOnboarding() {
         linkedinComplete={linkedinProgress === 4}
         resumeComplete={resumeUploaded}
         questionsComplete={questionsCompleted}
+        router={router}
       />
     </div>
   );
 }
 
-function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComplete }: { linkedinComplete: boolean; resumeComplete: boolean; questionsComplete: boolean }) {
+function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComplete, router }: { linkedinComplete: boolean; resumeComplete: boolean; questionsComplete: boolean; router: any }) {
   const [loading, setLoading] = useModalState(false);
   const [showModal, setShowModal] = useModalState(false);
   const [profile, setProfile] = useModalState("");
@@ -444,6 +445,7 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
       
       <button
         className="flex-1 py-4 px-6 rounded-2xl text-lg font-semibold bg-gradient-to-r from-[#E5E7EB] to-[#D1D5DB] text-[#374151] hover:from-[#D1D5DB] hover:to-[#9CA3AF] transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+        onClick={() => router.push('/chat')}
       >
         <span>Let's chat</span>
         <svg className="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
