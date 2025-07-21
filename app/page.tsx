@@ -110,11 +110,6 @@ export default function Home() {
       {/* Main Action Buttons */}
       <div className="flex flex-row items-center justify-center gap-4 mb-8">
         <button
-          className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#8a9a5b] to-[#55613b] text-white font-semibold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none"
-        >
-          See what I have learned
-        </button>
-        <button
           onClick={() => router.push('/chat')}
           className="px-6 py-3 rounded-xl bg-white border border-[#8a9a5b] text-[#55613b] font-semibold shadow hover:bg-[#f8faf6] hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none"
         >
