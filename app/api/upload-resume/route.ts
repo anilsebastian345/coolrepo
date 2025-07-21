@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir, unlink } from 'fs/promises';
 import { join, normalize } from 'path';
 import { existsSync } from 'fs';
+// Remove pdf-parse and mammoth imports and name extraction logic
 
 export async function POST(request: NextRequest) {
   try {
@@ -65,7 +66,6 @@ export async function POST(request: NextRequest) {
       fileSize: file.size,
       fileType: file.type,
       uploadedAt: new Date().toISOString(),
-      // TODO: Add user ID when authentication is implemented
       userId: 'temp-user-id'
     };
 
