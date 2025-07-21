@@ -80,13 +80,30 @@ export default function Home() {
                 </span>
               )}
             </div>
-            {/* Welcome Message */}
-            <div
-              ref={welcomeRef}
-              className="mt-6 text-2xl font-light text-[#55613b] fade-in opacity-0"
-              style={{ fontFamily: 'Segoe UI, system-ui, sans-serif', animation: 'fadeIn 1.2s forwards' }}
-            >
-              {`Welcome ${session.user?.name?.split(' ')[0]}!`}
+            {/* Welcome message in black */}
+            <h1 className="text-2xl font-semibold mb-2 text-black">Welcome {session.user?.name?.split(' ')[0]}!</h1>
+            <div className="mb-6" />
+            {/* Line break and subtext */}
+            <div className="mb-4 text-base text-[#55613b]">Sage is ready to pick up where you left off</div>
+            <div className="mb-6" />
+            {/* Break and review info link */}
+            <div className="mb-4">
+              <Link href="/preview-onboarding" className="text-gray-600 underline underline-offset-2 hover:text-amber-700 transition text-sm flex items-center justify-center space-x-1">
+                <span>Review the information you have shared with me</span>
+                <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
+            {/* Break and larger Let's Chat button */}
+            <div className="mb-4 flex flex-row items-center justify-center gap-4">
+              <button
+                onClick={() => router.push('/chat')}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-br from-[#e0e7ef] to-[#c8e6c9] shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-200 text-[#55613b] text-base font-semibold"
+              >
+                <span className="text-lg">💬</span>
+                <span className="text-base">Let's chat</span>
+              </button>
             </div>
           </div>
         </>
@@ -177,30 +194,7 @@ export default function Home() {
         <span className="w-2 h-2 rounded-full" style={{ background: '#55613b' }}></span>
       </div>
 
-      {/* Preview Onboarding Link and Let's Chat - only when signed in */}
-      {session ? (
-        <>
-          <Link href="/preview-onboarding" className="text-gray-500 underline underline-offset-2 hover:text-amber-700 transition text-sm flex items-center justify-center space-x-1 mb-8">
-            <span>Preview Onboarding</span>
-            <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-          <div className="flex flex-row items-center justify-center gap-4 mb-8">
-            <button
-              onClick={() => router.push('/chat')}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-br from-[#e0e7ef] to-[#c8e6c9] shadow-md hover:scale-105 hover:shadow-lg transition-all duration-200 text-[#55613b] text-sm font-medium"
-            >
-              <span className="text-xs">💬</span>
-              <span className="text-xs">Let's chat</span>
-            </button>
-          </div>
-        </>
-      ) : (
-        <div className="flex flex-col items-center justify-center mt-8 mb-8">
-          <p className="text-lg text-[#8a9a5b] font-normal text-center">Your personal coach is one click away — log in and let’s get started</p>
-        </div>
-      )}
+      
 
       {/* Loading Overlay */}
       {isLoading && (

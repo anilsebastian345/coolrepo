@@ -65,26 +65,17 @@ export default function ProfileModal({ isOpen, onClose, profileJson }: ProfileMo
   useEffect(() => {
     if (profileJson) {
       try {
-        console.log('Attempting to parse profile JSON:', profileJson.substring(0, 100) + '...');
-        const parsed = JSON.parse(profileJson);
+        let jsonToParse = profileJson;
+        // Try to extract JSON if wrapped in other content
+        const jsonMatch = profileJson.match(/(\{[\s\S]*\})/);
+        if (jsonMatch) {
+          jsonToParse = jsonMatch[1];
+        }
+        const parsed = JSON.parse(jsonToParse);
         setProfile(parsed);
       } catch (e) {
         console.error('Failed to parse profile JSON:', e);
         console.error('Profile JSON content:', profileJson);
-        // Try to extract JSON from the string if it's wrapped in other content
-        try {
-          const jsonMatch = profileJson.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            const extractedJson = jsonMatch[0];
-            console.log('Attempting to parse extracted JSON:', extractedJson.substring(0, 100) + '...');
-            const parsed = JSON.parse(extractedJson);
-            setProfile(parsed);
-          } else {
-            console.error('No valid JSON found in profile data');
-          }
-        } catch (extractError) {
-          console.error('Failed to extract and parse JSON:', extractError);
-        }
       }
     }
   }, [profileJson]);
