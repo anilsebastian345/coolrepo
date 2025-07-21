@@ -4,24 +4,25 @@ import { useRouter } from "next/navigation";
 import { useState as useModalState } from "react";
 import Link from "next/link";
 import ProfileModal from "../components/ProfileModal";
+import ResumeModal from "../components/ResumeModal";
 
 function SageLogo() {
   return (
-    <Link href="/" className="flex flex-col items-center mb-8 hover:scale-105 transition-transform duration-200">
-      <div className="relative w-24 h-24 flex items-center justify-center rounded-full shadow-xl bg-gradient-to-br from-[#f3f4f6] to-[#ececec]">
+    <Link href="/" className="flex flex-col items-center mb-6 hover:scale-105 transition-transform duration-200">
+      <div className="relative w-16 h-16 flex items-center justify-center rounded-full shadow-xl bg-gradient-to-br from-[#f3f4f6] to-[#ececec]">
         {/* Inner gradient circle */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#8a9a5b] to-[#55613b] flex items-center justify-center">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#8a9a5b] to-[#55613b] flex items-center justify-center">
           {/* Plus sign - sharp, no glow */}
-          <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none">
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
             <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"/>
           </svg>
         </div>
         {/* Yellow dot - smaller, between circles */}
         <div className="absolute" style={{ top: '14%', right: '14%' }}>
-          <div className="w-3 h-3 rounded-full bg-[#ffe082] shadow" />
+          <div className="w-2 h-2 rounded-full bg-[#ffe082] shadow" />
         </div>
       </div>
-      <h1 className="mt-6 text-3xl text-text font-normal font-sans" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>Sage</h1>
+      <h1 className="mt-4 text-lg text-[#7a7a7a] font-normal font-sans" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>Sage</h1>
     </Link>
   );
 }
@@ -104,6 +105,8 @@ export default function PreviewOnboarding() {
   const [questionsCompleted, setQuestionsCompleted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const [resumeInfo, setResumeInfo] = useState<{fileName: string, uploadedAt: string} | null>(null);
+  const [resumeModalOpen, setResumeModalOpen] = useState(false);
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -122,8 +125,13 @@ export default function PreviewOnboarding() {
       
       // Check if resume was uploaded
       const resumeData = localStorage.getItem('onboarding_resume_uploaded');
-      if (resumeData) {
+      const resumeInfoData = localStorage.getItem('onboarding_resume_data');
+      if (resumeData && resumeInfoData) {
         setResumeUploaded(true);
+        try {
+          const parsed = JSON.parse(resumeInfoData);
+          setResumeInfo({ fileName: parsed.fileName, uploadedAt: parsed.uploadedAt });
+        } catch {}
         if (resumeData === 'true') setSelected('resume');
       }
 
@@ -133,39 +141,29 @@ export default function PreviewOnboarding() {
     }
   }, []);
 
-  async function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  async function handleFileUploadModal(file: File) {
     setIsUploading(true);
-    
     try {
       const formData = new FormData();
       formData.append('resume', file);
-
       const response = await fetch('/api/upload-resume', {
         method: 'POST',
         body: formData,
       });
-
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Upload failed');
       }
-
       const result = await response.json();
-      
-      // Store upload state
       localStorage.setItem('onboarding_resume_uploaded', 'true');
       localStorage.setItem('onboarding_resume_data', JSON.stringify({
         fileId: result.fileId,
         fileName: result.fileName,
         uploadedAt: new Date().toISOString()
       }));
-      
       setResumeUploaded(true);
-      setSelected('resume');
-      
+      setResumeInfo({ fileName: result.fileName, uploadedAt: new Date().toISOString() });
+      setResumeModalOpen(false);
     } catch (error) {
       console.error('Upload error:', error);
       alert(error instanceof Error ? error.message : 'Failed to upload resume');
@@ -173,10 +171,17 @@ export default function PreviewOnboarding() {
       setIsUploading(false);
     }
   }
+  function handleDeleteResumeModal() {
+    localStorage.removeItem('onboarding_resume_uploaded');
+    localStorage.removeItem('onboarding_resume_data');
+    setResumeUploaded(false);
+    setResumeInfo(null);
+    setResumeModalOpen(false);
+  }
 
   function handleOptionClick(key: string) {
     if (key === "resume") {
-      fileInputRef.current?.click();
+      setResumeModalOpen(true);
       return;
     }
     if (key === "questions") {
@@ -190,132 +195,81 @@ export default function PreviewOnboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FEFEFE] via-[#F9FAFB] to-[#F3F4F6] flex flex-col items-center py-8 px-4 font-sans" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div className="min-h-screen bg-gradient-to-br from-[#FEFEFE] via-[#F9FAFB] to-[#F3F4F6] flex flex-col items-center py-8 px-4 font-sans" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>
       <SageLogo />
-      <h2 className="text-4xl font-bold text-[#1F2937] mt-2 mb-3 tracking-tight">Welcome</h2>
-      <p className="text-[#374151] text-center text-lg mb-2 font-medium">Help me get to know you so I can guide you better.</p>
-      <p className="text-[#6B7280] text-center text-base mb-10 max-w-lg leading-relaxed">You can paste your LinkedIn summary, upload your resume, or answer a few questions. Whatever works for you.</p>
+      <h2 className="text-2xl font-semibold text-[#1F2937] mt-2 mb-0 tracking-tight">Welcome</h2>
+      <br />
+      <p className="text-base font-normal text-black text-center mb-1">Help me get to know you so I can guide you better.</p>
+      <br />
+      <p className="text-sm text-[#7a7a7a] text-center mb-8" style={{whiteSpace: 'pre-line'}}>
+        You can paste your LinkedIn summary,
+        <br />upload your resume, or answer a few questions.
+        <br />Whatever works for you.
+      </p>
       
       {/* Hidden file input for resume upload */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".pdf,.doc,.docx"
-        onChange={handleFileUpload}
-        className="hidden"
+      {/* (Removed old input and preview card) */}
+      <ResumeModal
+        isOpen={resumeModalOpen}
+        onClose={() => setResumeModalOpen(false)}
+        resumeInfo={resumeInfo}
+        onUpload={handleFileUploadModal}
+        onDelete={handleDeleteResumeModal}
+        isUploading={isUploading}
       />
       
       {/* Enhanced Input Tiles */}
-      <div className="w-full max-w-lg space-y-4 mb-8">
-        {options.map((opt) => (
-          <button
-            key={opt.key}
-            onClick={() => handleOptionClick(opt.key)}
-            className={`w-full p-6 rounded-2xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl ${
-              selected === opt.key 
-                ? 'bg-white shadow-lg border-2 border-[#9DC183]/20' 
-                : 'bg-white/80 backdrop-blur-sm shadow-md border border-white/50 hover:border-[#9DC183]/30'
-            }`}
-          >
-            <div className="flex items-start space-x-4">
-              {/* Enhanced icon with rounded background */}
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm ${
-                selected === opt.key 
-                  ? 'bg-gradient-to-br from-[#9DC183] to-[#8a9a5b]' 
-                  : 'bg-[#F8FAFC] border border-[#E2E8F0]'
-              }`}>
-                <div className={selected === opt.key ? 'text-white' : 'text-[#9DC183]'}>
-                  {opt.icon}
+      <div className="w-full max-w-md mx-auto mb-5 p-0"> {/* container for all cards */}
+        {options.map((opt) => {
+          const isLinkedIn = opt.key === 'linkedin';
+          const isResume = opt.key === 'resume';
+          const isQuestions = opt.key === 'questions';
+          const isLinkedInComplete = isLinkedIn && linkedinProgress === 4;
+          const isResumeComplete = isResume && resumeUploaded;
+          const isQuestionsComplete = isQuestions && questionsCompleted;
+          const isComplete = isLinkedInComplete || isResumeComplete || isQuestionsComplete;
+          return (
+            <button
+              key={opt.key}
+              onClick={() => handleOptionClick(opt.key)}
+              className={`w-full max-w-sm mx-auto flex items-center px-6 py-5 mb-6 rounded-lg border-[1.5px] transition-all duration-200
+                ${isComplete
+                  ? 'bg-white border-[#8a9112]'
+                  : 'bg-white border-[#d3d7c7]'}
+                hover:border-[#8a9112] focus:outline-none`}
+              style={{ minHeight: 80 }}
+            >
+              <div className="flex items-center justify-center w-12 h-12 rounded-lg mr-4 bg-[#f5f6f2]">
+                {opt.icon}
+              </div>
+              <div className="flex-1 text-left min-w-0">
+                <div className="text-[16px] font-normal text-black mb-1 leading-tight">{opt.title}</div>
+                <div className="text-[13px] text-[#7a7a7a] font-normal leading-snug" style={{whiteSpace: 'pre-line'}}>
+                  {opt.key === 'linkedin' ? (
+                    <>Quick and easy way to share your<br />background</>
+                  ) : opt.key === 'resume' ? (
+                    <>Let me review your professional<br />experience</>
+                  ) : (
+                    <>We'll have a brief conversation to<br />get started</>
+                  )}
                 </div>
               </div>
-              
-              <div className="flex-1 text-left">
-                <h3 className={`text-lg font-semibold mb-1 ${
-                  selected === opt.key ? 'text-[#1F2937]' : 'text-[#374151]'
-                }`}>
-                  {opt.title}
-                </h3>
-                <p className={`text-sm ${
-                  selected === opt.key ? 'text-[#6B7280]' : 'text-[#9CA3AF]'
-                }`}>
-                  {opt.desc}
-                </p>
-                
-              </div>
-              
-              {/* Enhanced status indicator */}
-              <div className="flex items-center justify-center w-8 h-8">
-                {opt.key === 'linkedin' ? (
-                  linkedinProgress === 4 ? (
-                    <span className="inline-block w-8 h-8 flex items-center justify-center">
-                      <span className="absolute">
-                        <CircularProgress percent={100} />
-                      </span>
-                      <span className="absolute flex items-center justify-center w-8 h-8">
-                        <svg className="w-5 h-5 text-[#9DC183]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                          <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </span>
-                    </span>
-                  ) : linkedinProgress > 0 ? (
-                    <span className="inline-block w-8 h-8 flex items-center justify-center">
-                      <CircularProgress percent={linkedinProgress * 25} />
-                    </span>
-                  ) : (
-                    <span className="inline-block w-6 h-6 rounded-full border-2 border-[#E5E7EB] bg-white"></span>
-                  )
-                ) : opt.key === 'resume' ? (
-                  resumeUploaded ? (
-                    <span className="inline-block w-8 h-8 flex items-center justify-center">
-                      <span className="absolute">
-                        <CircularProgress percent={100} />
-                      </span>
-                      <span className="absolute flex items-center justify-center w-8 h-8">
-                        <svg className="w-5 h-5 text-[#9DC183]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                          <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </span>
-                    </span>
-                  ) : isUploading ? (
-                    <span className="inline-block w-8 h-8 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-[#9DC183] animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                    </span>
-                  ) : (
-                    <span className="inline-block w-6 h-6 rounded-full border-2 border-[#E5E7EB] bg-white"></span>
-                  )
-                ) : opt.key === 'questions' ? (
-                  questionsCompleted ? (
-                    <span className="inline-block w-8 h-8 flex items-center justify-center">
-                      <span className="absolute">
-                        <CircularProgress percent={100} />
-                      </span>
-                      <span className="absolute flex items-center justify-center w-8 h-8">
-                        <svg className="w-5 h-5 text-[#9DC183]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                          <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </span>
-                    </span>
-                  ) : (
-                    <span className="inline-block w-6 h-6 rounded-full border-2 border-[#E5E7EB] bg-white"></span>
-                  )
+              <div className="ml-4 flex items-center justify-center">
+                {isComplete ? (
+                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#8a9112]">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                      <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
                 ) : (
-                  selected === opt.key ? (
-                    <span className="inline-block w-6 h-6 rounded-full border-2 border-[#9DC183] bg-[#9DC183] flex items-center justify-center">
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </span>
-                  ) : (
-                    <span className="inline-block w-6 h-6 rounded-full border-2 border-[#E5E7EB] bg-white"></span>
-                  )
+                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-full border border-[#d3d7c7] bg-white">
+                    <span className="w-3 h-3 rounded-full bg-[#e5e7eb]"></span>
+                  </span>
                 )}
               </div>
-            </div>
-          </button>
-        ))}
+            </button>
+          );
+        })}
       </div>
       
       {/* Enhanced completion message as badge */}
