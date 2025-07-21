@@ -13,20 +13,24 @@ function getInitials(name: string | undefined) {
 }
 
 // Add SageLogo component from onboarding
-function SageLogo({ vertical = false }: { vertical?: boolean }) {
+function SageLogo({ vertical = false, size = 'lg' }: { vertical?: boolean; size?: 'sm' | 'lg' }) {
+  const logoSize = size === 'sm' ? 'w-12 h-12' : 'w-20 h-20';
+  const innerSize = size === 'sm' ? 'w-7 h-7' : 'w-12 h-12';
+  const svgSize = size === 'sm' ? 'w-5 h-5' : 'w-7 h-7';
+  const textSize = size === 'sm' ? 'text-lg' : 'text-2xl';
   return (
     <div className={`flex ${vertical ? 'flex-col items-center' : 'items-center'}`}>
-      <div className="relative w-20 h-20 flex items-center justify-center rounded-full shadow-xl bg-gradient-to-br from-[#f3f4f6] to-[#ececec] group hover:animate-logo-pulse transition-all">
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#8a9a5b] to-[#55613b] flex items-center justify-center group-hover:animate-logo-glow transition-all">
-          <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none">
+      <div className={`relative flex items-center justify-center rounded-full shadow-xl bg-gradient-to-br from-[#f3f4f6] to-[#ececec] group hover:animate-logo-pulse transition-all ${logoSize}`}>
+        <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#8a9a5b] to-[#55613b] flex items-center justify-center ${innerSize} group-hover:animate-logo-glow transition-all`}>
+          <svg className={svgSize} viewBox="0 0 24 24" fill="none">
             <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"/>
           </svg>
         </div>
-        <div className="absolute" style={{ top: '15%', right: '15%' }}>
-          <div className="w-3 h-3 rounded-full bg-[#ffe082] shadow" />
+        <div className="absolute" style={{ top: size === 'sm' ? '18%' : '18%', right: size === 'sm' ? '18%' : '18%' }}>
+          {/* Decorative dot or accent if needed */}
         </div>
       </div>
-      <span className={`${vertical ? 'mt-5 block text-2xl' : 'ml-4 text-2xl'} text-[#55613b] font-normal font-sans`} style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>Sage</span>
+      <span className={`font-semibold text-[#8a9a5b] mt-2 ${vertical ? '' : 'ml-2'} ${textSize}`}>Sage</span>
     </div>
   );
 }
@@ -68,7 +72,6 @@ export default function Home() {
           <div className="flex flex-col items-center mb-8">
             {/* Animated Profile Icon */}
             <div className="relative w-20 h-20 flex items-center justify-center rounded-full bg-gradient-to-br from-[#e0e7ef] to-[#c8e6c9] shadow-xl animate-float">
-              <div className="absolute inset-0 rounded-full border-4 border-green-200 animate-glow"></div>
               {session.user?.image ? (
                 <img src={session.user.image} alt="Profile" className="w-16 h-16 rounded-full object-cover z-10" />
               ) : (
@@ -80,7 +83,7 @@ export default function Home() {
             {/* Welcome Message */}
             <div
               ref={welcomeRef}
-              className="mt-6 px-8 py-4 rounded-2xl bg-white/40 backdrop-blur-md shadow-lg border border-white/30 text-2xl font-light text-gray-800 fade-in opacity-0"
+              className="mt-6 text-2xl font-light text-[#55613b] fade-in opacity-0"
               style={{ fontFamily: 'Segoe UI, system-ui, sans-serif', animation: 'fadeIn 1.2s forwards' }}
             >
               {`Welcome ${session.user?.name?.split(' ')[0]}!`}
@@ -93,27 +96,25 @@ export default function Home() {
 
       {/* Sage Logo - top-left if signed in, centered if signed out */}
       {session ? (
-        <div className="fixed top-6 left-6 z-30">
-          <SageLogo />
-        </div>
+        <>
+          <div className="fixed top-6 left-6 z-30">
+            <SageLogo size="sm" />
+          </div>
+          <button
+            onClick={() => signOut()}
+            className="fixed top-6 right-6 flex items-center justify-center p-3 rounded-full bg-white/60 backdrop-blur-md shadow-md hover:bg-white/80 hover:shadow-lg transition-all duration-200 text-gray-700 z-30"
+            title="Sign out"
+            aria-label="Sign out"
+          >
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1" />
+            </svg>
+          </button>
+        </>
       ) : (
         <div className="flex flex-col items-center mb-6">
           <SageLogo vertical />
         </div>
-      )}
-
-      {/* Sign Out Button */}
-      {session && (
-        <button
-          onClick={() => signOut()}
-          className="fixed top-6 right-6 flex items-center gap-1 px-3 py-2 rounded-xl bg-white/60 backdrop-blur-md shadow-md hover:bg-white/80 hover:shadow-lg transition-all duration-200 text-gray-700 text-sm font-medium z-30"
-          title="Sign out"
-        >
-          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1" />
-          </svg>
-          Sign out
-        </button>
       )}
 
       {/* Social Login Buttons */}
@@ -188,9 +189,10 @@ export default function Home() {
           <div className="flex flex-row items-center justify-center gap-4 mb-8">
             <button
               onClick={() => router.push('/chat')}
-              className="px-6 py-3 rounded-2xl bg-gradient-to-br from-[#e0e7ef]/70 to-[#c8e6c9]/70 backdrop-blur-md shadow-lg border border-[#8a9a5b]/30 text-[#55613b] font-semibold flex items-center gap-2 hover:scale-105 hover:shadow-2xl transition-all duration-200 focus:outline-none"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-br from-[#e0e7ef] to-[#c8e6c9] shadow-md hover:scale-105 hover:shadow-lg transition-all duration-200 text-[#55613b] text-sm font-medium"
             >
-              <span className="text-xl">💬</span> Let's chat
+              <span className="text-xs">💬</span>
+              <span className="text-xs">Let's chat</span>
             </button>
           </div>
         </>
@@ -228,8 +230,8 @@ export default function Home() {
           animation: float 3s ease-in-out infinite;
         }
         @keyframes glow {
-          0%, 100% { box-shadow: 0 0 16px 4px #b2f5ea44; }
-          50% { box-shadow: 0 0 32px 8px #b2f5ea99; }
+          0%, 100% { box-shadow: 0 0 16px 4px #8a9a5b44; }
+          50% { box-shadow: 0 0 32px 8px #8a9a5b99; }
         }
         .animate-glow {
           animation: glow 2.5s ease-in-out infinite;
