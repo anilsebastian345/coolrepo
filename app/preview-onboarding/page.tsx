@@ -9,17 +9,17 @@ import ResumeModal from "../components/ResumeModal";
 function SageLogo() {
   return (
     <Link href="/" className="flex flex-col items-center mb-6 hover:scale-105 transition-transform duration-200">
-      <div className="relative w-16 h-16 flex items-center justify-center rounded-full shadow-xl bg-gradient-to-br from-[#f3f4f6] to-[#ececec]">
+      <div className="relative w-16 h-16 flex items-center justify-center rounded-full shadow-xl bg-white/30 border border-white/40 backdrop-blur-md animate-profile-pop">
         {/* Inner gradient circle */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#8a9a5b] to-[#55613b] flex items-center justify-center">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#8a9a5b] to-[#55613b] flex items-center justify-center shadow-md">
           {/* Plus sign - sharp, no glow */}
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
             <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"/>
           </svg>
         </div>
-        {/* Yellow dot - smaller, between circles */}
+        {/* Green dot - smaller, between circles */}
         <div className="absolute" style={{ top: '14%', right: '14%' }}>
-          <div className="w-2 h-2 rounded-full bg-[#ffe082] shadow" />
+          <div className="w-2 h-2 rounded-full bg-[#8bc34a] shadow" />
         </div>
       </div>
       <h1 className="mt-4 text-lg text-[#7a7a7a] font-normal font-sans" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>Sage</h1>
@@ -194,10 +194,30 @@ export default function PreviewOnboarding() {
     }
   }
 
+  // Get user name from resume or login
+  let userName = '';
+  if (typeof window !== 'undefined') {
+    const resumeInfoData = localStorage.getItem('onboarding_resume_data');
+    if (resumeInfoData) {
+      try {
+        const parsed = JSON.parse(resumeInfoData);
+        if (parsed.userName && parsed.userName.length > 0) {
+          userName = parsed.userName;
+        }
+      } catch {}
+    }
+    if (!userName) {
+      const loginName = localStorage.getItem('onboarding_user_name');
+      if (loginName) userName = loginName;
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FEFEFE] via-[#F9FAFB] to-[#F3F4F6] flex flex-col items-center py-8 px-4 font-sans" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>
       <SageLogo />
-      <h2 className="text-2xl font-semibold text-[#1F2937] mt-2 mb-0 tracking-tight">Welcome</h2>
+      <h2 className="text-[28px] font-semibold text-[#1F2937] mt-2 mb-0 tracking-tight">
+        {userName ? `Welcome, ${userName}` : 'Welcome'}
+      </h2>
       <br />
       <p className="text-base font-normal text-black text-center mb-1">Help me get to know you so I can guide you better.</p>
       <br />
@@ -232,11 +252,11 @@ export default function PreviewOnboarding() {
             <button
               key={opt.key}
               onClick={() => handleOptionClick(opt.key)}
-              className={`w-full max-w-sm mx-auto flex items-center px-6 py-5 mb-6 rounded-lg border-[1.5px] transition-all duration-200
+              className={`w-full max-w-sm mx-auto flex items-center px-6 py-5 mb-[36px] rounded-lg border-[1.5px] transition-all duration-200
                 ${isComplete
-                  ? 'bg-white border-[#8a9112]'
-                  : 'bg-white border-[#d3d7c7]'}
-                hover:border-[#8a9112] focus:outline-none`}
+                  ? 'bg-white/60 border-[#8a9112] backdrop-blur-md'
+                  : 'bg-white/40 border-[#d3d7c7] backdrop-blur-md'}
+                hover:border-[#8a9112] hover:shadow-lg hover:scale-[1.025] focus:outline-none`}
               style={{ minHeight: 80 }}
             >
               <div className="flex items-center justify-center w-12 h-12 rounded-lg mr-4 bg-[#f5f6f2]">

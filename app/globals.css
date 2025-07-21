@@ -30,3 +30,20 @@ body {
 .animate-fade-in-up {
   animation: fade-in-up 0.5s ease-out;
 }
+
+.animate-spin-progress {
+  animation: spin-progress 1.2s linear forwards;
+}
+@keyframes spin-progress {
+  0% { stroke-dashoffset: 125.6; }
+  100% { stroke-dashoffset: 0; }
+}
+
+.animate-profile-pop {
+  animation: profile-pop 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes profile-pop {
+  0% { transform: scale(0.7) translateY(-20px); opacity: 0; }
+  80% { transform: scale(1.08) translateY(2px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
