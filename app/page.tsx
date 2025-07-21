@@ -13,20 +13,20 @@ function getInitials(name: string | undefined) {
 }
 
 // Add SageLogo component from onboarding
-function SageLogo() {
+function SageLogo({ vertical = false }: { vertical?: boolean }) {
   return (
-    <div className="flex items-center">
-      <div className="relative w-16 h-16 flex items-center justify-center rounded-full shadow-xl bg-gradient-to-br from-[#f3f4f6] to-[#ececec]">
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#8a9a5b] to-[#55613b] flex items-center justify-center">
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+    <div className={`flex ${vertical ? 'flex-col items-center' : 'items-center'}`}>
+      <div className="relative w-20 h-20 flex items-center justify-center rounded-full shadow-xl bg-gradient-to-br from-[#f3f4f6] to-[#ececec]">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#8a9a5b] to-[#55613b] flex items-center justify-center">
+          <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none">
             <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"/>
           </svg>
         </div>
-        <div className="absolute" style={{ top: '18%', right: '18%' }}>
-          <div className="w-2.5 h-2.5 rounded-full bg-[#ffe082] shadow" />
+        <div className="absolute" style={{ top: '15%', right: '15%' }}>
+          <div className="w-3 h-3 rounded-full bg-[#ffe082] shadow" />
         </div>
       </div>
-      <span className="ml-3 text-xl text-text font-normal font-sans" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>Sage</span>
+      <span className={`${vertical ? 'mt-5 block text-2xl' : 'ml-4 text-2xl'} text-text font-normal font-sans`} style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>Sage</span>
     </div>
   );
 }
@@ -91,23 +91,29 @@ export default function Home() {
         <></>
       )}
 
-      {/* Sage Logo - only render once, position and size depend on session */}
+      {/* Sage Logo - top-left if signed in, centered if signed out */}
+      {session ? (
+        <div className="fixed top-6 left-6 z-30">
+          <SageLogo />
+        </div>
+      ) : (
+        <div className="flex flex-col items-center mb-6">
+          <SageLogo vertical />
+        </div>
+      )}
+
+      {/* Sign Out Button */}
       {session && (
-        <>
-          <div className="fixed top-6 left-6 z-30">
-            <SageLogo />
-          </div>
-          <button
-            onClick={() => signOut()}
-            className="fixed top-6 right-6 flex items-center gap-1 px-3 py-2 rounded-xl bg-white/60 backdrop-blur-md shadow-md hover:bg-white/80 hover:shadow-lg transition-all duration-200 text-gray-700 text-sm font-medium z-30"
-            title="Sign out"
-          >
-            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1" />
-            </svg>
-            Sign out
-          </button>
-        </>
+        <button
+          onClick={() => signOut()}
+          className="fixed top-6 right-6 flex items-center gap-1 px-3 py-2 rounded-xl bg-white/60 backdrop-blur-md shadow-md hover:bg-white/80 hover:shadow-lg transition-all duration-200 text-gray-700 text-sm font-medium z-30"
+          title="Sign out"
+        >
+          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1" />
+          </svg>
+          Sign out
+        </button>
       )}
 
       {/* Social Login Buttons */}
