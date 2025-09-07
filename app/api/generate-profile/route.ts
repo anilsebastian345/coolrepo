@@ -39,26 +39,32 @@ async function saveCache(cache: ProfileCache): Promise<void> {
   }
 }
 
-function getInputHash(questions: any): string {
-  // Handle new Likert scale format
-  if (questions.sociability !== undefined || questions.conscientiousness !== undefined || 
+function getInputHash(questions: any, resume?: string, linkedin?: string): string {
+  // Create a comprehensive hash that includes all input sources
+  const inputData = {
+    // Questions data
+    questions: questions.sociability !== undefined || questions.conscientiousness !== undefined || 
       questions.emotional_stability !== undefined || questions.empathy !== undefined || 
-      questions.leadership !== undefined) {
-    return JSON.stringify({
-      sociability: questions.sociability || null,
-      conscientiousness: questions.conscientiousness || null,
-      emotional_stability: questions.emotional_stability || null,
-      empathy: questions.empathy || null,
-      leadership: questions.leadership || null
-    });
-  }
+      questions.leadership !== undefined ? {
+        sociability: questions.sociability || null,
+        conscientiousness: questions.conscientiousness || null,
+        emotional_stability: questions.emotional_stability || null,
+        empathy: questions.empathy || null,
+        leadership: questions.leadership || null
+      } : {
+        roleModel: questions.roleModel || '',
+        friendsSay: questions.friendsSay || '',
+        challenges: questions.challenges || ''
+      },
+    
+    // Resume data (first 1000 chars to avoid huge hashes)
+    resume: resume ? resume.substring(0, 1000) : null,
+    
+    // LinkedIn data (first 500 chars to avoid huge hashes)  
+    linkedin: linkedin ? linkedin.substring(0, 500) : null
+  };
   
-  // Fallback to old format
-  return JSON.stringify({
-    roleModel: questions.roleModel || '',
-    friendsSay: questions.friendsSay || '',
-    challenges: questions.challenges || ''
-  });
+  return JSON.stringify(inputData);
 }
 
 export async function POST(req: NextRequest) {
@@ -67,7 +73,14 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.AZURE_OPENAI_KEY;
     const deployment = process.env.AZURE_OPENAI_DEPLOYMENT;
     const apiVersion = process.env.AZURE_OPENAI_API_VERSION || '2024-02-15-preview';
-    const { userId = 'temp-user-id', questions: requestQuestions } = await req.json();
+    const { userId = 'temp-user-id', questions: requestQuestions, clearCache = false } = await req.json();
+
+    // Clear cache if requested
+    if (clearCache) {
+      console.log('Clearing profile cache...');
+      await saveCache({});
+      return NextResponse.json({ message: 'Cache cleared successfully' });
+    }
 
     // Use questions from request, fallback to file if not provided
     let questions: any = requestQuestions || {};
@@ -102,21 +115,35 @@ export async function POST(req: NextRequest) {
       userMessage += `Challenges: ${questions.challenges || ''}\n`;
     }
     
+    // Try to load resume and LinkedIn data from localStorage (these would be passed in request in real app)
+    let resumeData = '';
+    let linkedinData = '';
+    
+    // For now, we'll check if there are resume/linkedin indicators in the request
+    // In a full implementation, these would be passed as parameters
+    
     if (!userMessage) {
       return NextResponse.json({ error: 'No onboarding question answers found.' }, { status: 400 });
     }
 
-    // Check cache
+    // Check cache with comprehensive input hash
     const cache = await loadCache();
-    const inputHash = getInputHash(questions);
+    const inputHash = getInputHash(questions, resumeData, linkedinData);
     const cachedProfile = cache[userId];
     
     if (cachedProfile && 
         cachedProfile.inputs === inputHash && 
         (Date.now() - cachedProfile.timestamp) < CACHE_DURATION) {
+      console.log('Returning cached profile for user:', userId);
       return NextResponse.json({ 
         profile: cachedProfile.profile,
-        cached: true 
+        cached: true,
+        cacheTimestamp: cachedProfile.timestamp,
+        debugInfo: {
+          cacheHit: true,
+          inputHash: inputHash.substring(0, 50) + '...',
+          cacheAge: Math.round((Date.now() - cachedProfile.timestamp) / 1000 / 60) // minutes
+        }
       });
     }
 
@@ -139,7 +166,8 @@ export async function POST(req: NextRequest) {
             { role: 'user', content: userMessage }
           ],
           max_tokens: 800,
-          temperature: 0.7,
+          temperature: 0, // Completely deterministic - no randomness
+          seed: 12345, // Fixed seed for deterministic results
           stream: true,
         }),
       }
@@ -182,8 +210,20 @@ export async function POST(req: NextRequest) {
                   };
                   await saveCache(cache);
                   
-                  // Send the final complete profile
-                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ profile: fullProfile, complete: true })}\n\n`));
+                  console.log('Generated new profile for user:', userId, 'Input hash:', inputHash.substring(0, 50) + '...');
+                  
+                  // Send the final complete profile with debug info
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
+                    profile: fullProfile, 
+                    complete: true,
+                    debugInfo: {
+                      cacheHit: false,
+                      inputHash: inputHash.substring(0, 50) + '...',
+                      generated: new Date().toISOString(),
+                      temperature: 0,
+                      seed: 12345
+                    }
+                  })}\n\n`));
                   controller.close();
                   return;
                 }
