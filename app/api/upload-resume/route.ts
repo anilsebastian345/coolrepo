@@ -5,16 +5,28 @@ import { existsSync } from 'fs';
 // Remove pdf-parse and mammoth imports and name extraction logic
 
 export async function POST(request: NextRequest) {
+  console.log('=== UPLOAD RESUME API CALLED ===');
   try {
+    console.log('Parsing form data...');
     const formData = await request.formData();
+    console.log('Form data keys:', Array.from(formData.keys()));
+    
     const file = formData.get('resume') as File;
+    console.log('File received:', file ? file.name : 'No file');
     
     if (!file) {
+      console.log('ERROR: No file provided');
       return NextResponse.json(
         { error: 'No file provided' },
         { status: 400 }
       );
     }
+
+    console.log('File details:', {
+      name: file.name,
+      type: file.type,
+      size: file.size
+    });
 
     // Validate file type
     const allowedTypes = [
@@ -24,6 +36,7 @@ export async function POST(request: NextRequest) {
     ];
     
     if (!allowedTypes.includes(file.type)) {
+      console.log('ERROR: Invalid file type:', file.type);
       return NextResponse.json(
         { error: 'Invalid file type. Please upload a PDF, DOC, or DOCX file.' },
         { status: 400 }
@@ -33,11 +46,14 @@ export async function POST(request: NextRequest) {
     // Validate file size (max 10MB)
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
+      console.log('ERROR: File too large:', file.size);
       return NextResponse.json(
         { error: 'File too large. Maximum size is 10MB.' },
         { status: 400 }
       );
     }
+
+    console.log('File validation passed, creating directory...');
 
     // Create uploads directory if it doesn't exist
     const uploadsDir = join(process.cwd(), 'uploads', 'resumes');
@@ -50,11 +66,15 @@ export async function POST(request: NextRequest) {
     const fileExtension = file.name.split('.').pop();
     const fileName = `resume_${timestamp}.${fileExtension}`;
     const filePath = join(uploadsDir, fileName);
+    
+    console.log('Saving file to:', filePath);
 
     // Convert file to buffer and save
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     await writeFile(filePath, buffer);
+    
+    console.log('File saved successfully!');
 
     // For now, we'll store file info in a simple JSON file
     // In a real app, you'd store this in a database with user ID
@@ -103,6 +123,7 @@ export async function POST(request: NextRequest) {
     metadata.push(fileInfo);
     await writeFile(metadataPath, JSON.stringify(metadata, null, 2));
 
+    console.log('Upload completed successfully!');
     return NextResponse.json({
       success: true,
       fileId: timestamp,
@@ -111,6 +132,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
+    console.error('=== UPLOAD ERROR ===');
     console.error('Upload error:', error);
     return NextResponse.json(
       { error: 'Failed to upload file' },

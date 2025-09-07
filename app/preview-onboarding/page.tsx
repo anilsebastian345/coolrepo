@@ -142,19 +142,29 @@ export default function PreviewOnboarding() {
   }, []);
 
   async function handleFileUploadModal(file: File) {
+    console.log('=== FRONTEND UPLOAD START ===');
+    console.log('File details:', { name: file.name, type: file.type, size: file.size });
     setIsUploading(true);
     try {
       const formData = new FormData();
       formData.append('resume', file);
+      console.log('FormData created, sending request...');
+      
       const response = await fetch('/api/upload-resume', {
         method: 'POST',
         body: formData,
       });
+      
+      console.log('Response received:', response.status, response.statusText);
+      
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('Server error:', errorData);
         throw new Error(errorData.error || 'Upload failed');
       }
       const result = await response.json();
+      console.log('Upload success:', result);
+      
       localStorage.setItem('onboarding_resume_uploaded', 'true');
       localStorage.setItem('onboarding_resume_data', JSON.stringify({
         fileId: result.fileId,
@@ -165,6 +175,7 @@ export default function PreviewOnboarding() {
       setResumeInfo({ fileName: result.fileName, uploadedAt: new Date().toISOString() });
       setResumeModalOpen(false);
     } catch (error) {
+      console.error('=== FRONTEND UPLOAD ERROR ===');
       console.error('Upload error:', error);
       alert(error instanceof Error ? error.message : 'Failed to upload resume');
     } finally {

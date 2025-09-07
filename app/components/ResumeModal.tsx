@@ -26,19 +26,19 @@ export default function ResumeModal({ isOpen, onClose, resumeInfo, onUpload, onD
     }
   }, [isOpen]);
 
+  // Monitor upload state and show success when complete
+  useEffect(() => {
+    if (uploadState === 'uploading' && !isUploading) {
+      setTimeout(() => setUploadState('success'), 500);
+    }
+  }, [isUploading, uploadState]);
+
   function handleUpload(file: File) {
     setUploadState('uploading');
-    // Simulate upload progress for animation
+    // Call the async upload function and handle the result
     onUpload(file);
-    // Wait for isUploading to go false, then set success
-    const checkUpload = () => {
-      if (!isUploading) {
-        setTimeout(() => setUploadState('success'), 500); // short delay for effect
-      } else {
-        setTimeout(checkUpload, 100);
-      }
-    };
-    checkUpload();
+    // Note: We let the parent component handle the async logic
+    // and just monitor isUploading prop to show success state
   }
 
   function handleOk() {
@@ -171,9 +171,13 @@ export default function ResumeModal({ isOpen, onClose, resumeInfo, onUpload, onD
             type="file"
             accept=".pdf,.doc,.docx"
             className="hidden"
-            onChange={e => {
+            onChange={(e) => {
               const file = e.target.files?.[0];
-              if (file) handleUpload(file);
+              if (file) {
+                handleUpload(file);
+              }
+              // Clear the input value to allow uploading the same file again
+              e.target.value = '';
             }}
           />
         </div>
