@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 interface Message {
   id: string;
@@ -39,7 +38,6 @@ export default function ChatPage() {
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
 
   // Generate unique IDs for messages and conversations
   const generateMessageId = useCallback(() => {
@@ -411,10 +409,7 @@ export default function ChatPage() {
                 </svg>
               </button>
               
-              <button 
-                onClick={() => router.push('/')}
-                className="flex items-center space-x-3 hover:scale-105 transition-transform cursor-pointer"
-              >
+              <Link href="/preview-onboarding" className="flex items-center space-x-3 hover:scale-105 transition-transform">
                 <div className="relative w-10 h-10 flex items-center justify-center rounded-full shadow-lg bg-gradient-to-br from-[#f3f4f6] to-[#ececec]">
                   <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#8a9a5b] to-[#55613b] flex items-center justify-center">
                     <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none">
@@ -426,7 +421,7 @@ export default function ChatPage() {
                   </div>
                 </div>
                 <span className="text-xl font-semibold text-[#2d3748]">Sage</span>
-              </button>
+              </Link>
             </div>
             
             {userProfile && (

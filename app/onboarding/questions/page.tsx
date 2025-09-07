@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useRef } from "react";
-import { writeFile } from 'fs';
 
 function SageLogo() {
   return (
@@ -24,24 +23,56 @@ function SageLogo() {
 
 const questions = [
   {
-    label: "Who is your role model, and why?",
-    placeholder: "Share who inspires you and why...",
-    key: "roleModel"
+    id: "sociability",
+    text: "I enjoy meeting new people and starting conversations.",
+    description: "This measures your comfort with social interactions and networking."
   },
   {
-    label: "What would your friends say about you?",
-    placeholder: "How do others describe you?",
-    key: "friendsSay"
+    id: "conscientiousness", 
+    text: "I set personal goals and work hard to achieve them.",
+    description: "This reflects your ability to set and pursue objectives effectively."
   },
   {
-    label: "The kind of challenges that frustrate me most are…",
-    placeholder: "Help me understand what tends to drain your energy...",
-    key: "challenges"
+    id: "emotional_stability",
+    text: "I remain calm and collected even under pressure.", 
+    description: "This measures your emotional resilience during challenging situations."
+  },
+  {
+    id: "empathy",
+    text: "I find it easy to empathize with others.",
+    description: "This gauges your ability to understand and share others' feelings."
+  },
+  {
+    id: "leadership",
+    text: "I enjoy taking the lead in group situations.",
+    description: "This assesses your comfort with leadership and taking charge."
   }
 ];
 
+const likertOptions = [
+  { value: 1, label: "Strongly Disagree" },
+  { value: 2, label: "Disagree" }, 
+  { value: 3, label: "Neutral" },
+  { value: 4, label: "Agree" },
+  { value: 5, label: "Strongly Agree" }
+];
+
+type AnswersType = {
+  sociability: number | null;
+  conscientiousness: number | null;
+  emotional_stability: number | null;
+  empathy: number | null;
+  leadership: number | null;
+};
+
 export default function OnboardingQuestions() {
-  const [answers, setAnswers] = useState({ roleModel: '', friendsSay: '', challenges: '' });
+  const [answers, setAnswers] = useState<AnswersType>({
+    sociability: null,
+    conscientiousness: null,
+    emotional_stability: null,
+    empathy: null,
+    leadership: null
+  });
   const [showModal, setShowModal] = useState(false);
   const [profile, setProfile] = useState('');
   const [loading, setLoading] = useState(false);
@@ -52,14 +83,30 @@ export default function OnboardingQuestions() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('onboarding_questions');
-      if (saved) setAnswers(JSON.parse(saved));
+      if (saved) {
+        try {
+          const parsedData = JSON.parse(saved);
+          // Check if this is old format data (has roleModel, friendsSay, challenges)
+          if (parsedData.roleModel !== undefined || parsedData.friendsSay !== undefined || parsedData.challenges !== undefined) {
+            // Clear old format data and start fresh
+            localStorage.removeItem('onboarding_questions');
+            console.log('Cleared old question format data');
+          } else {
+            // This is new format data, use it
+            setAnswers(parsedData);
+          }
+        } catch (e) {
+          console.error('Failed to parse saved answers:', e);
+          localStorage.removeItem('onboarding_questions'); // Clear corrupted data
+        }
+      }
       const savedProfile = localStorage.getItem('onboarding_psych_profile');
       if (savedProfile) setProfile(savedProfile);
     }
   }, []);
 
-  function handleChange(key: string, value: string) {
-    const updated = { ...answers, [key]: value };
+  function handleChange(questionId: keyof AnswersType, value: number) {
+    const updated = { ...answers, [questionId]: value };
     setAnswers(updated);
     if (typeof window !== 'undefined') {
       localStorage.setItem('onboarding_questions', JSON.stringify(updated));
@@ -72,8 +119,8 @@ export default function OnboardingQuestions() {
     });
   }
 
-  const allFilled = Object.values(answers).every(ans => ans.trim().length > 0);
-  const atLeastTwo = Object.values(answers).filter(ans => ans.trim().length > 0).length >= 2;
+  const allAnswered = Object.values(answers).every(answer => answer !== null);
+  const answeredCount = questions.filter(q => answers[q.id as keyof AnswersType] !== null).length;
 
   function handleNext() {
     if (typeof window !== 'undefined') {
@@ -126,7 +173,7 @@ export default function OnboardingQuestions() {
   return (
     <div className="min-h-screen bg-primary flex flex-col items-center py-8 px-2 font-sans" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>
       {/* Stepper */}
-      <div className="flex items-center w-full max-w-md mb-2">
+      <div className="flex items-center w-full max-w-2xl mb-2">
         <button className="mr-4 text-[#8a9a5b] text-2xl" onClick={() => router.back()}>&larr;</button>
         <div className="flex-1 flex flex-col items-center">
           <div className="text-xs text-[#8a9a5b] font-semibold mb-1 tracking-widest">STEP 2 OF 4</div>
@@ -138,40 +185,76 @@ export default function OnboardingQuestions() {
           </div>
         </div>
       </div>
+      
       <SageLogo />
       <h2 className="text-2xl font-bold text-text mt-2 mb-2 text-center">Help me get to know you</h2>
-      <p className="text-text/80 text-center text-base mb-6 max-w-md">These questions help me understand how you work best, so I can offer more personalized guidance.</p>
-      <div className="flex flex-col gap-6 w-full max-w-md mb-8">
-        {questions.map((q, idx) => (
-          <div key={q.key} className="bg-white border border-[#ececec] rounded-xl p-4 shadow-sm">
-            <div className="flex items-center mb-2">
-              <span className="w-6 h-6 rounded-full flex items-center justify-center font-bold mr-2" style={{ background: '#8a9a5b', color: 'white' }}>{idx+1}</span>
-              <span className="text-text font-medium text-base">{q.label}</span>
+      <p className="text-text/80 text-center text-base mb-8 max-w-2xl">Rate how much you agree with each statement. This helps me understand your work style and leadership preferences.</p>
+      
+      <div className="flex flex-col gap-8 w-full max-w-2xl mb-8">
+        {questions.map((question, idx) => (
+          <div key={question.id} className="bg-white border border-[#ececec] rounded-xl p-6 shadow-sm">
+            <div className="flex items-start mb-4">
+              <span className="w-8 h-8 rounded-full flex items-center justify-center font-bold mr-3 text-sm" style={{ background: '#8a9a5b', color: 'white' }}>{idx+1}</span>
+              <div className="flex-1">
+                <h3 className="text-text font-medium text-lg mb-2">{question.text}</h3>
+                <p className="text-text/70 text-sm">{question.description}</p>
+              </div>
             </div>
-            <textarea
-              className="w-full mt-2 p-3 border border-[#ececec] rounded-lg bg-[#f8faf6] text-text text-base focus:outline-none focus:ring-2 focus:ring-[#8a9a5b]/30 resize-none min-h-[64px]"
-              placeholder={q.placeholder}
-              value={answers[q.key as keyof typeof answers]}
-              onChange={e => handleChange(q.key, e.target.value)}
-              maxLength={500}
-            />
+            
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 mt-4">
+              {likertOptions.map((option) => (
+                <label 
+                  key={option.value} 
+                  className={`cursor-pointer p-3 rounded-lg border-2 transition-all duration-200 text-center ${
+                    answers[question.id as keyof AnswersType] === option.value
+                      ? 'border-[#8a9a5b] bg-[#8a9a5b]/10 text-[#8a9a5b]'
+                      : 'border-[#ececec] bg-white hover:border-[#8a9a5b]/50 hover:bg-[#8a9a5b]/5'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name={question.id}
+                    value={option.value}
+                    checked={answers[question.id as keyof AnswersType] === option.value}
+                    onChange={() => handleChange(question.id as keyof AnswersType, option.value)}
+                    className="sr-only"
+                  />
+                  <div className="text-sm font-medium mb-1">{option.label}</div>
+                  <div className="text-xs text-text/60">{option.value}</div>
+                </label>
+              ))}
+            </div>
           </div>
         ))}
       </div>
+
+      {/* Progress indicator */}
+      <div className="text-center mb-6">
+        <p className="text-sm text-text/70">
+          {answeredCount} of {questions.length} questions answered
+        </p>
+      </div>
+
       {error && <div className="text-red-500 text-center mb-2">{error}</div>}
-      <div className="text-center text-[15px] text-[#8a9a5b] font-medium mt-2 mb-4">
-        Take your time — there are no right or wrong answers. I'm here to understand what makes you unique.
-      </div>
+      
       <button
-        className={`w-full max-w-md py-3 rounded-xl text-lg font-semibold transition mt-2 ${allFilled ? 'bg-[#8a9a5b] text-white hover:bg-[#6d7a4a]' : 'bg-[#ececec] text-[#bdbdbd] cursor-not-allowed'}`}
-        disabled={!allFilled}
         onClick={handleNext}
+        className={`w-full max-w-md py-3 rounded-xl text-lg font-semibold transition mt-2 ${
+          allAnswered 
+            ? 'bg-[#8a9a5b] text-white hover:bg-[#6d7a4a]' 
+            : 'bg-[#ececec] text-[#bdbdbd] cursor-not-allowed'
+        }`}
+        disabled={!allAnswered}
       >
-        Next &rarr;
+        Continue
       </button>
-      <div className="text-center text-xs text-[#bdbdbd] mt-2">
-        Please answer all questions to continue
-      </div>
+      
+      {!allAnswered && (
+        <div className="text-center text-xs text-[#bdbdbd] mt-2">
+          Please answer all questions to continue
+        </div>
+      )}
+
       {/* Modal */}
       {showModal && (
         <div ref={modalRef} className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">

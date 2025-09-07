@@ -40,6 +40,20 @@ async function saveCache(cache: ProfileCache): Promise<void> {
 }
 
 function getInputHash(questions: any): string {
+  // Handle new Likert scale format
+  if (questions.sociability !== undefined || questions.conscientiousness !== undefined || 
+      questions.emotional_stability !== undefined || questions.empathy !== undefined || 
+      questions.leadership !== undefined) {
+    return JSON.stringify({
+      sociability: questions.sociability || null,
+      conscientiousness: questions.conscientiousness || null,
+      emotional_stability: questions.emotional_stability || null,
+      empathy: questions.empathy || null,
+      leadership: questions.leadership || null
+    });
+  }
+  
+  // Fallback to old format
   return JSON.stringify({
     roleModel: questions.roleModel || '',
     friendsSay: questions.friendsSay || '',
@@ -62,13 +76,26 @@ export async function POST(req: NextRequest) {
       questions = JSON.parse(await readFile(questionsPath, 'utf-8'));
     } catch {}
 
-    // Compose user message with only available questions
+    // Compose user message with leadership assessment scores
     let userMessage = '';
-    if (questions.roleModel || questions.friendsSay || questions.challenges) {
+    if (questions.sociability !== undefined || questions.conscientiousness !== undefined || 
+        questions.emotional_stability !== undefined || questions.empathy !== undefined || 
+        questions.leadership !== undefined) {
+      userMessage += `Leadership Assessment Results:\n`;
+      userMessage += `Sociability/Extraversion: ${questions.sociability || 'Not answered'}/5\n`;
+      userMessage += `Conscientiousness: ${questions.conscientiousness || 'Not answered'}/5\n`;
+      userMessage += `Emotional Stability: ${questions.emotional_stability || 'Not answered'}/5\n`;
+      userMessage += `Empathy: ${questions.empathy || 'Not answered'}/5\n`;
+      userMessage += `Leadership Assertiveness: ${questions.leadership || 'Not answered'}/5\n`;
+    }
+    
+    // Fallback to old format if new format is not available
+    if (!userMessage && (questions.roleModel || questions.friendsSay || questions.challenges)) {
       userMessage += `Role model: ${questions.roleModel || ''}\n`;
       userMessage += `Friends would say: ${questions.friendsSay || ''}\n`;
       userMessage += `Challenges: ${questions.challenges || ''}\n`;
     }
+    
     if (!userMessage) {
       return NextResponse.json({ error: 'No onboarding question answers found.' }, { status: 400 });
     }

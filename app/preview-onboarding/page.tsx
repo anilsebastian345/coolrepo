@@ -406,7 +406,7 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
   return (
     <div className="w-full max-w-lg flex flex-row items-center justify-center gap-4 mt-6">
       <button
-        className={`flex-1 py-4 px-6 rounded-2xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg ${
+        className={`flex-1 py-4 px-6 rounded-2xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2 ${
           allComplete 
             ? 'bg-gradient-to-r from-[#9DC183] to-[#8a9a5b] text-white hover:shadow-xl' 
             : 'bg-[#E5E7EB] text-[#9CA3AF] cursor-not-allowed shadow-md'
@@ -414,7 +414,10 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
         disabled={!allComplete || loading}
         onClick={handleGenerateProfile}
       >
-        {loading ? (isStreaming ? 'Generating...' : 'Generating Profile...') : 'See what I have learned'}
+        {loading && (
+          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+        )}
+        <span>{loading ? 'Generating...' : 'See what I have learned'}</span>
       </button>
       
       <button
@@ -428,19 +431,6 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
       </button>
       
       {error && <div className="text-red-500 text-center mb-2">{error}</div>}
-      
-      {/* Enhanced streaming indicator */}
-      {isStreaming && (
-        <div className="w-full bg-white/80 backdrop-blur-sm rounded-2xl p-6 mb-4 shadow-lg border border-white/50">
-          <div className="flex items-center mb-3">
-            <div className="w-4 h-4 bg-gradient-to-r from-[#9DC183] to-[#8a9a5b] rounded-full animate-pulse mr-3"></div>
-            <span className="text-sm font-medium text-[#374151]">Generating your profile...</span>
-          </div>
-          <div className="text-xs text-[#6B7280]">
-            {streamingContent.length > 0 ? 'Profile is being created...' : 'Starting generation...'}
-          </div>
-        </div>
-      )}
       
       {/* Profile Modal */}
       <ProfileModal

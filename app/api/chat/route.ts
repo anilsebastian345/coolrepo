@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { API_CONFIG, ERROR_MESSAGES, OPENAI_CONFIG } from '../../../lib/constants';
+import { writeFile, readFile } from 'fs/promises';
+import { join } from 'path';
+import { existsSync } from 'fs';
 
 interface Message {
   id: string;
@@ -18,21 +22,193 @@ interface UserProfile {
   summary: string;
 }
 
+interface UserMemory {
+  userId: string;
+  interactions: Array<{
+    timestamp: string;
+    userMessage: string;
+    insights: string;
+    patterns: string[];
+  }>;
+  profileUpdates: Array<{
+    timestamp: string;
+    field: string;
+    oldValue: string;
+    newValue: string;
+    reason: string;
+  }>;
+  lastUpdated: string;
+}
+
+// Memory management functions
+async function loadUserMemory(userId: string): Promise<UserMemory> {
+  try {
+    const memoryPath = join(process.cwd(), `user_memory_${userId}.json`);
+    if (existsSync(memoryPath)) {
+      const memoryData = await readFile(memoryPath, 'utf-8');
+      return JSON.parse(memoryData);
+    }
+  } catch (error) {
+    console.error('Error loading user memory:', error);
+  }
+  
+  return {
+    userId,
+    interactions: [],
+    profileUpdates: [],
+    lastUpdated: new Date().toISOString()
+  };
+}
+
+async function saveUserMemory(memory: UserMemory): Promise<void> {
+  try {
+    const memoryPath = join(process.cwd(), `user_memory_${memory.userId}.json`);
+    memory.lastUpdated = new Date().toISOString();
+    await writeFile(memoryPath, JSON.stringify(memory, null, 2));
+  } catch (error) {
+    console.error('Error saving user memory:', error);
+  }
+}
+
+// Helper function to extract insights from user messages
+async function extractInsights(message: string, userProfile: UserProfile): Promise<string> {
+  // Simple keyword-based insight extraction
+  const insights: string[] = [];
+  
+  // Emotional indicators
+  if (message.match(/stressed|overwhelmed|frustrated|anxious/i)) {
+    insights.push('experiencing stress or pressure');
+  }
+  if (message.match(/excited|motivated|confident|proud/i)) {
+    insights.push('showing positive emotional state');
+  }
+  
+  // Leadership indicators
+  if (message.match(/team|leading|managing|decision/i)) {
+    insights.push('engaging in leadership activities');
+  }
+  if (message.match(/conflict|disagreement|difficult conversation/i)) {
+    insights.push('dealing with interpersonal challenges');
+  }
+  
+  // Growth indicators
+  if (message.match(/learning|growth|feedback|improve/i)) {
+    insights.push('focused on personal development');
+  }
+  
+  return insights.join(', ') || 'general coaching conversation';
+}
+
+// Helper function to identify patterns in user interactions
+async function identifyPatterns(message: string, previousInteractions: UserMemory['interactions']): Promise<string[]> {
+  const patterns: string[] = [];
+  
+  if (previousInteractions.length === 0) return patterns;
+  
+  // Look for recurring themes
+  const recentMessages = previousInteractions.slice(-10);
+  
+  // Check for stress patterns
+  const stressCount = recentMessages.filter(interaction => 
+    interaction.insights.includes('stress') || interaction.insights.includes('pressure')
+  ).length;
+  if (stressCount >= 2) {
+    patterns.push('recurring_stress_pattern');
+  }
+  
+  // Check for leadership focus
+  const leadershipCount = recentMessages.filter(interaction => 
+    interaction.insights.includes('leadership') || interaction.userMessage.match(/team|leading|managing/i)
+  ).length;
+  if (leadershipCount >= 3) {
+    patterns.push('strong_leadership_focus');
+  }
+  
+  // Check for growth mindset
+  const growthCount = recentMessages.filter(interaction => 
+    interaction.insights.includes('development') || interaction.userMessage.match(/learning|growth|improve/i)
+  ).length;
+  if (growthCount >= 2) {
+    patterns.push('active_growth_seeker');
+  }
+  
+  return patterns;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { message, userProfile, conversationHistory } = await request.json();
+    const { message, userProfile, conversationHistory, userId = 'temp-user-id' } = await request.json();
 
-    if (!message || !userProfile) {
+    // Enhanced input validation
+    if (!message?.trim()) {
       return NextResponse.json(
-        { error: 'Message and user profile are required' },
+        { error: ERROR_MESSAGES.MESSAGE_EMPTY },
         { status: 400 }
       );
     }
 
-    // Create a context-aware prompt for the AI coach
-    const systemPrompt = `You are Sage, an AI coach who has deep knowledge of the user's psychographic profile. 
+    if (!userProfile?.archetype) {
+      return NextResponse.json(
+        { error: ERROR_MESSAGES.PROFILE_INVALID },
+        { status: 400 }
+      );
+    }
 
-User Profile:
+    // Limit message length to prevent abuse
+    if (message.length > API_CONFIG.MAX_MESSAGE_LENGTH) {
+      return NextResponse.json(
+        { error: ERROR_MESSAGES.MESSAGE_TOO_LONG },
+        { status: 400 }
+      );
+    }
+
+    // Load user memory for context
+    const userMemory = await loadUserMemory(userId);
+    
+    // Limit conversation history to last 20 messages for performance
+    const limitedHistory = (conversationHistory || []).slice(-API_CONFIG.MAX_CONVERSATION_HISTORY);
+
+    // Create the new coaching prompt
+    const systemPrompt = `You are Sage, a deeply empathetic, highly personalized AI leadership coach. You are speaking with a professional who has already gone through onboarding. You know their psychographic profile, background, and work style.
+
+Your job is to behave like a lifelong coach who grows with them. Every message they send is a window into who they are — so you should learn from it and store that context internally.
+
+---
+
+🎯 OBJECTIVE:
+Your goal is to provide a safe, growth-oriented coaching space. You are NOT a therapist. You are a professional development coach. Help the user:
+- Reflect on challenges and decisions
+- Prepare for tough conversations or presentations
+- Reframe setbacks into learning opportunities
+- Spot patterns in how they think and behave
+- Get clearer on their values, goals, and leadership style
+
+---
+
+🧠 MEMORY & LEARNING:
+Every message you receive is a new data point about the user. Quietly update your mental model of them as they speak — how they process emotions, what motivates them, what patterns they fall into. Add those insights to their psychographic profile over time.
+
+DO NOT surface this profiling mid-conversation unless asked.
+
+---
+
+🗣️ TONE:
+- Sound like a calm, insightful, emotionally intelligent coach
+- Don't overdo the empathy (no "I'm so sorry" for every message)
+- Ask clarifying questions instead of giving solutions too quickly
+- Use language that mirrors the user's — casual if they're casual, sharp if they're sharp
+
+---
+
+🚫 AVOID:
+- Generic advice
+- Over-coaching or monologuing
+- Therapy-style emotional labor
+- Assuming things that haven't been said
+
+---
+
+CURRENT USER PROFILE:
 - Archetype: ${userProfile.archetype}
 - Core Drives & Values: ${userProfile.core_drives_and_values}
 - Cognitive Style: ${userProfile.cognitive_style}
@@ -42,19 +218,19 @@ User Profile:
 - Growth & Blind Spots: ${userProfile.growth_and_blind_spots}
 - Summary: ${userProfile.summary}
 
-Your role is to:
-1. Provide personalized coaching based on their psychographic profile
-2. Help them understand their strengths and growth areas
-3. Offer actionable advice and strategies
-4. Ask thoughtful questions to help them reflect and grow
-5. Remember the conversation context and build on previous discussions
-6. Be encouraging, supportive, and professional
-7. Adapt your communication style to match their preferences
+---
 
-Keep responses conversational, helpful, and focused on their development. Use their profile insights to provide relevant guidance.`;
+INTERACTION HISTORY PATTERNS:
+${userMemory.interactions.slice(-5).map(interaction => 
+  `- ${interaction.timestamp}: User shared "${interaction.userMessage.substring(0, 100)}..." | Insights: ${interaction.insights}`
+).join('\n') || 'No previous interactions recorded.'}
+
+---
+
+Remember: Be a mirror the user wants to keep looking into — insightful, warm, and surprisingly precise. Focus on their growth and development as a leader.`;
 
     // Format conversation history for the API
-    const conversationMessages = conversationHistory
+    const conversationMessages = limitedHistory
       .filter((msg: Message) => msg.id !== 'welcome') // Exclude the initial welcome message
       .map((msg: Message) => ({
         role: msg.sender === 'user' ? 'user' : 'assistant',
@@ -67,8 +243,11 @@ Keep responses conversational, helpful, and focused on their development. Use th
       { role: 'user', content: message }
     ];
 
-    // Call Azure OpenAI
-    const response = await fetch(`${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments/${process.env.AZURE_OPENAI_DEPLOYMENT}/chat/completions?api-version=2024-02-15-preview`, {
+    // Call Azure OpenAI with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.CHAT_TIMEOUT);
+
+    const response = await fetch(`${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments/${process.env.AZURE_OPENAI_DEPLOYMENT}/chat/completions?api-version=${API_CONFIG.AZURE_API_VERSION}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -76,14 +255,17 @@ Keep responses conversational, helpful, and focused on their development. Use th
       },
       body: JSON.stringify({
         messages,
-        max_tokens: 800,
-        temperature: 0.7,
-        top_p: 0.95,
-        frequency_penalty: 0,
-        presence_penalty: 0,
+        max_tokens: OPENAI_CONFIG.MAX_TOKENS,
+        temperature: OPENAI_CONFIG.TEMPERATURE,
+        top_p: OPENAI_CONFIG.TOP_P,
+        frequency_penalty: OPENAI_CONFIG.FREQUENCY_PENALTY,
+        presence_penalty: OPENAI_CONFIG.PRESENCE_PENALTY,
         stop: null
       }),
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorData = await response.text();
@@ -95,12 +277,31 @@ Keep responses conversational, helpful, and focused on their development. Use th
     const aiResponse = data.choices[0]?.message?.content;
 
     if (!aiResponse) {
-      throw new Error('No response from AI');
+      throw new Error(ERROR_MESSAGES.NO_AI_RESPONSE);
     }
+
+    // Save the interaction to user memory for future context
+    const newInteraction = {
+      timestamp: new Date().toISOString(),
+      userMessage: message,
+      insights: await extractInsights(message, userProfile),
+      patterns: await identifyPatterns(message, userMemory.interactions)
+    };
+    
+    userMemory.interactions.push(newInteraction);
+    
+    // Keep only the last 50 interactions to prevent file size issues
+    if (userMemory.interactions.length > 50) {
+      userMemory.interactions = userMemory.interactions.slice(-50);
+    }
+    
+    // Save updated memory
+    await saveUserMemory(userMemory);
 
     return NextResponse.json({
       response: aiResponse,
-      success: true
+      success: true,
+      memoryUpdated: true
     });
 
   } catch (error) {
