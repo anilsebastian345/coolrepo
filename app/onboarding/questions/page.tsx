@@ -136,7 +136,10 @@ export default function OnboardingQuestions() {
       const response = await fetch('/api/generate-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: 'temp-user-id' }),
+        body: JSON.stringify({ 
+          userId: 'temp-user-id',
+          questions: answers 
+        }),
       });
       if (!response.ok) {
         const err = await response.json();

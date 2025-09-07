@@ -67,14 +67,20 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.AZURE_OPENAI_KEY;
     const deployment = process.env.AZURE_OPENAI_DEPLOYMENT;
     const apiVersion = process.env.AZURE_OPENAI_API_VERSION || '2024-02-15-preview';
-    const { userId = 'temp-user-id' } = await req.json();
+    const { userId = 'temp-user-id', questions: requestQuestions } = await req.json();
 
-    // Read questions
-    let questions: any = {};
-    try {
-      const questionsPath = join(process.cwd(), 'onboarding_questions.json');
-      questions = JSON.parse(await readFile(questionsPath, 'utf-8'));
-    } catch {}
+    // Use questions from request, fallback to file if not provided
+    let questions: any = requestQuestions || {};
+    
+    // If no questions in request, try to read from file (for backwards compatibility)
+    if (!questions || Object.keys(questions).length === 0) {
+      try {
+        const questionsPath = join(process.cwd(), 'onboarding_questions.json');
+        questions = JSON.parse(await readFile(questionsPath, 'utf-8'));
+      } catch (e) {
+        console.log('No questions file found, using empty questions object');
+      }
+    }
 
     // Compose user message with leadership assessment scores
     let userMessage = '';

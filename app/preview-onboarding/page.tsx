@@ -336,10 +336,26 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
     setIsStreaming(false);
     
     try {
+      // Get questions data from localStorage
+      let questionsData = {};
+      if (typeof window !== 'undefined') {
+        const storedQuestions = localStorage.getItem('onboarding_questions');
+        if (storedQuestions) {
+          try {
+            questionsData = JSON.parse(storedQuestions);
+          } catch (e) {
+            console.error('Failed to parse questions:', e);
+          }
+        }
+      }
+      
       const response = await fetch('/api/generate-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: 'temp-user-id' }),
+        body: JSON.stringify({ 
+          userId: 'temp-user-id',
+          questions: questionsData 
+        }),
       });
       
       if (!response.ok) {

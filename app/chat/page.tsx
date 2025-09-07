@@ -227,10 +227,25 @@ export default function ChatPage() {
         }
       } else {
         console.log('No profile data found in localStorage');
-        // Add message when no profile is found
+        
+        // Check if user has completed questions but hasn't generated profile yet
+        const questionsCompleted = localStorage.getItem('onboarding_questions_completed');
+        const resumeUploaded = localStorage.getItem('onboarding_resume_uploaded');
+        const linkedinData = localStorage.getItem('onboarding_linkedin_data');
+        
+        let message = "Hi! I'm Sage, your AI coach. ";
+        
+        if (questionsCompleted === 'true' || resumeUploaded === 'true' || linkedinData) {
+          // User has provided some information but hasn't generated profile
+          message += "I can see you've provided some information about yourself! To start our conversation, please go back to the previous page and click 'See what I have learned' to generate your personalized profile. Then we can chat!";
+        } else {
+          // User hasn't provided any information yet
+          message += "I need to learn about you first! Please go back and complete your profile (upload resume, answer questions, or provide LinkedIn info) before we can chat.";
+        }
+        
         const noProfileMessage: Message = {
           id: 'welcome',
-          content: "Hi! I'm Sage, your AI coach. I can see you've answered the questions, but I need to generate your psychographic profile first. Please go back to the previous page and click 'See what I have learned' to generate your profile, then we can chat!",
+          content: message,
           sender: 'assistant',
           timestamp: new Date()
         };
@@ -459,6 +474,18 @@ export default function ChatPage() {
                 </div>
               </div>
             ))}
+            
+            {/* Show helpful button if user needs to complete profile */}
+            {messages.length === 1 && messages[0].content.includes('See what I have learned') && (
+              <div className="flex justify-center mt-6">
+                <button
+                  onClick={() => router.push('/preview-onboarding')}
+                  className="px-6 py-3 bg-[#8a9a5b] text-white rounded-xl font-medium hover:bg-[#6d7a47] transition-colors duration-200 shadow-lg"
+                >
+                  Go to Profile Generation
+                </button>
+              </div>
+            )}
             {isLoading && (
               <div className="flex justify-start">
                 <div className="bg-white/80 px-4 py-3 rounded-2xl shadow-sm border border-gray-200/50">
