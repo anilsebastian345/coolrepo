@@ -334,7 +334,7 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
   const [error, setError] = useModalState("");
   const [streamingContent, setStreamingContent] = useModalState("");
   const [isStreaming, setIsStreaming] = useModalState(false);
-  const allComplete = linkedinComplete && resumeComplete && questionsComplete;
+  const anyComplete = linkedinComplete || resumeComplete || questionsComplete;
 
   async function handleGenerateProfile() {
     setLoading(true);
@@ -441,11 +441,11 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
     <div className="w-full max-w-lg flex flex-row items-center justify-center gap-4 mt-6">
       <button
         className={`flex-1 py-4 px-6 rounded-2xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2 ${
-          allComplete 
+          anyComplete 
             ? 'bg-gradient-to-r from-[#9DC183] to-[#8a9a5b] text-white hover:shadow-xl' 
             : 'bg-[#E5E7EB] text-[#9CA3AF] cursor-not-allowed shadow-md'
         }`}
-        disabled={!allComplete || loading}
+        disabled={!anyComplete || loading}
         onClick={handleGenerateProfile}
       >
         {loading && (
