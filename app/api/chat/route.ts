@@ -3,6 +3,8 @@ import { API_CONFIG, ERROR_MESSAGES, OPENAI_CONFIG } from '../../../lib/constant
 import { writeFile, readFile } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
+import { ProfileUpdater } from '../../../lib/profileUpdater';
+import { ContextManager } from '../../../lib/contextManager';
 
 interface Message {
   id: string;
@@ -165,8 +167,16 @@ export async function POST(request: NextRequest) {
     // Load user memory for context
     const userMemory = await loadUserMemory(userId);
     
-    // Limit conversation history to last 20 messages for performance
+    // Limit conversation history to last messages for performance
     const limitedHistory = (conversationHistory || []).slice(-API_CONFIG.MAX_CONVERSATION_HISTORY);
+
+    // Format conversation history for the API
+    const conversationMessages = limitedHistory
+      .filter((msg: Message) => msg.id !== 'welcome') // Exclude the initial welcome message
+      .map((msg: Message) => ({
+        role: msg.sender === 'user' ? 'user' : 'assistant',
+        content: msg.content
+      }));
 
     // Create the new coaching prompt
     const systemPrompt = `You are Sage, a deeply empathetic, highly personalized AI leadership coach. You are speaking with a professional who has already gone through onboarding. You know their psychographic profile, background, and work style.
@@ -229,17 +239,27 @@ ${userMemory.interactions.slice(-5).map(interaction =>
 
 Remember: Be a mirror the user wants to keep looking into — insightful, warm, and surprisingly precise. Focus on their growth and development as a leader.`;
 
-    // Format conversation history for the API
-    const conversationMessages = limitedHistory
-      .filter((msg: Message) => msg.id !== 'welcome') // Exclude the initial welcome message
-      .map((msg: Message) => ({
-        role: msg.sender === 'user' ? 'user' : 'assistant',
-        content: msg.content
-      }));
+    // Optimize context for token limits
+    const contextAnalysis = ContextManager.calculateContextSize(
+      systemPrompt,
+      userProfile,
+      conversationMessages,
+      message
+    );
+
+    console.log('Context analysis:', contextAnalysis);
+
+    // Optimize conversation history if needed
+    let optimizedMessages = conversationMessages;
+    if (!contextAnalysis.withinLimits) {
+      console.log('Context too large, optimizing...');
+      const maxHistoryTokens = 4000; // Reserve space for system prompt and response
+      optimizedMessages = ContextManager.optimizeConversationHistory(conversationMessages, maxHistoryTokens);
+    }
 
     const messages = [
       { role: 'system', content: systemPrompt },
-      ...conversationMessages,
+      ...optimizedMessages,
       { role: 'user', content: message }
     ];
 
@@ -298,10 +318,24 @@ Remember: Be a mirror the user wants to keep looking into — insightful, warm, 
     // Save updated memory
     await saveUserMemory(userMemory);
 
+    // Check if profile should be updated based on meaningful chat count
+    const shouldUpdateProfile = await ProfileUpdater.recordMeaningfulChat(userId, message, aiResponse);
+    let profileUpdated = false;
+    
+    if (shouldUpdateProfile) {
+      console.log('Triggering profile update for user:', userId);
+      const updatedProfile = await ProfileUpdater.updateProfile(userId);
+      if (updatedProfile) {
+        profileUpdated = true;
+        console.log('Profile successfully updated for user:', userId);
+      }
+    }
+
     return NextResponse.json({
       response: aiResponse,
       success: true,
-      memoryUpdated: true
+      memoryUpdated: true,
+      profileUpdated
     });
 
   } catch (error) {

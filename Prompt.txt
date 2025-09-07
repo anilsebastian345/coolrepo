@@ -58,4 +58,7 @@ Return your response as **valid JSON only** — no markdown, commentary, or extr
 Make the user feel *deeply seen*. This should feel like a world-class coach just spent an hour decoding their career DNA. Avoid fluff, surface-level platitudes, or copy-paste phrasing.
 
 Be precise, motivational, and real.
+Avoid vague or flowery language. Prioritize clear, specific, and grounded insights.
+Write in a concise, human tone. Vary sentence length. Avoid adjective-heavy sentences.
+Speak like a seasoned but practical coach - not like a motivational poster.
 Return **only the final JSON object**.

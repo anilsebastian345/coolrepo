@@ -1,9 +1,11 @@
 // API Configuration
 export const API_CONFIG = {
   CHAT_TIMEOUT: 30000, // 30 seconds
-  MAX_MESSAGE_LENGTH: 2000,
-  MAX_CONVERSATION_HISTORY: 20,
+  MAX_MESSAGE_LENGTH: 4000, // Increased from 2000 to allow more detailed inputs
+  MAX_CONVERSATION_HISTORY: 15, // Reduced from 20 to manage context length better
   AZURE_API_VERSION: '2024-02-15-preview',
+  MAX_RESUME_LENGTH: 10000, // New: Limit resume text to 10k characters
+  MAX_LINKEDIN_LENGTH: 5000, // New: Limit LinkedIn text to 5k characters
 } as const;
 
 // Local Storage Keys
@@ -26,11 +28,11 @@ export const CACHE_CONFIG = {
 
 // OpenAI Configuration
 export const OPENAI_CONFIG = {
-  MAX_TOKENS: 800,
+  MAX_TOKENS: 1200, // Increased from 800 to allow for longer responses
   TEMPERATURE: 0.7,
   TOP_P: 0.95,
-  FREQUENCY_PENALTY: 0,
-  PRESENCE_PENALTY: 0,
+  FREQUENCY_PENALTY: 0.1, // Slight increase to reduce repetition
+  PRESENCE_PENALTY: 0.1, // Slight increase to encourage diverse responses
 } as const;
 
 // Error Messages
