@@ -205,7 +205,7 @@ export default function PreviewOnboarding() {
     }
   }
 
-  // Get user name from resume or login
+  // Get user name from resume, login, or guest mode
   let userName = '';
   if (typeof window !== 'undefined') {
     const resumeInfoData = localStorage.getItem('onboarding_resume_data');
@@ -220,6 +220,13 @@ export default function PreviewOnboarding() {
     if (!userName) {
       const loginName = localStorage.getItem('onboarding_user_name');
       if (loginName) userName = loginName;
+    }
+    if (!userName) {
+      const guestMode = localStorage.getItem('guestMode');
+      const guestName = localStorage.getItem('userName');
+      if (guestMode === 'true' && guestName) {
+        userName = guestName;
+      }
     }
   }
 
