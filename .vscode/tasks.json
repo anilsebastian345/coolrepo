@@ -8,6 +8,24 @@
 			"group": "build",
 			"isBackground": true,
 			"problemMatcher": []
+		},
+		{
+			"label": "Git Commit and Push",
+			"type": "shell",
+			"command": "git add -A && git commit -m \"Update to GPT-4o with enhanced prompt and optimized settings\" && git push origin main",
+			"group": "build"
+		},
+		{
+			"label": "Git Commit and Push",
+			"type": "shell",
+			"command": "git add -A; git commit -m \"Update to GPT-4o with enhanced prompt and optimized settings\"; git push origin main",
+			"group": "build"
+		},
+		{
+			"label": "Git Add All",
+			"type": "shell",
+			"command": "git add -A",
+			"group": "build"
 		}
 	]
 }

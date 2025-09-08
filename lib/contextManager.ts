@@ -6,7 +6,7 @@
 export class ContextManager {
   // Rough token estimation (1 token ≈ 4 characters for English)
   private static readonly CHARS_PER_TOKEN = 4;
-  private static readonly MAX_CONTEXT_TOKENS = 128000; // GPT-4 Turbo limit
+  private static readonly MAX_CONTEXT_TOKENS = 128000; // GPT-4o limit
   private static readonly RESERVED_TOKENS = 2000; // Reserve for response + system prompt
 
   /**

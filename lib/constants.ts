@@ -3,7 +3,7 @@ export const API_CONFIG = {
   CHAT_TIMEOUT: 30000, // 30 seconds
   MAX_MESSAGE_LENGTH: 4000, // Increased from 2000 to allow more detailed inputs
   MAX_CONVERSATION_HISTORY: 15, // Reduced from 20 to manage context length better
-  AZURE_API_VERSION: '2024-02-15-preview',
+  AZURE_API_VERSION: '2025-01-01-preview',
   MAX_RESUME_LENGTH: 10000, // New: Limit resume text to 10k characters
   MAX_LINKEDIN_LENGTH: 5000, // New: Limit LinkedIn text to 5k characters
 } as const;
