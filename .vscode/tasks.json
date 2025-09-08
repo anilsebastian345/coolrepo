@@ -26,6 +26,36 @@
 			"type": "shell",
 			"command": "git add -A",
 			"group": "build"
+		},
+		{
+			"label": "Git Commit",
+			"type": "shell",
+			"command": "git commit -m \"Update to GPT-4o with enhanced prompt and optimized settings\"",
+			"group": "build"
+		},
+		{
+			"label": "Git Commit",
+			"type": "shell",
+			"command": "git commit -m 'Update to GPT-4o with enhanced prompt and optimized settings'",
+			"group": "build"
+		},
+		{
+			"label": "Git Commit Simple",
+			"type": "shell",
+			"command": "git commit -m Update-to-GPT4o-with-enhanced-prompt",
+			"group": "build"
+		},
+		{
+			"label": "Git Push",
+			"type": "shell",
+			"command": "git push origin main",
+			"group": "build"
+		},
+		{
+			"label": "Git Push Master",
+			"type": "shell",
+			"command": "git push origin master",
+			"group": "build"
 		}
 	]
 }

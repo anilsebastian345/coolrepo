@@ -58,6 +58,70 @@ function CircularProgress({ percent }: { percent: number }) {
   );
 }
 
+function ProgressIndicator({ percent, isComplete }: { percent: number, isComplete: boolean }) {
+  if (isComplete) {
+    return (
+      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#8a9112]">
+        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+          <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </span>
+    );
+  }
+
+  if (percent === 0) {
+    return (
+      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full border border-[#d3d7c7] bg-white">
+        <span className="w-3 h-3 rounded-full bg-[#e5e7eb]"></span>
+      </span>
+    );
+  }
+
+  // Progress circle with percentage
+  const radius = 10;
+  const stroke = 2;
+  const normalizedRadius = radius - stroke / 2;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDashoffset = circumference - (percent / 100) * circumference;
+
+  return (
+    <div className="relative inline-flex items-center justify-center w-7 h-7">
+      <svg height={radius * 2} width={radius * 2} className="absolute">
+        {/* Background circle */}
+        <circle
+          stroke="#e5e7eb"
+          fill="white"
+          strokeWidth={stroke}
+          r={normalizedRadius}
+          cx={radius}
+          cy={radius}
+        />
+        {/* Progress arc */}
+        <circle
+          stroke="#8a9112"
+          fill="transparent"
+          strokeWidth={stroke}
+          strokeDasharray={circumference + ' ' + circumference}
+          style={{ 
+            strokeDashoffset, 
+            transition: 'stroke-dashoffset 0.5s ease-out',
+            transform: 'rotate(-90deg)',
+            transformOrigin: '50% 50%'
+          }}
+          strokeLinecap="round"
+          r={normalizedRadius}
+          cx={radius}
+          cy={radius}
+        />
+      </svg>
+      {/* Percentage text */}
+      <span className="text-[10px] font-medium text-[#8a9112] leading-none">
+        {Math.round(percent)}%
+      </span>
+    </div>
+  );
+}
+
 const options = [
   {
     key: "linkedin",
@@ -100,6 +164,7 @@ const options = [
 export default function PreviewOnboarding() {
   const [selected, setSelected] = useState("questions");
   const [linkedinProgress, setLinkedinProgress] = useState(0);
+  const [questionsProgress, setQuestionsProgress] = useState(0);
   const [resumeUploaded, setResumeUploaded] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [questionsCompleted, setQuestionsCompleted] = useState(false);
@@ -110,7 +175,7 @@ export default function PreviewOnboarding() {
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // Check LinkedIn progress
+      // Check LinkedIn progress (4 sections total)
       const data = localStorage.getItem('onboarding_linkedin_data');
       if (data) {
         try {
@@ -121,6 +186,21 @@ export default function PreviewOnboarding() {
         } catch {}
       } else {
         setLinkedinProgress(0);
+      }
+      
+      // Check questions progress (5 questions total)
+      const questionsData = localStorage.getItem('onboarding_questions');
+      if (questionsData) {
+        try {
+          const parsed = JSON.parse(questionsData);
+          const answered = Object.values(parsed).filter(v => v !== null && v !== undefined).length;
+          setQuestionsProgress(answered);
+          if (answered === 5) {
+            setQuestionsCompleted(true);
+          }
+        } catch {}
+      } else {
+        setQuestionsProgress(0);
       }
       
       // Check if resume was uploaded
@@ -135,7 +215,7 @@ export default function PreviewOnboarding() {
         if (resumeData === 'true') setSelected('resume');
       }
 
-      // Check if questions were completed
+      // Check if questions were completed (legacy check)
       const questionsDone = localStorage.getItem('onboarding_questions_completed');
       if (questionsDone === 'true') setQuestionsCompleted(true);
     }
@@ -266,6 +346,17 @@ export default function PreviewOnboarding() {
           const isResumeComplete = isResume && resumeUploaded;
           const isQuestionsComplete = isQuestions && questionsCompleted;
           const isComplete = isLinkedInComplete || isResumeComplete || isQuestionsComplete;
+          
+          // Calculate progress percentage
+          let progressPercent = 0;
+          if (isLinkedIn) {
+            progressPercent = (linkedinProgress / 4) * 100;
+          } else if (isQuestions) {
+            progressPercent = (questionsProgress / 5) * 100;
+          } else if (isResume) {
+            progressPercent = resumeUploaded ? 100 : 0;
+          }
+          
           return (
             <button
               key={opt.key}
@@ -293,17 +384,7 @@ export default function PreviewOnboarding() {
                 </div>
               </div>
               <div className="ml-4 flex items-center justify-center">
-                {isComplete ? (
-                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#8a9112]">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                      <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-full border border-[#d3d7c7] bg-white">
-                    <span className="w-3 h-3 rounded-full bg-[#e5e7eb]"></span>
-                  </span>
-                )}
+                <ProgressIndicator percent={progressPercent} isComplete={isComplete} />
               </div>
             </button>
           );
@@ -311,16 +392,57 @@ export default function PreviewOnboarding() {
       </div>
       
       {/* Enhanced completion message as badge */}
-      <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-[#9DC183]/10 to-[#8a9a5b]/10 border border-[#9DC183]/20 mb-6">
-        <span className="text-2xl mr-2">🎉</span>
-        <span className="text-[#374151] font-medium text-sm">Great progress! You can add more information or see what I've learned about you.</span>
-      </div>
+      {(() => {
+        // Check for any progress
+        const hasLinkedInProgress = typeof window !== 'undefined' ? (() => {
+          const data = localStorage.getItem('onboarding_linkedin_data');
+          if (data) {
+            try {
+              const parsed = JSON.parse(data);
+              return [parsed.about, parsed.experience, parsed.education, parsed.recommendations].some(v => v && v.trim().length > 0);
+            } catch {}
+          }
+          return false;
+        })() : false;
+        
+        const hasQuestionsProgress = typeof window !== 'undefined' ? (() => {
+          const questionsData = localStorage.getItem('onboarding_questions');
+          if (questionsData) {
+            try {
+              const parsed = JSON.parse(questionsData);
+              return Object.values(parsed).some(v => v !== null && v !== undefined && v !== '');
+            } catch {}
+          }
+          return false;
+        })() : false;
+        
+        const hasAnyProgress = hasLinkedInProgress || resumeUploaded || hasQuestionsProgress;
+        const allComplete = (linkedinProgress === 4) && resumeUploaded && (questionsProgress === 5);
+        
+        if (allComplete) {
+          return (
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-[#9DC183]/10 to-[#8a9a5b]/10 border border-[#9DC183]/20 mb-6">
+              <span className="text-2xl mr-2">🎉</span>
+              <span className="text-[#374151] font-medium text-sm">Fantastic! You've completed everything. See what I've learned about you.</span>
+            </div>
+          );
+        } else if (hasAnyProgress) {
+          return (
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-[#9DC183]/10 to-[#8a9a5b]/10 border border-[#9DC183]/20 mb-6">
+              <span className="text-2xl mr-2">✨</span>
+              <span className="text-[#374151] font-medium text-sm">Great start! I can already learn from what you've shared.</span>
+            </div>
+          );
+        } else {
+          return null;
+        }
+      })()}
       
       {/* Generate My Profile Button */}
       <GenerateProfileButton
         linkedinComplete={linkedinProgress === 4}
         resumeComplete={resumeUploaded}
-        questionsComplete={questionsCompleted}
+        questionsComplete={questionsCompleted || questionsProgress === 5}
         router={router}
       />
     </div>
@@ -334,7 +456,31 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
   const [error, setError] = useModalState("");
   const [streamingContent, setStreamingContent] = useModalState("");
   const [isStreaming, setIsStreaming] = useModalState(false);
-  const anyComplete = linkedinComplete || resumeComplete || questionsComplete;
+  
+  // Check for any meaningful progress (at least 1 section with some data)
+  const hasLinkedInProgress = typeof window !== 'undefined' ? (() => {
+    const data = localStorage.getItem('onboarding_linkedin_data');
+    if (data) {
+      try {
+        const parsed = JSON.parse(data);
+        return [parsed.about, parsed.experience, parsed.education, parsed.recommendations].some(v => v && v.trim().length > 0);
+      } catch {}
+    }
+    return false;
+  })() : false;
+  
+  const hasQuestionsProgress = typeof window !== 'undefined' ? (() => {
+    const questionsData = localStorage.getItem('onboarding_questions');
+    if (questionsData) {
+      try {
+        const parsed = JSON.parse(questionsData);
+        return Object.values(parsed).some(v => v !== null && v !== undefined && v !== '');
+      } catch {}
+    }
+    return false;
+  })() : false;
+  
+  const hasAnyProgress = hasLinkedInProgress || resumeComplete || hasQuestionsProgress;
 
   async function handleGenerateProfile() {
     setLoading(true);
@@ -441,11 +587,11 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
     <div className="w-full max-w-lg flex flex-row items-center justify-center gap-4 mt-6">
       <button
         className={`flex-1 py-4 px-6 rounded-2xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2 ${
-          anyComplete 
+          hasAnyProgress 
             ? 'bg-gradient-to-r from-[#9DC183] to-[#8a9a5b] text-white hover:shadow-xl' 
             : 'bg-[#E5E7EB] text-[#9CA3AF] cursor-not-allowed shadow-md'
         }`}
-        disabled={!anyComplete || loading}
+        disabled={!hasAnyProgress || loading}
         onClick={handleGenerateProfile}
       >
         {loading && (

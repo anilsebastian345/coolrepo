@@ -11,6 +11,11 @@ interface ProfileData {
   risk_and_ambition: string;
   growth_and_blind_spots: string;
   summary: string;
+  strength_signatures?: Array<{
+    trait: string;
+    evidence: string;
+    why_it_matters: string;
+  }>;
 }
 
 interface ProfileModalProps {
@@ -223,6 +228,38 @@ export default function ProfileModal({ isOpen, onClose, profileJson }: ProfileMo
             </div>
           ) : (
             <div className="space-y-6 max-w-4xl mx-auto">
+              {/* Strength Signatures Section */}
+              {profile.strength_signatures && profile.strength_signatures.length > 0 && (
+                <div className="bg-gradient-to-br from-[#faf9f7] to-[#f0efec] rounded-2xl p-6 border border-slate-100 shadow-sm">
+                  <div className="flex items-center mb-6">
+                    <div className="w-12 h-12 rounded-xl bg-[#8a9a5b]/15 flex items-center justify-center mr-4 shadow-sm">
+                      <span className="text-xl">⭐</span>
+                    </div>
+                    <h3 className="text-xl font-semibold text-slate-800">
+                      Strength Signatures
+                    </h3>
+                  </div>
+                  <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-4">
+                    {profile.strength_signatures.map((signature, index) => (
+                      <div key={index} className="bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
+                        <h4 className="font-semibold text-[#55613b] mb-2 text-base">
+                          {signature.trait}
+                        </h4>
+                        <p className="text-slate-700 text-sm mb-3 leading-relaxed">
+                          <span className="font-medium text-slate-800">Evidence: </span>
+                          {signature.evidence}
+                        </p>
+                        <p className="text-slate-600 text-sm leading-relaxed">
+                          <span className="font-medium text-slate-800">Why it matters: </span>
+                          {signature.why_it_matters}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Existing Sections */}
               {Object.entries(sectionConfig).map(([key, config]) => {
                 const value = profile[key as keyof ProfileData];
                 if (!value) return null;

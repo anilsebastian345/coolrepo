@@ -92,7 +92,14 @@ export default function LinkedInOnboarding() {
               className="w-full min-h-[70px] max-h-40 rounded-lg border border-card bg-[#fafaf7] p-3 text-sm text-text focus:outline-none focus:border-[#8a9a5b] resize-vertical transition"
               placeholder={section.placeholder}
               value={inputs[section.key as keyof typeof inputs]}
-              onChange={e => setInputs({ ...inputs, [section.key]: e.target.value })}
+              onChange={e => {
+                const newInputs = { ...inputs, [section.key]: e.target.value };
+                setInputs(newInputs);
+                // Save to localStorage immediately to track progress
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem('onboarding_linkedin_data', JSON.stringify(newInputs));
+                }
+              }}
             />
           </div>
         ))}
