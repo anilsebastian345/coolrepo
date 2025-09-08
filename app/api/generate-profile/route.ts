@@ -165,9 +165,12 @@ export async function POST(req: NextRequest) {
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userMessage }
           ],
-          max_tokens: 800,
-          temperature: 0, // Completely deterministic - no randomness
-          seed: 12345, // Fixed seed for deterministic results
+          max_tokens: 1400, // Increased for comprehensive psychographic profiles
+          temperature: 0.4, // Balanced creativity and grounding
+          top_p: 1.0, // Default sampling diversity
+          frequency_penalty: 0.2, // Reduces repetition in phrasing
+          presence_penalty: 0.1, // Encourages diversity of thought
+          seed: 12345, // Fixed seed for consistency
           stream: true,
         }),
       }
@@ -220,7 +223,7 @@ export async function POST(req: NextRequest) {
                       cacheHit: false,
                       inputHash: inputHash.substring(0, 50) + '...',
                       generated: new Date().toISOString(),
-                      temperature: 0,
+                      temperature: 0.4,
                       seed: 12345
                     }
                   })}\n\n`));

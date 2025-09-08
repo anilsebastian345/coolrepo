@@ -28,11 +28,11 @@ export const CACHE_CONFIG = {
 
 // OpenAI Configuration
 export const OPENAI_CONFIG = {
-  MAX_TOKENS: 1200, // Increased from 800 to allow for longer responses
-  TEMPERATURE: 0.7,
-  TOP_P: 0.95,
-  FREQUENCY_PENALTY: 0.1, // Slight increase to reduce repetition
-  PRESENCE_PENALTY: 0.1, // Slight increase to encourage diverse responses
+  MAX_TOKENS: 1400, // Optimized for comprehensive responses
+  TEMPERATURE: 0.4, // Balanced creativity and grounding
+  TOP_P: 1.0, // Default sampling diversity  
+  FREQUENCY_PENALTY: 0.2, // Reduces repetition in phrasing
+  PRESENCE_PENALTY: 0.1, // Encourages diversity of thought
 } as const;
 
 // Error Messages
