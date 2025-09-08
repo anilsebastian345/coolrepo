@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.AZURE_OPENAI_KEY;
     const deployment = process.env.AZURE_OPENAI_DEPLOYMENT;
     const apiVersion = process.env.AZURE_OPENAI_API_VERSION || '2024-02-15-preview';
-    const { userId = 'temp-user-id', questions: requestQuestions, clearCache = false } = await req.json();
+    const { userId = 'temp-user-id', questions: requestQuestions, linkedin: linkedinInput, clearCache = false } = await req.json();
 
     // Clear cache if requested
     if (clearCache) {
@@ -115,26 +115,63 @@ export async function POST(req: NextRequest) {
       userMessage += `Challenges: ${questions.challenges || ''}\n`;
     }
     
-    // Try to load resume and LinkedIn data from localStorage (these would be passed in request in real app)
+    // Process LinkedIn data if provided
     let resumeData = '';
     let linkedinData = '';
     
-    // For now, we'll check if there are resume/linkedin indicators in the request
-    // In a full implementation, these would be passed as parameters
+    if (linkedinInput) {
+      // Format LinkedIn sections into a readable text
+      const sections = [];
+      if (linkedinInput.about) sections.push(`ABOUT:\n${linkedinInput.about}`);
+      if (linkedinInput.experience) sections.push(`EXPERIENCE:\n${linkedinInput.experience}`);
+      if (linkedinInput.education) sections.push(`EDUCATION:\n${linkedinInput.education}`);
+      if (linkedinInput.recommendations) sections.push(`RECOMMENDATIONS:\n${linkedinInput.recommendations}`);
+      
+      linkedinData = sections.join('\n\n');
+    }
     
-    if (!userMessage) {
-      return NextResponse.json({ error: 'No onboarding question answers found.' }, { status: 400 });
+    // If we have LinkedIn data, use that for the profile generation
+    let profileInput = '';
+    if (linkedinData) {
+      profileInput = linkedinData;
+    } else if (userMessage) {
+      profileInput = userMessage;
+    } else {
+      return NextResponse.json({ error: 'No onboarding data found. Please complete LinkedIn profile or answer questions.' }, { status: 400 });
     }
 
     // Check cache with comprehensive input hash
     const cache = await loadCache();
-    const inputHash = getInputHash(questions, resumeData, linkedinData);
+    // Add timestamp to force fresh generation when prompt changes
+    const inputHash = getInputHash(questions, resumeData, linkedinData) + '_prompt_updated_' + Date.now().toString().slice(-6);
     const cachedProfile = cache[userId];
     
     if (cachedProfile && 
         cachedProfile.inputs === inputHash && 
         (Date.now() - cachedProfile.timestamp) < CACHE_DURATION) {
       console.log('Returning cached profile for user:', userId);
+      
+      // Also write cached profile to file for testing
+      try {
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const filename = `profile_${userId}_${timestamp}_cached.txt`;
+        const outputPath = join(process.cwd(), 'generated_profiles', filename);
+        
+        // Create directory if it doesn't exist
+        const { mkdir } = await import('fs/promises');
+        try {
+          await mkdir(join(process.cwd(), 'generated_profiles'), { recursive: true });
+        } catch (e) {
+          // Directory might already exist
+        }
+        
+        // Write the cached profile to file
+        await writeFile(outputPath, cachedProfile.profile, 'utf-8');
+        console.log('Cached profile written to file:', filename);
+      } catch (fileError) {
+        console.error('Error writing cached profile to file:', fileError);
+      }
+      
       return NextResponse.json({ 
         profile: cachedProfile.profile,
         cached: true,
@@ -147,9 +184,15 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Read system prompt
+    // System prompt for executive coaching AI
+    const systemPrompt = "You are the world's most insightful executive coach AI.\nYou generate psychographic profiles in a structured markdown report, using vivid metaphors, empathy, and sharp insights.\nBe deterministic and consistent in style. Anchor your response format to the provided reference example.";
+
+    // Read user prompt template with anchoring example
     const promptPath = join(process.cwd(), 'Prompt.txt');
-    const systemPrompt = await readFile(promptPath, 'utf-8');
+    const userPromptTemplate = await readFile(promptPath, 'utf-8');
+    
+    // Replace placeholder with actual LinkedIn data or user message
+    const finalUserPrompt = userPromptTemplate.replace('{{linkedin_text}}', profileInput);
 
     // Call Azure OpenAI with streaming
     const response = await fetch(
@@ -163,14 +206,13 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           messages: [
             { role: 'system', content: systemPrompt },
-            { role: 'user', content: userMessage }
+            { role: 'user', content: finalUserPrompt }
           ],
-          max_tokens: 1400, // Increased for comprehensive psychographic profiles
-          temperature: 0.4, // Balanced creativity and grounding
-          top_p: 1.0, // Default sampling diversity
-          frequency_penalty: 0.2, // Reduces repetition in phrasing
-          presence_penalty: 0.1, // Encourages diversity of thought
-          seed: 12345, // Fixed seed for consistency
+          temperature: 0.2,
+          top_p: 1.0,
+          max_tokens: 2500,
+          presence_penalty: 0,
+          frequency_penalty: 0,
           stream: true,
         }),
       }
@@ -213,6 +255,27 @@ export async function POST(req: NextRequest) {
                   };
                   await saveCache(cache);
                   
+                  // Write profile to text file for testing
+                  try {
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                    const filename = `profile_${userId}_${timestamp}.txt`;
+                    const outputPath = join(process.cwd(), 'generated_profiles', filename);
+                    
+                    // Create directory if it doesn't exist
+                    const { mkdir } = await import('fs/promises');
+                    try {
+                      await mkdir(join(process.cwd(), 'generated_profiles'), { recursive: true });
+                    } catch (e) {
+                      // Directory might already exist
+                    }
+                    
+                    // Write the profile to file
+                    await writeFile(outputPath, fullProfile, 'utf-8');
+                    console.log('Profile written to file:', filename);
+                  } catch (fileError) {
+                    console.error('Error writing profile to file:', fileError);
+                  }
+                  
                   console.log('Generated new profile for user:', userId, 'Input hash:', inputHash.substring(0, 50) + '...');
                   
                   // Send the final complete profile with debug info
@@ -223,8 +286,8 @@ export async function POST(req: NextRequest) {
                       cacheHit: false,
                       inputHash: inputHash.substring(0, 50) + '...',
                       generated: new Date().toISOString(),
-                      temperature: 0.4,
-                      seed: 12345
+                      temperature: 0.2,
+                      seed: null
                     }
                   })}\n\n`));
                   controller.close();

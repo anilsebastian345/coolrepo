@@ -46,3 +46,6 @@ next-env.d.ts
 # cache files
 profile_cache.json
 onboarding_questions.json
+
+# generated profile text files for testing
+/generated_profiles/*.txt

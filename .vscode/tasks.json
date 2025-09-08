@@ -104,6 +104,17 @@
 			"type": "shell",
 			"command": "git add .vscode/tasks.json",
 			"group": "build"
+		},
+		{
+			"label": "Commit Final Task",
+			"type": "shell",
+			"command": "git commit -m Add-complete-final-git-status-task",
+			"group": "build"
+		},
+		{
+			"label": "Commit Latest Prompt Changes",
+			"type": "shell",
+			"command": "git add -A; git commit -m 'Refine-prompt-for-direct-coaching-language'; git push origin master"
 		}
 	]
 }

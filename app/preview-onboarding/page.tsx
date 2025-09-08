@@ -489,8 +489,9 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
     setIsStreaming(false);
     
     try {
-      // Get questions data from localStorage
+      // Get questions and LinkedIn data from localStorage
       let questionsData = {};
+      let linkedinData = {};
       if (typeof window !== 'undefined') {
         const storedQuestions = localStorage.getItem('onboarding_questions');
         if (storedQuestions) {
@@ -500,6 +501,15 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
             console.error('Failed to parse questions:', e);
           }
         }
+        
+        const storedLinkedin = localStorage.getItem('onboarding_linkedin_data');
+        if (storedLinkedin) {
+          try {
+            linkedinData = JSON.parse(storedLinkedin);
+          } catch (e) {
+            console.error('Failed to parse LinkedIn data:', e);
+          }
+        }
       }
       
       const response = await fetch('/api/generate-profile', {
@@ -507,7 +517,8 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           userId: 'temp-user-id',
-          questions: questionsData 
+          questions: questionsData,
+          linkedin: linkedinData
         }),
       });
       
