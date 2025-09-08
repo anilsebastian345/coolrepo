@@ -180,6 +180,9 @@ export default function ProfileModal({ isOpen, onClose, profileJson }: ProfileMo
                 const value = profile[key as keyof ProfileData];
                 if (!value) return null;
                 
+                // Only process string values in the overview tab (skip arrays like strength_signatures)
+                if (typeof value !== 'string') return null;
+                
                 const isExpanded = expandedCards[key];
                 const needsExpansion = value.length > 180;
                 const displayText = isExpanded ? value : (needsExpansion ? value.slice(0, 180) + '...' : value);
@@ -262,7 +265,7 @@ export default function ProfileModal({ isOpen, onClose, profileJson }: ProfileMo
               {/* Existing Sections */}
               {Object.entries(sectionConfig).map(([key, config]) => {
                 const value = profile[key as keyof ProfileData];
-                if (!value) return null;
+                if (!value || typeof value !== 'string') return null;
                 
                 return (
                   <div
