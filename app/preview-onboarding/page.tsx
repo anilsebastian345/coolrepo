@@ -17,9 +17,9 @@ function SageLogo() {
             <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"/>
           </svg>
         </div>
-        {/* Green dot - smaller, between circles */}
+        {/* Yellow dot - smaller, between circles */}
         <div className="absolute" style={{ top: '14%', right: '14%' }}>
-          <div className="w-2 h-2 rounded-full bg-[#8bc34a] shadow" />
+          <div className="w-2 h-2 rounded-full bg-[#ffd700] shadow" />
         </div>
       </div>
       <h1 className="mt-4 text-lg text-[#7a7a7a] font-normal font-sans" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>Sage</h1>

@@ -19,54 +19,56 @@ interface ProfileModalProps {
   profileJson: string;
 }
 
-const archetypeEmojis: { [key: string]: string } = {
-  'visionary': '🚀',
-  'strategist': '🧠',
-  'builder': '🏗️',
-  'refiner': '✨',
-  'grounded': '🌱',
-  'restless': '⚡',
-  'quiet': '🤫',
-  'bold': '💪',
-  'servant': '🤝',
-  'orchestrator': '🎼',
-  'synthesizer': '🔗',
-  'executor': '⚡',
-  'default': '🌟'
-};
-
-const getArchetypeEmoji = (archetype: string): string => {
-  const lowerArchetype = archetype.toLowerCase();
-  for (const [key, emoji] of Object.entries(archetypeEmojis)) {
-    if (lowerArchetype.includes(key)) {
-      return emoji;
-    }
+const sectionConfig = {
+  core_drives_and_values: { 
+    icon: '�', 
+    title: 'Core Drives & Values',
+    color: 'from-[#f8faf6] to-[#e8f0e3]',
+    iconBg: 'bg-[#8a9a5b]/10'
+  },
+  cognitive_style: { 
+    icon: '�', 
+    title: 'Cognitive Style',
+    color: 'from-[#f8faf6] to-[#eff2ed]',
+    iconBg: 'bg-[#55613b]/10'
+  },
+  leadership_style: { 
+    icon: '👑', 
+    title: 'Leadership Style',
+    color: 'from-[#f9faf7] to-[#e8f0e3]',
+    iconBg: 'bg-[#8a9a5b]/15'
+  },
+  communication_style: { 
+    icon: '💬', 
+    title: 'Communication Style',
+    color: 'from-[#f7f9f5] to-[#e6efe1]',
+    iconBg: 'bg-[#55613b]/15'
+  },
+  risk_and_ambition: { 
+    icon: '🎯', 
+    title: 'Risk & Ambition',
+    color: 'from-[#f8faf6] to-[#e7efdf]',
+    iconBg: 'bg-[#8a9a5b]/20'
+  },
+  growth_and_blind_spots: { 
+    icon: '🌱', 
+    title: 'Growth & Development',
+    color: 'from-[#f6f8f4] to-[#e5eddd]',
+    iconBg: 'bg-[#55613b]/20'
   }
-  return archetypeEmojis.default;
-};
-
-const sectionIcons = {
-  core_drives_and_values: '💎',
-  cognitive_style: '🧠',
-  leadership_style: '👑',
-  communication_style: '💬',
-  risk_and_ambition: '🎯',
-  growth_and_blind_spots: '🌱',
-  summary: '📝'
 };
 
 export default function ProfileModal({ isOpen, onClose, profileJson }: ProfileModalProps) {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [isSharing, setIsSharing] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
-  // Track expanded state for each section
-  const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
+  const [activeTab, setActiveTab] = useState('overview');
+  const [expandedCards, setExpandedCards] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     if (profileJson) {
       try {
         let jsonToParse = profileJson;
-        // Try to extract JSON if wrapped in other content
         const jsonMatch = profileJson.match(/(\{[\s\S]*\})/);
         if (jsonMatch) {
           jsonToParse = jsonMatch[1];
@@ -75,7 +77,6 @@ export default function ProfileModal({ isOpen, onClose, profileJson }: ProfileMo
         setProfile(parsed);
       } catch (e) {
         console.error('Failed to parse profile JSON:', e);
-        console.error('Profile JSON content:', profileJson);
       }
     }
   }, [profileJson]);
@@ -103,106 +104,163 @@ export default function ProfileModal({ isOpen, onClose, profileJson }: ProfileMo
     }
   };
 
-  const downloadAsImage = () => {
-    // This would require html2canvas or similar library
-    // For now, we'll just copy to clipboard
-    handleShare();
-  };
-
-  // Toggle section expansion
-  const toggleSection = (key: string) => {
-    setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  const toggleCardExpansion = (key: string) => {
+    setExpandedCards(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
   };
 
   if (!isOpen || !profile) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden animate-fade-in flex flex-col">
-        {/* Header */}
-        <div className="relative p-8 bg-gradient-to-br from-[#f8faf6] to-[#e8f0e3] border-b border-gray-100 shrink-0">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-5xl w-full max-h-[95vh] overflow-hidden animate-in slide-in-from-bottom-4 duration-300 flex flex-col">
+        
+        {/* Hero Header */}
+        <div className="relative bg-gradient-to-br from-[#f8faf6] via-white to-[#e8f0e3] p-6 border-b border-slate-100">
           <button
             onClick={onClose}
-            className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110"
+            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/80 hover:bg-white shadow-sm flex items-center justify-center transition-all duration-200 hover:scale-110 z-10"
           >
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
           
-          {/* Archetype Section */}
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-[#8a9a5b] to-[#55613b] shadow-xl mb-4 animate-bounce">
-              <span className="text-3xl">{getArchetypeEmoji(profile.archetype)}</span>
+          <div className="text-center max-w-3xl mx-auto">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-[#8a9a5b] to-[#55613b] shadow-lg mb-3">
+              <span className="text-xl">🌟</span>
             </div>
-            <h1 className="text-4xl font-bold text-[#2d3748] mb-2 animate-fade-in-up">
+            <h1 className="text-2xl font-bold text-slate-800 mb-2">
               {profile.archetype}
             </h1>
-            <p className="text-lg text-[#4a5568] max-w-2xl mx-auto leading-relaxed">
+            <p className="text-slate-600 text-base leading-relaxed">
               {profile.summary}
             </p>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-8 overflow-y-auto grow">
-          <div className="grid gap-8">
-            {Object.entries(profile).map(([key, value]) => {
-              if (key === 'archetype' || key === 'summary') return null;
-              const isExpanded = expandedSections[key];
-              const displayText = isExpanded || typeof value !== 'string' || value.length <= 120
-                ? value
-                : value.slice(0, 120) + '...';
-              return (
-                <div
-                  key={key}
-                  className="group bg-white rounded-2xl p-6 border border-gray-100 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] flex flex-col"
-                  style={{ background: 'linear-gradient(135deg, #f8faf6 60%, #f1f5f1 100%)' }}
-                >
-                  <div className="flex items-center mb-3">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center mr-3 text-2xl bg-[#f3f4f6] border border-[#e2e8f0] shadow-sm">
-                      <span>{sectionIcons[key as keyof typeof sectionIcons]}</span>
-                    </div>
-                    <h3 className="text-lg font-semibold text-[#2d3748] capitalize tracking-tight">
-                      {key.replace(/_/g, ' ').replace('and', '&')}
-                    </h3>
-                  </div>
-                  <p className="text-[#4a5568] leading-relaxed text-base mb-2">
-                    {displayText}
-                  </p>
-                  {typeof value === 'string' && value.length > 120 && (
-                    <button
-                      className="mt-1 text-sm text-[#8a9a5b] hover:underline focus:outline-none font-medium flex items-center gap-1"
-                      onClick={() => toggleSection(key)}
-                    >
-                      {isExpanded ? (
-                        <>
-                          Show Less <span className="text-xs">▲</span>
-                        </>
-                      ) : (
-                        <>
-                          Show More <span className="text-xs">▼</span>
-                        </>
-                      )}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
+        {/* Navigation Tabs */}
+        <div className="bg-white border-b border-slate-100 px-6 pt-3 pb-1">
+          <div className="flex space-x-1">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                activeTab === 'overview' 
+                  ? 'bg-[#8a9a5b]/10 text-[#55613b] shadow-sm border border-[#8a9a5b]/20' 
+                  : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
+              }`}
+            >
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('details')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                activeTab === 'details' 
+                  ? 'bg-[#8a9a5b]/10 text-[#55613b] shadow-sm border border-[#8a9a5b]/20' 
+                  : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
+              }`}
+            >
+              Detailed Analysis
+            </button>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="p-6 bg-gray-50 border-t border-gray-100 shrink-0">
-          <div className="flex gap-4 justify-center">
+        {/* Content Area */}
+        <div className="p-6 overflow-y-auto flex-1">
+          {activeTab === 'overview' ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {Object.entries(sectionConfig).map(([key, config]) => {
+                const value = profile[key as keyof ProfileData];
+                if (!value) return null;
+                
+                const isExpanded = expandedCards[key];
+                const needsExpansion = value.length > 180;
+                const displayText = isExpanded ? value : (needsExpansion ? value.slice(0, 180) + '...' : value);
+                
+                return (
+                  <div
+                    key={key}
+                    className={`bg-gradient-to-br ${config.color} rounded-2xl p-4 border border-white/50 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.02] ${isExpanded ? 'md:col-span-2 lg:col-span-3' : 'min-h-[160px]'} flex flex-col`}
+                  >
+                    <div className="flex items-center mb-2">
+                      <div className={`w-8 h-8 rounded-lg ${config.iconBg} flex items-center justify-center mr-2 shadow-sm flex-shrink-0`}>
+                        <span className="text-base">{config.icon}</span>
+                      </div>
+                      <h3 className="font-semibold text-slate-800 text-xs leading-tight">
+                        {config.title}
+                      </h3>
+                    </div>
+                    <p className={`text-slate-700 leading-relaxed flex-1 ${isExpanded ? 'text-sm' : 'text-xs overflow-hidden'}`}>
+                      {displayText}
+                    </p>
+                    {needsExpansion && (
+                      <button
+                        onClick={() => toggleCardExpansion(key)}
+                        className="mt-2 text-xs font-medium text-[#55613b] hover:text-[#8a9a5b] transition-colors duration-200 self-start flex items-center gap-1"
+                      >
+                        {isExpanded ? (
+                          <>
+                            Show Less
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                            </svg>
+                          </>
+                        ) : (
+                          <>
+                            More
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="space-y-6 max-w-4xl mx-auto">
+              {Object.entries(sectionConfig).map(([key, config]) => {
+                const value = profile[key as keyof ProfileData];
+                if (!value) return null;
+                
+                return (
+                  <div
+                    key={key}
+                    className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300"
+                  >
+                    <div className="flex items-center mb-4">
+                      <div className={`w-12 h-12 rounded-xl ${config.iconBg} flex items-center justify-center mr-4 shadow-sm`}>
+                        <span className="text-xl">{config.icon}</span>
+                      </div>
+                      <h3 className="text-xl font-semibold text-slate-800">
+                        {config.title}
+                      </h3>
+                    </div>
+                    <p className="text-slate-700 leading-relaxed">
+                      {value}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Action Footer */}
+        <div className="bg-slate-50 border-t border-slate-100 p-4">
+          <div className="flex justify-center space-x-3">
             <button
               onClick={handleShare}
               disabled={isSharing}
-              className="flex items-center px-6 py-3 bg-gradient-to-r from-[#8a9a5b] to-[#55613b] text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200 hover:scale-105 disabled:opacity-50"
+              className="flex items-center px-6 py-3 bg-gradient-to-r from-[#8a9a5b] to-[#55613b] text-white rounded-xl font-medium shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105 disabled:opacity-50"
             >
               {isSharing ? (
                 <>
-                  <svg className="w-5 h-5 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
@@ -210,28 +268,28 @@ export default function ProfileModal({ isOpen, onClose, profileJson }: ProfileMo
                 </>
               ) : (
                 <>
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
                   </svg>
-                  {shareSuccess ? 'Copied!' : 'Share Profile'}
+                  {shareSuccess ? 'Copied!' : 'Share'}
                 </>
               )}
             </button>
             
             <button
-              onClick={downloadAsImage}
-              className="flex items-center px-6 py-3 bg-white border-2 border-[#8a9a5b] text-[#8a9a5b] rounded-xl font-semibold hover:bg-[#8a9a5b] hover:text-white transition-all duration-200 hover:scale-105"
+              onClick={onClose}
+              className="flex items-center px-6 py-3 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-medium shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105"
             >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
-              Save
+              Close
             </button>
           </div>
           
           <div className="text-center mt-4">
-            <p className="text-sm text-gray-500">
-              Generated by Sage AI Coach • Share your unique professional archetype
+            <p className="text-xs text-slate-500">
+              Generated by Sage AI Coach • Your professional archetype
             </p>
           </div>
         </div>
