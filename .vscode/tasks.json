@@ -56,6 +56,30 @@
 			"type": "shell",
 			"command": "git push origin master",
 			"group": "build"
+		},
+		{
+			"label": "Commit Changes",
+			"type": "shell",
+			"command": "git commit -m \"Enable profile generation with partial progress and enhance UI features\"",
+			"group": "build"
+		},
+		{
+			"label": "Simple Commit",
+			"type": "shell",
+			"command": "git commit -m Enable-profile-generation-with-partial-progress",
+			"group": "build"
+		},
+		{
+			"label": "Git Add ProfileModal",
+			"type": "shell",
+			"command": "git add app/components/ProfileModal.tsx",
+			"group": "build"
+		},
+		{
+			"label": "Commit Fix",
+			"type": "shell",
+			"command": "git commit -m Fix-TypeScript-error-in-ProfileModal",
+			"group": "build"
 		}
 	]
 }
