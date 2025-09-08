@@ -80,6 +80,12 @@
 			"type": "shell",
 			"command": "git commit -m Fix-TypeScript-error-in-ProfileModal",
 			"group": "build"
+		},
+		{
+			"label": "Final Commit",
+			"type": "shell",
+			"command": "git commit -m Add-git-workflow-tasks",
+			"group": "build"
 		}
 	]
 }
