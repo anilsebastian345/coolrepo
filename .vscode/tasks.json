@@ -86,6 +86,24 @@
 			"type": "shell",
 			"command": "git commit -m Add-git-workflow-tasks",
 			"group": "build"
+		},
+		{
+			"label": "Complete Final Commit",
+			"type": "shell",
+			"command": "git commit -m Complete-final-git-workflow-updates",
+			"group": "build"
+		},
+		{
+			"label": "Complete Git Status Check",
+			"type": "shell",
+			"command": "git status",
+			"group": "build"
+		},
+		{
+			"label": "Add Final Tasks File",
+			"type": "shell",
+			"command": "git add .vscode/tasks.json",
+			"group": "build"
 		}
 	]
 }
