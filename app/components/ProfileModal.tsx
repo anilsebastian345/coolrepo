@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 
 interface ProfileData {
+  title: string;
   archetype: string;
   core_drives_and_values: string;
   cognitive_style: string;
@@ -15,6 +16,15 @@ interface ProfileData {
     trait: string;
     evidence: string;
     why_it_matters: string;
+  }>;
+  latent_risks_and_blind_spots?: Array<{
+    pattern: string;
+    risk: string;
+    coaching_prompt: string;
+  }>;
+  personalized_coaching_focus?: Array<{
+    area: string;
+    goal: string;
   }>;
 }
 

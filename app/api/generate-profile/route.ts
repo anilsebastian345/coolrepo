@@ -151,27 +151,6 @@ export async function POST(req: NextRequest) {
         (Date.now() - cachedProfile.timestamp) < CACHE_DURATION) {
       console.log('Returning cached profile for user:', userId);
       
-      // Also write cached profile to file for testing
-      try {
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const filename = `profile_${userId}_${timestamp}_cached.txt`;
-        const outputPath = join(process.cwd(), 'generated_profiles', filename);
-        
-        // Create directory if it doesn't exist
-        const { mkdir } = await import('fs/promises');
-        try {
-          await mkdir(join(process.cwd(), 'generated_profiles'), { recursive: true });
-        } catch (e) {
-          // Directory might already exist
-        }
-        
-        // Write the cached profile to file
-        await writeFile(outputPath, cachedProfile.profile, 'utf-8');
-        console.log('Cached profile written to file:', filename);
-      } catch (fileError) {
-        console.error('Error writing cached profile to file:', fileError);
-      }
-      
       return NextResponse.json({ 
         profile: cachedProfile.profile,
         cached: true,
@@ -223,103 +202,86 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error }, { status: 500 });
     }
 
-    // Create streaming response
-    const encoder = new TextEncoder();
-    const stream = new ReadableStream({
-      async start(controller) {
-        try {
-          const reader = response.body?.getReader();
-          if (!reader) {
-            controller.error(new Error('No response body'));
-            return;
-          }
+    // Read the streaming response and return JSON for ProfileModal
 
-          let fullProfile = '';
-          
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+    // For ProfileModal, return JSON directly instead of streaming
+    let fullProfile = '';
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('No response body');
+    }
 
-            const chunk = new TextDecoder().decode(value);
-            const lines = chunk.split('\n');
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = new TextDecoder().decode(value);
+      const lines = chunk.split('\n');
+      
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+          if (data === '[DONE]') {
+            // Cache the complete profile
+            cache[userId] = {
+              profile: fullProfile,
+              timestamp: Date.now(),
+              inputs: inputHash
+            };
+            await saveCache(cache);
             
-            for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                const data = line.slice(6);
-                if (data === '[DONE]') {
-                  // Cache the complete profile
-                  cache[userId] = {
-                    profile: fullProfile,
-                    timestamp: Date.now(),
-                    inputs: inputHash
-                  };
-                  await saveCache(cache);
-                  
-                  // Write profile to text file for testing
-                  try {
-                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-                    const filename = `profile_${userId}_${timestamp}.txt`;
-                    const outputPath = join(process.cwd(), 'generated_profiles', filename);
-                    
-                    // Create directory if it doesn't exist
-                    const { mkdir } = await import('fs/promises');
-                    try {
-                      await mkdir(join(process.cwd(), 'generated_profiles'), { recursive: true });
-                    } catch (e) {
-                      // Directory might already exist
-                    }
-                    
-                    // Write the profile to file
-                    await writeFile(outputPath, fullProfile, 'utf-8');
-                    console.log('Profile written to file:', filename);
-                  } catch (fileError) {
-                    console.error('Error writing profile to file:', fileError);
-                  }
-                  
-                  console.log('Generated new profile for user:', userId, 'Input hash:', inputHash.substring(0, 50) + '...');
-                  
-                  // Send the final complete profile with debug info
-                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
-                    profile: fullProfile, 
-                    complete: true,
-                    debugInfo: {
-                      cacheHit: false,
-                      inputHash: inputHash.substring(0, 50) + '...',
-                      generated: new Date().toISOString(),
-                      temperature: 0.2,
-                      seed: null
-                    }
-                  })}\n\n`));
-                  controller.close();
-                  return;
-                }
-                
-                try {
-                  const parsed = JSON.parse(data);
-                  const content = parsed.choices?.[0]?.delta?.content;
-                  if (content) {
-                    fullProfile += content;
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content, partial: true })}\n\n`));
-                  }
-                } catch (e) {
-                  // Skip invalid JSON
-                }
+            console.log('Generated new profile for user:', userId, 'Input hash:', inputHash.substring(0, 50) + '...');
+            
+            // Return JSON response for ProfileModal
+            return NextResponse.json({ 
+              profile: fullProfile,
+              debugInfo: {
+                cacheHit: false,
+                inputHash: inputHash.substring(0, 50) + '...',
+                generated: new Date().toISOString(),
+                temperature: 0.2,
+                seed: null
               }
-            }
+            });
           }
-        } catch (error) {
-          controller.error(error);
+          
+          try {
+            const parsed = JSON.parse(data);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) {
+              fullProfile += content;
+            }
+          } catch (e) {
+            // Skip invalid JSON
+          }
         }
       }
-    });
-
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-      },
-    });
+    }
+    
+    // If we get here, stream ended without [DONE] marker
+    if (fullProfile) {
+      // Cache what we have
+      cache[userId] = {
+        profile: fullProfile,
+        timestamp: Date.now(),
+        inputs: inputHash
+      };
+      await saveCache(cache);
+      
+      return NextResponse.json({ 
+        profile: fullProfile,
+        debugInfo: {
+          cacheHit: false,
+          inputHash: inputHash.substring(0, 50) + '...',
+          generated: new Date().toISOString(),
+          temperature: 0.2,
+          seed: null,
+          incomplete: true
+        }
+      });
+    }
+    
+    return NextResponse.json({ error: 'No profile content received' }, { status: 500 });
 
   } catch (e) {
     return NextResponse.json({ error: e?.toString() || 'Unknown error' }, { status: 500 });

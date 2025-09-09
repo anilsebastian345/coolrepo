@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useState as useModalState } from "react";
 import Link from "next/link";
-import ProfileModal from "../components/ProfileModal";
+import ProfileModal from '@/app/components/ProfileModalRedesigned';
 import ResumeModal from "../components/ResumeModal";
 
 function SageLogo() {
