@@ -164,7 +164,7 @@ export async function POST(req: NextRequest) {
     }
 
     // System prompt for executive coaching AI
-    const systemPrompt = "You are the world's most insightful executive coach AI.\nYou generate psychographic profiles in a structured markdown report, using vivid metaphors, empathy, and sharp insights.\nBe deterministic and consistent in style. Anchor your response format to the provided reference example.";
+    const systemPrompt = "You are the world's most insightful executive coach AI.\nYou generate psychographic profiles in JSON format only. Be deterministic and consistent in style. Return only valid JSON with no additional text, markdown, or formatting.";
 
     // Read user prompt template with anchoring example
     const promptPath = join(process.cwd(), 'Prompt.txt');
