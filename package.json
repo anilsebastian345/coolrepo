@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@tailwindcss/line-clamp": "^0.4.4",
     "mammoth": "^1.9.1",
     "next": "15.3.5",
     "next-auth": "^4.24.11",
