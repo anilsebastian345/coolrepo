@@ -341,7 +341,7 @@ export default function PreviewOnboarding() {
         onClose={() => setLinkedinModalOpen(false)}
         onUploadSuccess={(data) => {
           setLinkedinProgress(1); // Mark as completed
-          alert(`LinkedIn profile uploaded successfully!`);
+          // Success feedback is handled within the modal itself
         }}
       />
       
