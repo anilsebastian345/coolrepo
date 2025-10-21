@@ -50,11 +50,19 @@ export default function LinkedInModal({ isOpen, onClose, onUploadSuccess }: Link
       const data = await response.json();
 
       if (data.success) {
-        // Store the LinkedIn data in localStorage
+        // Store the LinkedIn data in localStorage for profile generation
         if (typeof window !== 'undefined') {
           localStorage.setItem('onboarding_linkedin_complete', 'true');
-          localStorage.setItem('onboarding_linkedin_data', JSON.stringify(data.profileData || {}));
-          localStorage.setItem('onboarding_linkedin_text', data.profileData?.rawText || '');
+          // Store full text for profile generation
+          localStorage.setItem('onboarding_linkedin_text', data.fullText || data.profileData?.rawText || '');
+          // Store metadata
+          localStorage.setItem('onboarding_linkedin_data', JSON.stringify({
+            filename: data.filename,
+            fileId: data.fileId,
+            uploadedAt: new Date().toISOString(),
+            name: data.profileData?.name || '',
+            headline: data.profileData?.headline || ''
+          }));
         }
 
         // Call success callback

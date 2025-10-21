@@ -1,75 +1,76 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFileSync, mkdirSync, existsSync } from 'fs';
-import { join } from 'path';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
+  console.log('=== UPLOAD LINKEDIN PDF API CALLED ===');
   try {
+    console.log('Parsing form data...');
     const formData = await request.formData();
     const file = formData.get('file') as File;
+    console.log('File received:', file ? file.name : 'No file');
 
     if (!file) {
+      console.log('ERROR: No file provided');
       return NextResponse.json(
         { success: false, error: 'No file uploaded' },
         { status: 400 }
       );
     }
 
-    // Check if it's a PDF
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
+    console.log('File details:', {
+      name: file.name,
+      type: file.type,
+      size: file.size
+    });
+
+    // Validate file type - must be PDF
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      console.log('ERROR: Invalid file type:', file.type);
       return NextResponse.json(
         { success: false, error: 'Only PDF files are supported' },
         { status: 400 }
       );
     }
 
-    // Create linkedin_profiles directory if it doesn't exist
-    const linkedinDir = join(process.cwd(), 'uploads', 'linkedin_profiles');
-    if (!existsSync(linkedinDir)) {
-      mkdirSync(linkedinDir, { recursive: true });
+    // Validate file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      console.log('ERROR: File too large:', file.size);
+      return NextResponse.json(
+        { success: false, error: 'File too large. Maximum size is 10MB.' },
+        { status: 400 }
+      );
     }
 
-    // Save the PDF file
+    console.log('File validation passed');
+
+    // Read file content for PDF parsing
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+    console.log('File read successfully, size:', bytes.byteLength);
     
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = Date.now();
     const filename = `linkedin_profile_${timestamp}.pdf`;
-    const filepath = join(linkedinDir, filename);
-    
-    writeFileSync(filepath, buffer);
 
     // Parse the PDF to extract text
     let extractedText = '';
     try {
+      console.log('Attempting to parse PDF...');
       // Dynamically import pdf-parse to avoid webpack issues
       const pdfParse = require('pdf-parse/lib/pdf-parse.js');
       const pdfData = await pdfParse(buffer);
       extractedText = pdfData.text;
+      console.log('PDF parsed successfully, text length:', extractedText.length);
     } catch (parseError) {
       console.error('Error parsing PDF:', parseError);
-      // Continue without text extraction if parsing fails
-      extractedText = 'PDF parsing temporarily unavailable. File saved successfully.';
+      // Return error if parsing fails
+      return NextResponse.json(
+        { success: false, error: 'Failed to extract text from PDF. Please try again.' },
+        { status: 500 }
+      );
     }
-
-    // Save the extracted text to a text file for easy access
-    const textFilename = `linkedin_profile_${timestamp}.txt`;
-    const textFilepath = join(linkedinDir, textFilename);
-    
-    const formattedText = `
-LINKEDIN PROFILE DATA (Extracted from PDF)
-==========================================
-
-EXTRACTED TEXT:
-${extractedText}
-
-UPLOADED ON: ${new Date().toISOString()}
-ORIGINAL FILE: ${filename}
-`;
-
-    writeFileSync(textFilepath, formattedText, 'utf8');
 
     // Parse basic information from the text (name, headline, etc.)
     const lines = extractedText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
@@ -89,16 +90,19 @@ ORIGINAL FILE: ${filename}
       profileData.headline = lines[1]; // Second line is often the headline
     }
 
+    console.log('Upload completed successfully!');
     return NextResponse.json({
       success: true,
-      message: 'LinkedIn profile PDF uploaded and processed successfully',
+      message: 'LinkedIn profile PDF processed successfully',
       filename: filename,
-      textFile: textFilename,
-      extractedText: extractedText.substring(0, 500) + '...', // Preview
+      fileId: timestamp,
+      extractedText: extractedText.substring(0, 500) + (extractedText.length > 500 ? '...' : ''), // Preview
+      fullText: extractedText, // Include full text for client-side storage
       profileData: profileData
     });
 
   } catch (error) {
+    console.error('=== UPLOAD ERROR ===');
     console.error('Error uploading LinkedIn PDF:', error);
     return NextResponse.json(
       { 

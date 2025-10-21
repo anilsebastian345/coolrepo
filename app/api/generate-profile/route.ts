@@ -115,42 +115,27 @@ export async function POST(req: NextRequest) {
       userMessage += `Challenges: ${questions.challenges || ''}\n`;
     }
     
-    // Process LinkedIn data if provided
+    // Process LinkedIn and Resume data if provided
     let resumeData = '';
     let linkedinData = '';
     
-    // Check if LinkedIn PDF was uploaded (look for text file in uploads folder)
-    try {
-      const linkedinDir = join(process.cwd(), 'uploads', 'linkedin_profiles');
-      if (existsSync(linkedinDir)) {
-        const fs = require('fs');
-        const files = fs.readdirSync(linkedinDir);
-        // Get the most recent .txt file
-        const txtFiles = files.filter((f: string) => f.endsWith('.txt')).sort().reverse();
-        if (txtFiles.length > 0) {
-          const linkedinPath = join(linkedinDir, txtFiles[0]);
-          const linkedinContent = await readFile(linkedinPath, 'utf-8');
-          // Extract just the actual profile text (skip the header)
-          const textMatch = linkedinContent.match(/EXTRACTED TEXT:\n([\s\S]*?)\n\nUPLOADED ON:/);
-          if (textMatch) {
-            linkedinData = textMatch[1].trim();
-          }
-        }
+    // Check for LinkedIn data from request body (sent from client localStorage)
+    if (linkedinInput) {
+      // Check if it's the full text (from PDF upload)
+      if (typeof linkedinInput === 'string') {
+        linkedinData = linkedinInput;
+      } 
+      // Or if it's structured data (old manual entry format)
+      else if (typeof linkedinInput === 'object') {
+        // Format LinkedIn sections into a readable text
+        const sections = [];
+        if (linkedinInput.about) sections.push(`ABOUT:\n${linkedinInput.about}`);
+        if (linkedinInput.experience) sections.push(`EXPERIENCE:\n${linkedinInput.experience}`);
+        if (linkedinInput.education) sections.push(`EDUCATION:\n${linkedinInput.education}`);
+        if (linkedinInput.recommendations) sections.push(`RECOMMENDATIONS:\n${linkedinInput.recommendations}`);
+        
+        linkedinData = sections.join('\n\n');
       }
-    } catch (error) {
-      console.log('No LinkedIn PDF data found, continuing without it');
-    }
-    
-    // Also check for LinkedIn input from request
-    if (!linkedinData && linkedinInput) {
-      // Format LinkedIn sections into a readable text
-      const sections = [];
-      if (linkedinInput.about) sections.push(`ABOUT:\n${linkedinInput.about}`);
-      if (linkedinInput.experience) sections.push(`EXPERIENCE:\n${linkedinInput.experience}`);
-      if (linkedinInput.education) sections.push(`EDUCATION:\n${linkedinInput.education}`);
-      if (linkedinInput.recommendations) sections.push(`RECOMMENDATIONS:\n${linkedinInput.recommendations}`);
-      
-      linkedinData = sections.join('\n\n');
     }
     
     // If we have LinkedIn data, use that for the profile generation

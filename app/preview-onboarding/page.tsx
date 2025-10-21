@@ -503,7 +503,7 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
     try {
       // Get questions and LinkedIn data from localStorage
       let questionsData = {};
-      let linkedinData = {};
+      let linkedinData: any = null;
       if (typeof window !== 'undefined') {
         const storedQuestions = localStorage.getItem('onboarding_questions');
         if (storedQuestions) {
@@ -514,12 +514,19 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
           }
         }
         
-        const storedLinkedin = localStorage.getItem('onboarding_linkedin_data');
-        if (storedLinkedin) {
-          try {
-            linkedinData = JSON.parse(storedLinkedin);
-          } catch (e) {
-            console.error('Failed to parse LinkedIn data:', e);
+        // Get LinkedIn text (full extracted text from PDF)
+        const storedLinkedinText = localStorage.getItem('onboarding_linkedin_text');
+        if (storedLinkedinText) {
+          linkedinData = storedLinkedinText; // Send as string
+        } else {
+          // Fallback to old structured format if no text
+          const storedLinkedin = localStorage.getItem('onboarding_linkedin_data');
+          if (storedLinkedin) {
+            try {
+              linkedinData = JSON.parse(storedLinkedin);
+            } catch (e) {
+              console.error('Failed to parse LinkedIn data:', e);
+            }
           }
         }
       }
