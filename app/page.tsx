@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { signIn, signOut, useSession } from 'next-auth/react';
 
@@ -74,7 +75,14 @@ export default function Home() {
             {/* Animated Profile Icon */}
             <div className="relative w-20 h-20 flex items-center justify-center rounded-full bg-gradient-to-br from-[#e0e7ef] to-[#c8e6c9] shadow-xl animate-float">
               {session.user?.image ? (
-                <img src={session.user.image} alt="Profile" className="w-16 h-16 rounded-full object-cover z-10" />
+                <Image 
+                  src={session.user.image} 
+                  alt="Profile" 
+                  width={64} 
+                  height={64}
+                  className="rounded-full object-cover z-10" 
+                  unoptimized
+                />
               ) : (
                 <span className="z-10 text-3xl font-semibold text-green-900 select-none">
                   {getInitials(session.user?.name ?? undefined)}

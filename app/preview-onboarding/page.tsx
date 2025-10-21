@@ -5,6 +5,7 @@ import { useState as useModalState } from "react";
 import Link from "next/link";
 import ProfileModal from '@/app/components/ProfileModal';
 import ResumeModal from "../components/ResumeModal";
+import LinkedInModal from "../components/LinkedInModal";
 
 function SageLogo() {
   return (
@@ -124,19 +125,6 @@ function ProgressIndicator({ percent, isComplete }: { percent: number, isComplet
 
 const options = [
   {
-    key: "linkedin",
-    icon: (
-      <svg className="w-6 h-6 text-[#9DC183]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-        <rect x="4" y="4" width="16" height="16" rx="3" fill="#F8FAFC" stroke="#E2E8F0" />
-        <rect x="7" y="10" width="2" height="6" rx="1" fill="#9DC183" />
-        <rect x="11" y="10" width="2" height="6" rx="1" fill="#9DC183" />
-        <circle cx="8" cy="8" r="1" fill="#9DC183" />
-      </svg>
-    ),
-    title: "Paste my LinkedIn summary",
-    desc: "Quick and easy way to share your background",
-  },
-  {
     key: "resume",
     icon: (
       <svg className="w-6 h-6 text-[#9DC183]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -159,6 +147,18 @@ const options = [
     title: "Answer a few questions",
     desc: "We'll have a brief conversation to get started",
   },
+  {
+    key: "linkedin-pdf",
+    icon: (
+      <svg className="w-6 h-6 text-[#9DC183]" fill="currentColor" viewBox="0 0 24 24">
+        <rect x="4" y="4" width="16" height="16" rx="3" fill="#F8FAFC" stroke="#E2E8F0" />
+        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" 
+              stroke="#9DC183" strokeWidth="0.5" transform="scale(0.6) translate(5,5)"/>
+      </svg>
+    ),
+    title: "Upload LinkedIn PDF",
+    desc: "Upload your LinkedIn profile as a PDF",
+  },
 ];
 
 export default function PreviewOnboarding() {
@@ -168,6 +168,8 @@ export default function PreviewOnboarding() {
   const [resumeUploaded, setResumeUploaded] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [questionsCompleted, setQuestionsCompleted] = useState(false);
+  const [isImportingLinkedIn, setIsImportingLinkedIn] = useState(false);
+  const [linkedinModalOpen, setLinkedinModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const [resumeInfo, setResumeInfo] = useState<{fileName: string, uploadedAt: string} | null>(null);
@@ -175,15 +177,10 @@ export default function PreviewOnboarding() {
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // Check LinkedIn progress (4 sections total)
-      const data = localStorage.getItem('onboarding_linkedin_data');
-      if (data) {
-        try {
-          const parsed = JSON.parse(data);
-          const filled = [parsed.about, parsed.experience, parsed.education, parsed.recommendations].filter(v => v && v.trim().length > 0).length;
-          setLinkedinProgress(filled);
-          if (filled > 0) setSelected('linkedin');
-        } catch {}
+      // Check LinkedIn PDF upload
+      const linkedinComplete = localStorage.getItem('onboarding_linkedin_complete');
+      if (linkedinComplete === 'true') {
+        setLinkedinProgress(1); // Mark as completed
       } else {
         setLinkedinProgress(0);
       }
@@ -270,6 +267,8 @@ export default function PreviewOnboarding() {
     setResumeModalOpen(false);
   }
 
+
+
   function handleOptionClick(key: string) {
     if (key === "resume") {
       setResumeModalOpen(true);
@@ -279,10 +278,11 @@ export default function PreviewOnboarding() {
       router.push("/onboarding/questions");
       return;
     }
-    setSelected(key);
-    if (key === "linkedin") {
-      router.push("/onboarding/linkedin");
+    if (key === "linkedin-pdf") {
+      setLinkedinModalOpen(true);
+      return;
     }
+    setSelected(key);
   }
 
   // Get user name from resume, login, or guest mode
@@ -335,22 +335,31 @@ export default function PreviewOnboarding() {
         onDelete={handleDeleteResumeModal}
         isUploading={isUploading}
       />
+
+      <LinkedInModal
+        isOpen={linkedinModalOpen}
+        onClose={() => setLinkedinModalOpen(false)}
+        onUploadSuccess={(data) => {
+          setLinkedinProgress(1); // Mark as completed
+          alert(`LinkedIn profile uploaded successfully!`);
+        }}
+      />
       
       {/* Enhanced Input Tiles */}
       <div className="w-full max-w-md mx-auto mb-5 p-0"> {/* container for all cards */}
         {options.map((opt) => {
-          const isLinkedIn = opt.key === 'linkedin';
+          const isLinkedInPDF = opt.key === 'linkedin-pdf';
           const isResume = opt.key === 'resume';
           const isQuestions = opt.key === 'questions';
-          const isLinkedInComplete = isLinkedIn && linkedinProgress === 4;
+          const isLinkedInPDFComplete = isLinkedInPDF && linkedinProgress > 0;
           const isResumeComplete = isResume && resumeUploaded;
           const isQuestionsComplete = isQuestions && questionsCompleted;
-          const isComplete = isLinkedInComplete || isResumeComplete || isQuestionsComplete;
+          const isComplete = isLinkedInPDFComplete || isResumeComplete || isQuestionsComplete;
           
           // Calculate progress percentage
           let progressPercent = 0;
-          if (isLinkedIn) {
-            progressPercent = (linkedinProgress / 4) * 100;
+          if (isLinkedInPDF) {
+            progressPercent = linkedinProgress > 0 ? 100 : 0;
           } else if (isQuestions) {
             progressPercent = (questionsProgress / 5) * 100;
           } else if (isResume) {
@@ -365,21 +374,24 @@ export default function PreviewOnboarding() {
                 ${isComplete
                   ? 'bg-white/60 border-[#8a9112] backdrop-blur-md'
                   : 'bg-white/40 border-[#d3d7c7] backdrop-blur-md'}
-                hover:border-[#8a9112] hover:shadow-lg hover:scale-[1.025] focus:outline-none`}
+                hover:border-[#8a9112] hover:shadow-lg hover:scale-[1.025] focus:outline-none
+                disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100`}
               style={{ minHeight: 80 }}
             >
               <div className="flex items-center justify-center w-12 h-12 rounded-lg mr-4 bg-[#f5f6f2]">
                 {opt.icon}
               </div>
               <div className="flex-1 text-left min-w-0">
-                <div className="text-[16px] font-normal text-black mb-1 leading-tight">{opt.title}</div>
+                <div className="text-[16px] font-normal text-black mb-1 leading-tight">
+                  {opt.title}
+                </div>
                 <div className="text-[13px] text-[#7a7a7a] font-normal leading-snug" style={{whiteSpace: 'pre-line'}}>
-                  {opt.key === 'linkedin' ? (
-                    <>Quick and easy way to share your<br />background</>
-                  ) : opt.key === 'resume' ? (
+                  {opt.key === 'resume' ? (
                     <>Let me review your professional<br />experience</>
-                  ) : (
+                  ) : opt.key === 'questions' ? (
                     <>We'll have a brief conversation to<br />get started</>
+                  ) : (
+                    opt.desc
                   )}
                 </div>
               </div>

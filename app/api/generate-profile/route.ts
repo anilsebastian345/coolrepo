@@ -119,7 +119,30 @@ export async function POST(req: NextRequest) {
     let resumeData = '';
     let linkedinData = '';
     
-    if (linkedinInput) {
+    // Check if LinkedIn PDF was uploaded (look for text file in uploads folder)
+    try {
+      const linkedinDir = join(process.cwd(), 'uploads', 'linkedin_profiles');
+      if (existsSync(linkedinDir)) {
+        const fs = require('fs');
+        const files = fs.readdirSync(linkedinDir);
+        // Get the most recent .txt file
+        const txtFiles = files.filter((f: string) => f.endsWith('.txt')).sort().reverse();
+        if (txtFiles.length > 0) {
+          const linkedinPath = join(linkedinDir, txtFiles[0]);
+          const linkedinContent = await readFile(linkedinPath, 'utf-8');
+          // Extract just the actual profile text (skip the header)
+          const textMatch = linkedinContent.match(/EXTRACTED TEXT:\n([\s\S]*?)\n\nUPLOADED ON:/);
+          if (textMatch) {
+            linkedinData = textMatch[1].trim();
+          }
+        }
+      }
+    } catch (error) {
+      console.log('No LinkedIn PDF data found, continuing without it');
+    }
+    
+    // Also check for LinkedIn input from request
+    if (!linkedinData && linkedinInput) {
       // Format LinkedIn sections into a readable text
       const sections = [];
       if (linkedinInput.about) sections.push(`ABOUT:\n${linkedinInput.about}`);
@@ -133,7 +156,11 @@ export async function POST(req: NextRequest) {
     // If we have LinkedIn data, use that for the profile generation
     let profileInput = '';
     if (linkedinData) {
-      profileInput = linkedinData;
+      profileInput = `LINKEDIN PROFILE DATA:\n\n${linkedinData}`;
+      // Also include questionnaire data if available for more context
+      if (userMessage) {
+        profileInput += `\n\nLEADERSHIP ASSESSMENT:\n\n${userMessage}`;
+      }
     } else if (userMessage) {
       profileInput = userMessage;
     } else {

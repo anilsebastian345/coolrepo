@@ -1,0 +1,29 @@
+
+LINKEDIN PROFILE DATA
+====================
+
+Name: John Doe
+Headline: Senior Software Engineer at Tech Company
+Location: San Francisco, CA
+Industry: Technology
+
+SUMMARY:
+Experienced software engineer with 8+ years in full-stack development. Passionate about creating scalable web applications and leading development teams. Expertise in React, Node.js, Python, and cloud technologies.
+
+EXPERIENCE:
+Senior Software Engineer at Tech Company (2021 - Present)
+Led development of microservices architecture serving 1M+ users. Mentored junior developers and implemented CI/CD pipelines.
+
+Software Engineer at Previous Company (2018 - 2021)
+Developed and maintained React applications. Collaborated with cross-functional teams to deliver high-quality software solutions.
+
+EDUCATION:
+Bachelor of Science in Computer Science from University of Technology (2014 - 2018)
+
+SKILLS:
+JavaScript, React, Node.js, Python, AWS, Docker, Kubernetes
+
+RECOMMENDATIONS:
+"John is an exceptional engineer who consistently delivers high-quality work. His technical skills and leadership abilities make him a valuable team member." - Jane Smith, Engineering Manager
+
+Imported on: 2025-10-19T04:03:25.150Z

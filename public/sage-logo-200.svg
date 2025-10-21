@@ -1,0 +1,24 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- High-resolution Sage logo matching the exact image provided -->
+  <defs>
+    <!-- Shadow filter for depth -->
+    <filter id="shadow200" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.15"/>
+      <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#000000" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+  
+  <!-- Light gray background circle -->
+  <circle cx="100" cy="100" r="85" fill="#f8f9fa" stroke="#e9ecef" stroke-width="2" filter="url(#shadow200)"/>
+  
+  <!-- Green circle -->
+  <circle cx="100" cy="100" r="50" fill="#8a9a5b"/>
+  
+  <!-- White plus symbol -->
+  <g transform="translate(100,100)">
+    <path d="M0 -30v60M-30 0h60" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Yellow accent dot -->
+  <circle cx="140" cy="60" r="12" fill="#ffd43b"/>
+</svg>
