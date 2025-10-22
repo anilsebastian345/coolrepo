@@ -143,18 +143,11 @@ export async function POST(req: NextRequest) {
       }
     }
     
-    // If we have LinkedIn data, use that for the profile generation
-    let profileInput = '';
-    if (linkedinData) {
-      profileInput = `LINKEDIN PROFILE DATA:\n\n${linkedinData}`;
-      // Also include questionnaire data if available for more context
-      if (userMessage) {
-        profileInput += `\n\nLEADERSHIP ASSESSMENT:\n\n${userMessage}`;
-      }
-    } else if (userMessage) {
-      profileInput = userMessage;
-    } else {
-      return NextResponse.json({ error: 'No onboarding data found. Please complete LinkedIn profile or answer questions.' }, { status: 400 });
+    // Validate that at least one input source is provided
+    if (!linkedinData && !resumeData && !userMessage) {
+      return NextResponse.json({ 
+        error: 'No onboarding data found. Please provide at least one of: LinkedIn profile, Resume, or complete the assessment questions.' 
+      }, { status: 400 });
     }
 
     // Check cache with comprehensive input hash
