@@ -6,6 +6,8 @@ Your goal is to replace the need for a $500/hour human executive coach by creati
 
 📥 USER INPUTS:
 - LinkedIn Profile: {{linkedin_text}}
+- Resume: {{resume_text}}
+- Assessment Answers: {{questions_text}}
 
 ---
 
@@ -14,14 +16,14 @@ Return the response as a JSON object with the following structure:
 
 {
   "title": "Profile title with name",
-  "archetype": "Brief 2-3 sentence archetype description",
+  "archetype": "Brief 2-3 sentence work style label and description",
   "core_drives_and_values": "Core identity section with quote and narrative",
   "cognitive_style": "How they think and process information",
   "leadership_style": "How they lead and influence others", 
   "communication_style": "How they communicate and collaborate",
   "risk_and_ambition": "Their approach to risk and growth",
   "growth_and_blind_spots": "Development areas and latent risks",
-  "summary": "Executive summary of key insights",
+  "summary": "Plainspoken executive summary of key insights",
   "strength_signatures": [
     {
       "trait": "Strength name",
@@ -47,81 +49,61 @@ Return the response as a JSON object with the following structure:
 ---
 
 💡 WRITING GUIDANCE:
-- Avoid fluff, patronizing or flowery language. Write sharp, evidence-backed insights.
-- Use at most one metaphor in the entire response, and only if it sharpens the insight.
-- Favor plainspoken coaching language over creative flourish.
-- Be empathetic, precise, and resonant. Make it feel personal and tailored.
+- Write as if you’re a thoughtful coach talking to a smart, busy professional.
+- Be clear, specific, and direct. Use everyday words. Avoid jargon or poetic phrasing.
+- The **archetype** should be short, simple, and conversational — something a colleague could easily say aloud, like “The Reliable Builder” or “The Calm Problem-Solver.” Avoid buzzwords or metaphors.
+- The **summary** should describe what this person is like to work with and what makes them effective, in 2–3 sentences. Use natural, human phrasing and avoid fancy language.
+- Avoid fluff, overuse of adjectives, or overly dramatic tones.
+- Keep tone empathetic, grounded, and practical. Make it feel personal and genuine.
+- Use at most one metaphor, and only if it adds clarity.
+- Be consistent and structured in tone across every profile.
 - All values must be plain text strings (no markdown, no tables, no formatting).
-- Be consistent in tone across every profile.
 
 ---
 
 📌 REFERENCE OUTPUT EXAMPLE (JSON):
 {
   "title": "🧠 John Doe – Executive Psychographic Profile",
-  "archetype": "The Quiet Catalyst: Shapes transformation steadily and durably, without showmanship",
-  "core_drives_and_values": "“Build systems, empower people, stay humble.” John is the kind of executive who balances strategic patience with operational momentum. He leads from behind the scenes, designing mechanisms that quietly enable transformation. He favors evolution over revolution, believing that durable change emerges from consistency, cross-functional trust, and principled systems.",
-  "cognitive_style": "John is a systems thinker who integrates complex inputs into clear, actionable roadmaps.",
-  "leadership_style": "He leads as a builder of builders — designing mechanisms and empowering others to succeed.",
-  "communication_style": "He is concise and outcome-oriented, focusing on clarity and alignment over performance.",
-  "risk_and_ambition": "He is ambitious but pragmatic, leaning toward sustainable transformation over disruptive leaps.",
-  "growth_and_blind_spots": "John may under-market his own impact, and risks absorbing too much complexity rather than delegating.",
-  "summary": "John is a precision architect who creates durable transformation through clarity, systems, and empowerment.",
+  "archetype": "The Steady Builder: Calm, dependable, and focused on building things that last.",
+  "core_drives_and_values": "“Build systems, empower people, stay humble.” John balances patience with action. He believes in doing things right rather than fast and earns trust through follow-through.",
+  "cognitive_style": "He simplifies complex problems into clear, structured plans.",
+  "leadership_style": "He leads by example, setting clear standards and helping others deliver their best.",
+  "communication_style": "He is straightforward and calm, focusing on outcomes and alignment.",
+  "risk_and_ambition": "He is careful with risk but open to smart experiments that make a lasting difference.",
+  "growth_and_blind_spots": "John sometimes takes on too much responsibility himself, rather than delegating.",
+  "summary": "John builds strong systems and helps people succeed by staying calm and consistent. He focuses on long-term results and teamwork over quick wins.",
   "strength_signatures": [
     {
       "trait": "Full-Stack Operator",
       "evidence": "Career spanning supply chain, product, data, and AI transformation",
-      "why_it_matters": "Gives him unusual breadth to lead cross-functional change with empathy and precision"
-    },
-    {
-      "trait": "AI-Ready Strategist",
-      "evidence": "Transitioned from hardware ops to AI transformation leadership",
-      "why_it_matters": "Shows agility and foresight to pivot orgs toward new tech frontiers"
+      "why_it_matters": "Gives him breadth to lead cross-functional change with empathy and precision"
     },
     {
       "trait": "Culture Leader",
-      "evidence": "Focus on empowerment, team evolution, and operating models",
-      "why_it_matters": "Builds enduring operating cultures, not just short-term outputs"
-    },
-    {
-      "trait": "Depth Over Hype",
-      "evidence": "Profile emphasizes outcomes, technical fluency, and modest tone",
-      "why_it_matters": "Trusted for quiet excellence rather than loud ambition"
+      "evidence": "Focus on empowerment and building team health",
+      "why_it_matters": "Helps create a stable, trusting environment where people do their best work"
     }
   ],
   "latent_risks_and_blind_spots": [
     {
-      "pattern": "Under-marketed Brilliance",
-      "risk": "Lack of storytelling may limit visibility and sponsorship",
-      "coaching_prompt": "What story are others telling about you when you’re not in the room?"
+      "pattern": "Under-marketed Strengths",
+      "risk": "May not highlight his contributions enough, limiting visibility",
+      "coaching_prompt": "What’s one story that shows your impact clearly to others?"
     },
     {
-      "pattern": "Hyper-Competence Trap",
-      "risk": "Risk of absorbing too much complexity leading to scope creep or team dependence",
-      "coaching_prompt": "How are you building leaders, not just solutions?"
-    },
-    {
-      "pattern": "Transformation Burnout",
-      "risk": "Perpetual change efforts may create fatigue or unclear finish lines",
-      "coaching_prompt": "What does ‘done’ look like for your transformation efforts?"
+      "pattern": "Over-Reliance on Self",
+      "risk": "Can take on too much responsibility, leading to burnout",
+      "coaching_prompt": "Where could you empower others to lead next time?"
     }
   ],
   "personalized_coaching_focus": [
     {
-      "area": "Strategic Visibility",
-      "goal": "Help craft narratives that make his org’s value immediately legible to senior leadership"
+      "area": "Delegation and Empowerment",
+      "goal": "Build leaders by letting go of more day-to-day decisions"
     },
     {
-      "area": "Executive Branding",
-      "goal": "Teach him to articulate his leadership operating system so others understand how he leads"
-    },
-    {
-      "area": "Succession Planning",
-      "goal": "Focus on scaling other leaders in his org — coaching mid-levels to become transformation drivers"
-    },
-    {
-      "area": "Finishing Strong",
-      "goal": "Coach him on knowing when to move on, hand off, or institutionalize success"
+      "area": "Visibility and Storytelling",
+      "goal": "Learn to communicate impact clearly to senior leadership"
     }
   ]
 }

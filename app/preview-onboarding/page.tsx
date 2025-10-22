@@ -242,6 +242,11 @@ export default function PreviewOnboarding() {
       const result = await response.json();
       console.log('Upload success:', result);
       
+      // Store resume text in localStorage for profile generation
+      if (result.fullText) {
+        localStorage.setItem('onboarding_resume_text', result.fullText);
+      }
+      
       localStorage.setItem('onboarding_resume_uploaded', 'true');
       localStorage.setItem('onboarding_resume_data', JSON.stringify({
         fileId: result.fileId,
@@ -262,6 +267,7 @@ export default function PreviewOnboarding() {
   function handleDeleteResumeModal() {
     localStorage.removeItem('onboarding_resume_uploaded');
     localStorage.removeItem('onboarding_resume_data');
+    localStorage.removeItem('onboarding_resume_text');
     setResumeUploaded(false);
     setResumeInfo(null);
     setResumeModalOpen(false);
@@ -501,9 +507,10 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
     setIsStreaming(false);
     
     try {
-      // Get questions and LinkedIn data from localStorage
+      // Get questions, LinkedIn data, and resume from localStorage
       let questionsData = {};
       let linkedinData: any = null;
+      let resumeData: any = null;
       if (typeof window !== 'undefined') {
         const storedQuestions = localStorage.getItem('onboarding_questions');
         if (storedQuestions) {
@@ -529,6 +536,12 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
             }
           }
         }
+        
+        // Get Resume text (full extracted text from PDF)
+        const storedResumeText = localStorage.getItem('onboarding_resume_text');
+        if (storedResumeText) {
+          resumeData = storedResumeText; // Send as string
+        }
       }
       
       const response = await fetch('/api/generate-profile', {
@@ -537,7 +550,8 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
         body: JSON.stringify({ 
           userId: 'temp-user-id',
           questions: questionsData,
-          linkedin: linkedinData
+          linkedin: linkedinData,
+          resume: resumeData
         }),
       });
       

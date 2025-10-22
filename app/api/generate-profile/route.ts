@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.AZURE_OPENAI_KEY;
     const deployment = process.env.AZURE_OPENAI_DEPLOYMENT;
     const apiVersion = process.env.AZURE_OPENAI_API_VERSION || '2024-02-15-preview';
-    const { userId = 'temp-user-id', questions: requestQuestions, linkedin: linkedinInput, clearCache = false } = await req.json();
+    const { userId = 'temp-user-id', questions: requestQuestions, linkedin: linkedinInput, resume: resumeInput, clearCache = false } = await req.json();
 
     // Clear cache if requested
     if (clearCache) {
@@ -118,6 +118,11 @@ export async function POST(req: NextRequest) {
     // Process LinkedIn and Resume data if provided
     let resumeData = '';
     let linkedinData = '';
+    
+    // Check for Resume data from request body (sent from client localStorage)
+    if (resumeInput) {
+      resumeData = typeof resumeInput === 'string' ? resumeInput : JSON.stringify(resumeInput);
+    }
     
     // Check for LinkedIn data from request body (sent from client localStorage)
     if (linkedinInput) {
@@ -182,8 +187,11 @@ export async function POST(req: NextRequest) {
     const promptPath = join(process.cwd(), 'Prompt.txt');
     const userPromptTemplate = await readFile(promptPath, 'utf-8');
     
-    // Replace placeholder with actual LinkedIn data or user message
-    const finalUserPrompt = userPromptTemplate.replace('{{linkedin_text}}', profileInput);
+    // Replace placeholders with actual data
+    let finalUserPrompt = userPromptTemplate
+      .replace('{{linkedin_text}}', linkedinData || 'Not provided')
+      .replace('{{resume_text}}', resumeData || 'Not provided')
+      .replace('{{questions_text}}', userMessage || 'Not provided');
 
     // Call Azure OpenAI with streaming
     const response = await fetch(

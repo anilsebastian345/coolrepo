@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Dynamic import for pdf-parse to avoid webpack issues
+const pdfParse = require('pdf-parse');
+
 export async function POST(request: NextRequest) {
   console.log('=== UPLOAD RESUME API CALLED ===');
   try {
@@ -51,15 +54,36 @@ export async function POST(request: NextRequest) {
 
     console.log('File validation passed');
     
+    // Read file content for processing
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    console.log('File read successfully, size:', bytes.byteLength);
+    
+    // Extract text from PDF
+    let extractedText = '';
+    if (file.type === 'application/pdf') {
+      try {
+        const pdfData = await pdfParse(buffer);
+        extractedText = pdfData.text;
+        console.log('PDF text extracted, length:', extractedText.length);
+      } catch (error) {
+        console.error('Error extracting PDF text:', error);
+        return NextResponse.json(
+          { error: 'Failed to extract text from PDF. Please ensure the file is not corrupted.' },
+          { status: 400 }
+        );
+      }
+    } else {
+      // For DOC/DOCX files, we'll need a different library or just skip text extraction for now
+      console.log('Non-PDF file uploaded - text extraction not implemented for DOC/DOCX yet');
+      extractedText = 'Text extraction not available for DOC/DOCX files. Please upload a PDF for full text extraction.';
+    }
+    
     // For Vercel deployment, we'll just simulate file storage
     // In a real production app, you'd upload to cloud storage (AWS S3, etc.)
     const timestamp = Date.now();
     const fileExtension = file.name.split('.').pop();
     const fileName = `resume_${timestamp}.${fileExtension}`;
-    
-    // Read file content for processing (optional)
-    const bytes = await file.arrayBuffer();
-    console.log('File read successfully, size:', bytes.byteLength);
     
     // Simulate successful file storage
     console.log('Upload completed successfully!');
@@ -67,6 +91,7 @@ export async function POST(request: NextRequest) {
       success: true,
       fileId: timestamp,
       fileName: file.name,
+      fullText: extractedText,
       message: 'Resume uploaded successfully'
     });
 
