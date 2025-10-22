@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Dynamic import for pdf-parse to avoid webpack issues
-const pdfParse = require('pdf-parse');
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   console.log('=== UPLOAD RESUME API CALLED ===');
@@ -63,6 +63,9 @@ export async function POST(request: NextRequest) {
     let extractedText = '';
     if (file.type === 'application/pdf') {
       try {
+        console.log('Attempting to parse PDF...');
+        // Dynamically import pdf-parse to avoid webpack issues
+        const pdfParse = require('pdf-parse/lib/pdf-parse.js');
         const pdfData = await pdfParse(buffer);
         extractedText = pdfData.text;
         console.log('PDF text extracted, length:', extractedText.length);
