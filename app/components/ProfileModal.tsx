@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface ProfileData {
   title: string;
@@ -110,6 +111,7 @@ const sectionConfig = {
 };
 
 export default function ProfileModal({ isOpen, onClose, profileJson }: ProfileModalProps) {
+  const router = useRouter();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [isSharing, setIsSharing] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
@@ -412,6 +414,16 @@ export default function ProfileModal({ isOpen, onClose, profileJson }: ProfileMo
         {/* Action Footer */}
         <div className="bg-white/95 backdrop-blur-sm border-t border-slate-200/60 p-6">
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-4">
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="flex items-center px-8 py-3 bg-gradient-to-r from-[#8a9a5b] to-[#55613b] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 min-w-[180px] justify-center"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+              Go to Dashboard
+            </button>
+            
             <button
               onClick={handleShare}
               disabled={isSharing}

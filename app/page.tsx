@@ -107,6 +107,13 @@ export default function Home() {
             {/* Break and larger Let's Chat button */}
             <div className="mb-4 flex flex-row items-center justify-center gap-4">
               <button
+                onClick={() => router.push('/dashboard')}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-br from-[#8a9a5b] to-[#55613b] shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-200 text-white text-base font-semibold"
+              >
+                <span className="text-lg">🎯</span>
+                <span className="text-base">Dashboard</span>
+              </button>
+              <button
                 onClick={() => router.push('/chat')}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-br from-[#e0e7ef] to-[#c8e6c9] shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-200 text-[#55613b] text-base font-semibold"
               >
