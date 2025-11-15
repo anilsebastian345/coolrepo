@@ -19,7 +19,7 @@ function TopNav({ activeTab }: { activeTab: string }) {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', href: '/dashboard' },
     { id: 'profile', label: 'Profile', href: '/preview-onboarding' },
-    { id: 'career', label: 'Career Map', href: '/dashboard/career-direction' },
+    { id: 'career', label: 'Career Map', href: '/career-map' },
     { id: 'resume', label: 'Resume Intel', href: '/dashboard/resume-intelligence' },
     { id: 'jobmatch', label: 'Job Match', href: '/dashboard/job-match' },
   ];
@@ -190,7 +190,7 @@ export default function DashboardPage() {
       title: 'Career Direction Map',
       subtitle: 'See roles that fit your strengths.',
       icon: '🧭',
-      href: '/dashboard/career-direction',
+      href: '/career-map',
       available: hasProfile
     },
     {

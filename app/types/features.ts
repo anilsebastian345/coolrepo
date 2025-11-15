@@ -16,6 +16,20 @@ export interface CareerDirectionResponse {
   reasoning: string;
 }
 
+// Career Map Page Type
+export interface CareerRecommendation {
+  id: string;
+  roleTitle: string;
+  fitScore: number;
+  whyItFits: string[];
+  strengthsUsed: string[];
+  keySkills: string[];
+  description: string;
+  responsibilities: string[];
+  gaps: string[];
+  nextSteps: string[];
+}
+
 // F2 - Resume & LinkedIn Intelligence
 export interface ResumeAnalysis {
   strengths: {
