@@ -20,7 +20,7 @@ function TopNav({ activeTab }: { activeTab: string }) {
     { id: 'dashboard', label: 'Dashboard', href: '/dashboard' },
     { id: 'profile', label: 'Profile', href: '/preview-onboarding' },
     { id: 'career', label: 'Career Map', href: '/career-map' },
-    { id: 'resume', label: 'Resume Intel', href: '/dashboard/resume-intelligence' },
+    { id: 'resume', label: 'Resume Intel', href: '/resume-intel' },
     { id: 'jobmatch', label: 'Job Match', href: '/dashboard/job-match' },
   ];
 
@@ -197,7 +197,7 @@ export default function DashboardPage() {
       title: 'Resume & Profile Analysis',
       subtitle: 'Improve your resume and LinkedIn story.',
       icon: '✨',
-      href: '/dashboard/resume-intelligence',
+      href: '/resume-intel',
       available: hasResume || hasLinkedIn
     },
     {

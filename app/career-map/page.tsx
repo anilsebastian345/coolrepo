@@ -11,7 +11,7 @@ function TopNav({ activeTab }: { activeTab: string }) {
     { id: 'dashboard', label: 'Dashboard', href: '/dashboard' },
     { id: 'profile', label: 'Profile', href: '/preview-onboarding' },
     { id: 'career', label: 'Career Map', href: '/career-map' },
-    { id: 'resume', label: 'Resume Intel', href: '/dashboard/resume-intelligence' },
+    { id: 'resume', label: 'Resume Intel', href: '/resume-intel' },
     { id: 'jobmatch', label: 'Job Match', href: '/dashboard/job-match' },
   ];
 

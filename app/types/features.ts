@@ -30,6 +30,14 @@ export interface CareerRecommendation {
   nextSteps: string[];
 }
 
+// Resume Intel Page Type
+export interface ResumeIntel {
+  strengths: string[];
+  gaps: string[];
+  improvedBullets: { original: string; improved: string }[];
+  improvedLinkedInSummary: string;
+}
+
 // F2 - Resume & LinkedIn Intelligence
 export interface ResumeAnalysis {
   strengths: {
