@@ -567,11 +567,12 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
       if (contentType?.includes('application/json')) {
         const data = await response.json();
         setProfile(data.profile);
-        setShowModal(true);
         if (typeof window !== 'undefined') {
           localStorage.setItem('onboarding_psych_profile', data.profile);
         }
         setLoading(false);
+        // Redirect to dashboard instead of showing modal
+        router.push('/dashboard');
         return;
       }
 
@@ -599,13 +600,14 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
               if (data.complete && data.profile) {
                 // Final complete profile
                 setProfile(data.profile);
-                setShowModal(true);
                 setIsStreaming(false);
                 
                 if (typeof window !== 'undefined') {
                   localStorage.setItem('onboarding_psych_profile', data.profile);
                 }
                 setLoading(false);
+                // Redirect to dashboard instead of showing modal
+                router.push('/dashboard');
                 return;
               } else if (data.partial && data.content) {
                 // Partial content update

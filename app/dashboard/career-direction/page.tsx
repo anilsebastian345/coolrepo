@@ -5,18 +5,52 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CareerDirectionResponse, CareerPath } from "@/app/types/features";
 
-function SageLogo() {
+function TopNav({ activeTab }: { activeTab: string }) {
+  const navItems = [
+    { id: 'dashboard', label: 'Dashboard', href: '/dashboard' },
+    { id: 'profile', label: 'Profile', href: '/preview-onboarding' },
+    { id: 'career', label: 'Career Map', href: '/dashboard/career-direction' },
+    { id: 'resume', label: 'Resume Intel', href: '/dashboard/resume-intelligence' },
+    { id: 'jobmatch', label: 'Job Match', href: '/dashboard/job-match' },
+  ];
+
   return (
-    <Link href="/dashboard" className="flex items-center gap-3 mb-8 hover:opacity-80 transition-opacity">
-      <div className="relative w-12 h-12 flex items-center justify-center rounded-full shadow-lg bg-white/30 border border-white/40 backdrop-blur-md">
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#8a9a5b] to-[#55613b] flex items-center justify-center shadow-md">
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
-            <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"/>
-          </svg>
+    <nav className="bg-white border-b border-gray-200 mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center gap-8">
+            <Link href="/dashboard" className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#8a9a5b] to-[#55613b] flex items-center justify-center shadow-md">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"/>
+                </svg>
+              </div>
+              <span className="text-lg font-semibold text-[#55613b]">Sage</span>
+            </Link>
+            <div className="hidden md:flex items-center gap-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeTab === item.id
+                      ? 'bg-[#f8faf6] text-[#55613b]'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+          <button className="md:hidden p-2 rounded-lg hover:bg-gray-100">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
         </div>
       </div>
-      <span className="text-lg text-[#7a7a7a] font-normal">← Back to Dashboard</span>
-    </Link>
+    </nav>
   );
 }
 
@@ -187,9 +221,9 @@ export default function CareerDirectionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f8faf6] via-[#ffffff] to-[#e8f0e3]">
-      <div className="max-w-5xl mx-auto px-6 py-12">
-        <SageLogo />
+    <div className="min-h-screen bg-gradient-to-br from-[#f8faf6] via-white to-[#e8f0e3]">
+      <TopNav activeTab="career" />
+      <div className="max-w-6xl mx-auto px-6 py-12">
         
         {/* Header */}
         <div className="text-center mb-12">
