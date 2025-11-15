@@ -38,6 +38,15 @@ export interface ResumeIntel {
   improvedLinkedInSummary: string;
 }
 
+// Job Match Page Type (Simplified)
+export interface JobMatchAnalysis {
+  matchScore: number;
+  strengths: string[];
+  gaps: string[];
+  suggestedActions: string[];
+  tailoredBullets: string[];
+}
+
 // F2 - Resume & LinkedIn Intelligence
 export interface ResumeAnalysis {
   strengths: {
