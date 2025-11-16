@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ResumeIntel } from "@/app/types/features";
+import { getResumeIntel } from "@/lib/careerCoach";
 
 // TopNav Component
 function TopNav({ activeTab }: { activeTab: string }) {
@@ -55,65 +56,6 @@ function TopNav({ activeTab }: { activeTab: string }) {
   );
 }
 
-// Mock function to analyze resume and LinkedIn
-function analyzeResumeAndLinkedIn(userProfile: any): ResumeIntel {
-  return {
-    strengths: [
-      "Strong impact orientation - You consistently frame achievements in terms of business outcomes",
-      "Good leadership framing - Your experience demonstrates clear progression from IC to leadership roles",
-      "Quantitative credibility - Effective use of metrics (e.g., '30% increase', '50+ team members')",
-      "Strategic thinking demonstrated - Projects show ability to connect tactical work to business strategy",
-      "Cross-functional collaboration highlighted - Clear evidence of working across teams and departments"
-    ],
-    gaps: [
-      "Scope not always clear - Some bullets lack context about team size, budget, or project scale",
-      "No metrics on several outcomes - 3 bullets describe activities without quantifying results",
-      "Technical depth unclear - For engineering roles, specific technologies/frameworks could be more prominent",
-      "Missing 'So what?' - Some achievements listed without explaining why they mattered to the business",
-      "LinkedIn summary too operational - Current About section focuses on tasks rather than unique value proposition"
-    ],
-    improvedBullets: [
-      {
-        original: "Led product development for new customer dashboard feature",
-        improved: "Led cross-functional team of 8 (Eng, Design, Data) to ship customer analytics dashboard, driving 40% increase in user engagement and reducing churn by 15% within first quarter"
-      },
-      {
-        original: "Managed stakeholder relationships and gathered requirements",
-        improved: "Partnered with 12+ stakeholders across Sales, Marketing, and Support to prioritize Q3 roadmap, aligning on $2M initiative that increased customer LTV by 25%"
-      },
-      {
-        original: "Implemented agile processes for the product team",
-        improved: "Redesigned product development process by introducing 2-week sprints and OKR framework, accelerating feature velocity by 35% and improving on-time delivery from 60% to 90%"
-      },
-      {
-        original: "Conducted user research and analyzed data to inform decisions",
-        improved: "Executed 20+ user interviews and analyzed usage data from 50K+ users to validate new pricing model, resulting in 22% increase in conversion rate and $1.2M ARR lift"
-      },
-      {
-        original: "Collaborated with engineering team on technical roadmap",
-        improved: "Co-authored 6-month technical roadmap with Engineering VP, prioritizing platform scalability initiatives that reduced infrastructure costs by $400K annually while supporting 3x user growth"
-      }
-    ],
-    improvedLinkedInSummary: `I'm a product leader who turns ambiguity into impact.
-
-Over the past 7 years, I've built and scaled products that users love and businesses depend on—from 0→1 MVPs to platforms serving millions. My superpower? Connecting the dots between customer pain, business strategy, and technical feasibility to ship solutions that move the needle.
-
-What drives me:
-→ Finding the simplest path to maximum impact (because great products are never done, they're just released)
-→ Building high-trust teams where everyone feels ownership and psychological safety
-→ Using data as a flashlight, not a hammer—letting insights guide, not dictate
-
-Recent highlights:
-• Launched B2B SaaS platform that grew from 0 to $5M ARR in 18 months
-• Led product org through 3x scale (team growth from 4 to 15 PMs)
-• Shipped analytics dashboard that became #1 driver of customer retention
-
-I believe the best product decisions come from curiosity, not certainty. Always learning, always iterating.
-
-Let's connect if you're working on hard problems in [your domain/industry].`
-  };
-}
-
 // Copy Button Component
 function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false);
@@ -161,6 +103,7 @@ export default function ResumeIntelPage() {
   const router = useRouter();
   const [userProfile, setUserProfile] = useState<any>(null);
   const [analysis, setAnalysis] = useState<ResumeIntel | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // Load user profile from localStorage
@@ -172,9 +115,18 @@ export default function ResumeIntelPage() {
       try {
         const parsed = profileData ? JSON.parse(profileData) : {};
         setUserProfile(parsed);
-        // Generate analysis based on profile
-        const intel = analyzeResumeAndLinkedIn(parsed);
-        setAnalysis(intel);
+        
+        // Fetch analysis from service
+        setLoading(true);
+        getResumeIntel(parsed)
+          .then(intel => {
+            setAnalysis(intel);
+            setLoading(false);
+          })
+          .catch(err => {
+            console.error('Failed to fetch analysis:', err);
+            setLoading(false);
+          });
       } catch (err) {
         console.error('Failed to parse profile:', err);
       }
@@ -214,8 +166,16 @@ export default function ResumeIntelPage() {
           </div>
         )}
 
+        {/* Loading State */}
+        {loading && userProfile && (
+          <div className="text-center py-12">
+            <div className="inline-block w-12 h-12 border-4 border-[#8a9a5b] border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-gray-600">Analyzing your resume and LinkedIn profile...</p>
+          </div>
+        )}
+
         {/* Analysis Content */}
-        {analysis && (
+        {analysis && !loading && (
           <div className="space-y-8">
             {/* Strengths & Gaps Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

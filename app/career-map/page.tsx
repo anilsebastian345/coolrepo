@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CareerRecommendation } from "@/app/types/features";
+import { getCareerRecommendations } from "@/lib/careerCoach";
 
 // TopNav Component
 function TopNav({ activeTab }: { activeTab: string }) {
@@ -53,254 +54,6 @@ function TopNav({ activeTab }: { activeTab: string }) {
       </div>
     </nav>
   );
-}
-
-// Mock function to get career recommendations
-function getCareerRecommendations(userProfile: any): CareerRecommendation[] {
-  // Mock skills array - in production this would come from resume/LinkedIn parsing
-  const mockSkills = [
-    "Product Management",
-    "Stakeholder Communication",
-    "Data Analysis",
-    "Agile/Scrum",
-    "User Research",
-    "Strategic Planning",
-    "Team Leadership",
-    "SQL",
-    "A/B Testing"
-  ];
-
-  return [
-    {
-      id: "pm-senior",
-      roleTitle: "Senior Product Manager",
-      fitScore: 92,
-      whyItFits: [
-        "Your strategic thinking and ability to connect dots across complex systems aligns perfectly with product vision work",
-        "Strong stakeholder management skills essential for cross-functional leadership",
-        "Data-driven approach matches the analytical rigor needed for product decisions"
-      ],
-      strengthsUsed: [
-        "Strategic Vision",
-        "Cross-functional Leadership",
-        "Data-Driven Decision Making",
-        "User Empathy"
-      ],
-      keySkills: [
-        "Product Roadmapping",
-        "Stakeholder Management",
-        "User Research",
-        "SQL & Analytics",
-        "Agile Methodologies"
-      ],
-      description: "Senior Product Managers lead the product vision and strategy for major product lines or platforms. They own end-to-end product lifecycle from conception through launch and iteration, balancing customer needs with business objectives.",
-      responsibilities: [
-        "Define and communicate product vision and strategy aligned with company objectives",
-        "Lead cross-functional teams (Engineering, Design, Marketing, Sales) to deliver impactful products",
-        "Conduct market research and competitive analysis to identify opportunities",
-        "Build and maintain product roadmaps with clear prioritization frameworks",
-        "Define success metrics and drive data-informed product decisions",
-        "Collaborate with stakeholders across all levels including C-suite executives",
-        "Mentor junior PMs and contribute to product management best practices"
-      ],
-      gaps: [
-        "Limited experience with B2B SaaS pricing models and monetization strategies",
-        "Could strengthen technical depth in API design and platform architecture",
-        "Minimal exposure to enterprise sales cycles and procurement processes"
-      ],
-      nextSteps: [
-        "Take on a pricing optimization project to build commercial acumen",
-        "Partner with engineering lead on next API release to deepen technical knowledge",
-        "Shadow enterprise sales team during 2-3 major deal cycles",
-        "Complete 'Reforge Product Strategy' course to formalize strategic frameworks",
-        "Seek mentor who has scaled products from $10M to $100M+ ARR"
-      ]
-    },
-    {
-      id: "gpm",
-      roleTitle: "Group Product Manager",
-      fitScore: 88,
-      whyItFits: [
-        "Your leadership style emphasizes empowerment and mentorship, key for managing a team of PMs",
-        "Systems thinking ability helps coordinate across multiple product areas",
-        "Experience driving alignment across diverse stakeholders translates well to managing competing priorities"
-      ],
-      strengthsUsed: [
-        "Team Leadership & Mentorship",
-        "Strategic Coordination",
-        "Influence Without Authority",
-        "Long-term Planning"
-      ],
-      keySkills: [
-        "Team Management",
-        "Portfolio Strategy",
-        "Resource Allocation",
-        "Executive Communication",
-        "Hiring & Talent Development"
-      ],
-      description: "Group Product Managers lead teams of 3-7 Product Managers, setting strategic direction for an entire product portfolio or business unit. This role focuses on people leadership, cross-portfolio coordination, and executive-level strategy.",
-      responsibilities: [
-        "Manage, mentor, and develop a team of Product Managers",
-        "Define portfolio strategy and ensure alignment across multiple product areas",
-        "Allocate resources and prioritize initiatives across the portfolio",
-        "Present product strategy and results to executive leadership and board",
-        "Build product management culture and establish team rituals and processes",
-        "Partner with Engineering, Design, and Go-to-Market leadership on organizational goals",
-        "Drive hiring, performance management, and career development for team members",
-        "Identify strategic opportunities and threats across the product landscape"
-      ],
-      gaps: [
-        "No direct experience managing other Product Managers yet",
-        "Limited exposure to P&L ownership and budget management at portfolio scale",
-        "Would benefit from more executive-level presentation experience"
-      ],
-      nextSteps: [
-        "Volunteer to mentor 1-2 junior PMs or APMs in current organization",
-        "Request involvement in budget planning and quarterly business reviews",
-        "Join Toastmasters or similar to build executive presence and storytelling",
-        "Take on 'acting GPM' role during manager's leave or reorganization",
-        "Network with current GPMs to understand day-to-day challenges and best practices"
-      ]
-    },
-    {
-      id: "strategy-lead",
-      roleTitle: "Product Strategy Lead",
-      fitScore: 85,
-      whyItFits: [
-        "Your ability to see patterns and synthesize complex information is core to strategy work",
-        "Comfort with ambiguity allows you to thrive in forward-looking, exploratory work",
-        "Strong analytical skills enable rigorous market and competitive analysis"
-      ],
-      strengthsUsed: [
-        "Strategic Analysis",
-        "Pattern Recognition",
-        "Market Research",
-        "Storytelling & Communication"
-      ],
-      keySkills: [
-        "Market Analysis",
-        "Competitive Intelligence",
-        "Business Modeling",
-        "Stakeholder Presentations",
-        "Trend Analysis"
-      ],
-      description: "Product Strategy Leads focus on long-term strategic direction, market opportunities, and competitive positioning. They work closely with executive leadership to shape the 1-3 year product vision and identify new growth areas.",
-      responsibilities: [
-        "Conduct comprehensive market research and competitive landscape analysis",
-        "Identify emerging trends, opportunities, and threats in the market",
-        "Develop business cases for new product initiatives and market expansions",
-        "Build financial models to evaluate strategic options and ROI",
-        "Present strategic recommendations to C-suite and board of directors",
-        "Partner with Product, Sales, and Marketing on go-to-market strategy",
-        "Lead strategic planning processes including annual planning and OKR setting",
-        "Monitor industry shifts and advise on portfolio pivots or innovations"
-      ],
-      gaps: [
-        "Would benefit from formal training in financial modeling and business case development",
-        "Limited experience with M&A evaluation or post-acquisition integration",
-        "Could deepen expertise in emerging technologies (AI/ML, blockchain, etc.)"
-      ],
-      nextSteps: [
-        "Complete a business strategy course (e.g., Harvard Business School Online)",
-        "Build a financial model for a hypothetical product launch or market entry",
-        "Set up quarterly 'strategy reviews' with leadership to practice presenting insights",
-        "Deep dive into 2-3 emerging technologies through online courses and prototyping",
-        "Join a product strategy community (Reforge, Product School) for peer learning"
-      ]
-    },
-    {
-      id: "cx-director",
-      roleTitle: "Director of Customer Experience",
-      fitScore: 81,
-      whyItFits: [
-        "Your empathy and user-centric mindset drive strong customer advocacy",
-        "Experience connecting qualitative insights with quantitative data fits CX analytics",
-        "Cross-functional collaboration skills essential for driving experience improvements"
-      ],
-      strengthsUsed: [
-        "Customer Empathy",
-        "Cross-functional Collaboration",
-        "Data Analysis",
-        "Process Optimization"
-      ],
-      keySkills: [
-        "Customer Journey Mapping",
-        "NPS & CSAT Analytics",
-        "Voice of Customer Programs",
-        "Support Operations",
-        "CRM Systems"
-      ],
-      description: "Directors of Customer Experience own the end-to-end customer journey, ensuring exceptional experiences from onboarding through renewal. They bridge Product, Support, Success, and Sales to create seamless customer interactions.",
-      responsibilities: [
-        "Define and optimize the end-to-end customer journey across all touchpoints",
-        "Establish CX metrics (NPS, CSAT, CES) and drive continuous improvement",
-        "Lead Voice of Customer programs including feedback loops and advisory boards",
-        "Partner with Product on customer insights to inform roadmap prioritization",
-        "Manage customer support and success operations for efficiency and quality",
-        "Implement CX technology stack (CRM, support tools, survey platforms)",
-        "Drive customer retention and expansion through proactive experience design",
-        "Present CX insights and trends to executive leadership quarterly"
-      ],
-      gaps: [
-        "Limited hands-on experience with customer support operations and tooling",
-        "Could strengthen knowledge of CX-specific metrics and industry benchmarks",
-        "Would benefit from exposure to customer success/account management motions"
-      ],
-      nextSteps: [
-        "Shadow customer support team for 1-2 weeks to understand frontline challenges",
-        "Get certified in CX platforms like Zendesk, Salesforce Service Cloud, or Gainsight",
-        "Lead a customer journey mapping workshop for a key product or segment",
-        "Attend CXPA (Customer Experience Professionals Association) events and certification",
-        "Partner with Customer Success on a retention initiative to build CS expertise"
-      ]
-    },
-    {
-      id: "innovation-pm",
-      roleTitle: "Innovation Product Manager (0→1)",
-      fitScore: 87,
-      whyItFits: [
-        "Your tolerance for ambiguity and experimental mindset fit the uncertainty of 0→1 work",
-        "Creative problem-solving ability essential for discovering new product-market fit",
-        "Comfort with rapid iteration and learning from failure critical for innovation"
-      ],
-      strengthsUsed: [
-        "Creative Problem Solving",
-        "Rapid Experimentation",
-        "Comfort with Ambiguity",
-        "Customer Discovery"
-      ],
-      keySkills: [
-        "Lean Startup Methodology",
-        "Customer Development",
-        "Prototyping & MVPs",
-        "Growth Hacking",
-        "Startup Metrics"
-      ],
-      description: "Innovation PMs explore new product opportunities, often in incubation or R&D teams. They run rapid experiments to validate hypotheses, discover product-market fit, and build new products from scratch before scaling them.",
-      responsibilities: [
-        "Identify and validate new product opportunities through customer discovery",
-        "Design and execute rapid experiments to test product hypotheses",
-        "Build MVPs and prototypes with minimal resources to learn quickly",
-        "Conduct extensive user research and iterate based on feedback",
-        "Define initial metrics and success criteria for early-stage products",
-        "Pitch new product ideas to leadership with supporting evidence",
-        "Navigate ambiguity and make decisions with limited data",
-        "Transition successful experiments to scale teams or sunset failed ones"
-      ],
-      gaps: [
-        "Would benefit from more exposure to lean startup and design sprint methodologies",
-        "Limited experience building products from absolute zero (pre-PMF)",
-        "Could strengthen technical prototyping skills (low-code tools, Figma advanced features)"
-      ],
-      nextSteps: [
-        "Read 'The Lean Startup' and 'The Mom Test' to build 0→1 frameworks",
-        "Run a side project or weekend hackathon to practice building from scratch",
-        "Get certified in Design Sprints (Google Ventures methodology)",
-        "Learn no-code tools like Bubble, Webflow, or Retool for rapid prototyping",
-        "Join or shadow an innovation/incubation team for 1-2 quarters"
-      ]
-    }
-  ];
 }
 
 // Role Card Component
@@ -557,6 +310,7 @@ export default function CareerMapPage() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [recommendations, setRecommendations] = useState<CareerRecommendation[]>([]);
   const [selectedRole, setSelectedRole] = useState<CareerRecommendation | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // Load user profile from localStorage
@@ -565,9 +319,18 @@ export default function CareerMapPage() {
       try {
         const parsed = JSON.parse(profileData);
         setUserProfile(parsed);
-        // Generate recommendations based on profile
-        const recs = getCareerRecommendations(parsed);
-        setRecommendations(recs);
+        
+        // Fetch recommendations from service
+        setLoading(true);
+        getCareerRecommendations(parsed)
+          .then(recs => {
+            setRecommendations(recs);
+            setLoading(false);
+          })
+          .catch(err => {
+            console.error('Failed to fetch recommendations:', err);
+            setLoading(false);
+          });
       } catch (err) {
         console.error('Failed to parse profile:', err);
       }
@@ -607,8 +370,16 @@ export default function CareerMapPage() {
           </div>
         )}
 
+        {/* Loading State */}
+        {loading && userProfile && (
+          <div className="text-center py-12">
+            <div className="inline-block w-12 h-12 border-4 border-[#8a9a5b] border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-gray-600">Analyzing your profile and generating recommendations...</p>
+          </div>
+        )}
+
         {/* Role Cards Grid */}
-        {userProfile && recommendations.length > 0 && (
+        {userProfile && !loading && recommendations.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {recommendations.map((role) => (
               <RoleCard

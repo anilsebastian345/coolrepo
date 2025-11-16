@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { JobMatchAnalysis } from "@/app/types/features";
+import { getJobMatch } from "@/lib/careerCoach";
 
 // TopNav Component
 function TopNav({ activeTab }: { activeTab: string }) {
@@ -143,44 +144,6 @@ function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) 
   );
 }
 
-// Mock function to analyze job match
-async function analyzeJobMatch(jobDescription: string, userProfile: any): Promise<JobMatchAnalysis> {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
-
-  return {
-    matchScore: 78,
-    strengths: [
-      "Strong product management experience aligns perfectly with the 'lead product strategy' requirement",
-      "Demonstrated cross-functional leadership matches the need to 'collaborate with engineering, design, and marketing teams'",
-      "Data-driven approach evident in your background fits their emphasis on 'metrics-driven decision making'"
-    ],
-    gaps: [
-      "Job requires 'experience with B2B SaaS at scale (100K+ users)' - your profile shows smaller user bases",
-      "They want 'proven track record of pricing and monetization strategy' - this isn't highlighted in your experience",
-      "Looking for 'API product experience' - only general product work is mentioned",
-      "Requires 'enterprise sales cycle knowledge' - no explicit mention of working with enterprise customers",
-      "Prefers candidates with 'experience in fintech or payments' - your background is in different verticals"
-    ],
-    suggestedActions: [
-      "Add a bullet about the largest user base you've managed, even if under 100K, to show scale experience",
-      "Highlight any pricing decisions you've influenced, even indirectly (e.g., 'Provided data analysis that informed pricing tier changes')",
-      "If you've worked on any integrations or platform features, reframe them as 'API product work'",
-      "Mention any interaction with enterprise customers or participation in sales calls",
-      "Research fintech/payments terminology and weave relevant concepts into your cover letter",
-      "Emphasize transferable skills: complexity management, compliance considerations, trust & security focus",
-      "Reach out to someone at the company to learn more about their specific challenges and tailor your narrative"
-    ],
-    tailoredBullets: [
-      "Led product strategy for [your product] serving 45K active users, driving 30% growth in engagement through data-informed feature prioritization and cross-functional collaboration with Engineering, Design, and Marketing teams",
-      "Partnered with Sales and Finance leadership to optimize pricing model, resulting in 22% increase in conversion rate and $1.2M incremental ARR through strategic tier restructuring",
-      "Shipped platform integration capabilities enabling 15+ third-party apps to connect via RESTful APIs, expanding ecosystem reach and driving 18% increase in enterprise adoption",
-      "Collaborated with enterprise sales team on 10+ strategic deals (avg. ACV $150K+), translating complex customer requirements into product roadmap items and contributing to 85% win rate",
-      "Drove security and compliance initiatives including SOC 2 Type II certification and GDPR readiness, establishing trust framework critical for enterprise fintech partnerships"
-    ]
-  };
-}
-
 // Main Page Component
 export default function JobMatchPage() {
   const router = useRouter();
@@ -212,7 +175,7 @@ export default function JobMatchPage() {
 
     setAnalyzing(true);
     try {
-      const analysis = await analyzeJobMatch(jobDescription, userProfile);
+      const analysis = await getJobMatch(jobDescription, userProfile);
       setResult(analysis);
     } catch (err) {
       console.error('Analysis failed:', err);
