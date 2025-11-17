@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
+import { determineCareerStage, CareerStageUserSelected, ResumeSignals, createEmptyResumeSignals } from '@/lib/careerStage';
+import { extractCareerSignalsFromResume } from '@/lib/resumeParser';
 
 export const runtime = 'nodejs';
 
@@ -11,6 +13,10 @@ interface ProfileCache {
     profile: string;
     timestamp: number;
     inputs: string;
+    onboardingComplete?: boolean;
+    careerStageUserSelected?: CareerStageUserSelected;
+    resumeSignals?: ResumeSignals;
+    careerStage?: string;
   };
 }
 
@@ -73,7 +79,14 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.AZURE_OPENAI_KEY;
     const deployment = process.env.AZURE_OPENAI_DEPLOYMENT;
     const apiVersion = process.env.AZURE_OPENAI_API_VERSION || '2024-02-15-preview';
-    const { userId = 'temp-user-id', questions: requestQuestions, linkedin: linkedinInput, resume: resumeInput, clearCache = false } = await req.json();
+    const { 
+      userId = 'temp-user-id', 
+      questions: requestQuestions, 
+      linkedin: linkedinInput, 
+      resume: resumeInput, 
+      clearCache = false,
+      careerStageUserSelected 
+    } = await req.json();
 
     // Clear cache if requested
     if (clearCache) {
@@ -94,6 +107,26 @@ export async function POST(req: NextRequest) {
         console.log('No questions file found, using empty questions object');
       }
     }
+
+    // Extract career signals from resume if available
+    let resumeSignals: ResumeSignals = createEmptyResumeSignals();
+    if (resumeInput && resumeInput.length > 0) {
+      try {
+        console.log('Parsing resume for career signals...');
+        resumeSignals = await extractCareerSignalsFromResume(resumeInput);
+        console.log('Resume signals extracted:', resumeSignals);
+      } catch (error) {
+        console.error('Error extracting career signals from resume:', error);
+        // Continue with empty signals
+      }
+    }
+
+    // Determine career stage
+    const careerStage = determineCareerStage(
+      careerStageUserSelected || 'prefer_not_to_say',
+      resumeSignals
+    );
+    console.log('Career stage determined:', careerStage, 'from user selection:', careerStageUserSelected);
 
     // Compose user message with leadership assessment scores
     let userMessage = '';
@@ -180,11 +213,25 @@ export async function POST(req: NextRequest) {
     const promptPath = join(process.cwd(), 'Prompt.txt');
     const userPromptTemplate = await readFile(promptPath, 'utf-8');
     
+    // Add career stage context
+    const careerStageContext = `
+CAREER STAGE: ${careerStage}
+${careerStageUserSelected && careerStageUserSelected !== 'prefer_not_to_say' 
+  ? `(User self-identified as: ${careerStageUserSelected})` 
+  : '(Inferred from resume data)'}
+${resumeSignals.yearsExperience ? `Years of experience: ${resumeSignals.yearsExperience}` : ''}
+${resumeSignals.roleCount ? `Number of roles held: ${resumeSignals.roleCount}` : ''}
+${resumeSignals.titles.length > 0 ? `Job titles: ${resumeSignals.titles.join(', ')}` : ''}
+`.trim();
+    
     // Replace placeholders with actual data
     let finalUserPrompt = userPromptTemplate
       .replace('{{linkedin_text}}', linkedinData || 'Not provided')
       .replace('{{resume_text}}', resumeData || 'Not provided')
       .replace('{{questions_text}}', userMessage || 'Not provided');
+    
+    // Add career stage context to the beginning
+    finalUserPrompt = `${careerStageContext}\n\n${finalUserPrompt}`;
 
     // Call Azure OpenAI with streaming
     const response = await fetch(
@@ -239,7 +286,11 @@ export async function POST(req: NextRequest) {
             cache[userId] = {
               profile: fullProfile,
               timestamp: Date.now(),
-              inputs: inputHash
+              inputs: inputHash,
+              onboardingComplete: true,
+              careerStageUserSelected: careerStageUserSelected,
+              resumeSignals: resumeSignals,
+              careerStage: careerStage
             };
             await saveCache(cache);
             
@@ -277,7 +328,11 @@ export async function POST(req: NextRequest) {
       cache[userId] = {
         profile: fullProfile,
         timestamp: Date.now(),
-        inputs: inputHash
+        inputs: inputHash,
+        onboardingComplete: true,
+        careerStageUserSelected: careerStageUserSelected,
+        resumeSignals: resumeSignals,
+        careerStage: careerStage
       };
       await saveCache(cache);
       

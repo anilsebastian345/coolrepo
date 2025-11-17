@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { JobMatchAnalysis } from "@/app/types/features";
 import { getJobMatch } from "@/lib/careerCoach";
+import { useUserProfile } from "../hooks/useUserProfile";
 
 // TopNav Component
 function TopNav({ activeTab }: { activeTab: string }) {
@@ -147,25 +148,13 @@ function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) 
 // Main Page Component
 export default function JobMatchPage() {
   const router = useRouter();
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const { userProfile, isLoading } = useUserProfile();
   const [jobDescription, setJobDescription] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<JobMatchAnalysis | null>(null);
 
-  useEffect(() => {
-    // Load user profile from localStorage
-    const profileData = localStorage.getItem('onboarding_psych_profile');
-    const resumeData = localStorage.getItem('onboarding_resume_text');
-    
-    if (profileData || resumeData) {
-      try {
-        const parsed = profileData ? JSON.parse(profileData) : {};
-        setUserProfile(parsed);
-      } catch (err) {
-        console.error('Failed to parse profile:', err);
-      }
-    }
-  }, []);
+  // Check if user has completed onboarding
+  const hasProfile = userProfile?.onboardingComplete || false;
 
   const handleAnalyze = async () => {
     if (!jobDescription.trim()) {
@@ -202,7 +191,7 @@ export default function JobMatchPage() {
         </div>
 
         {/* No Profile State */}
-        {!userProfile && (
+        {!hasProfile && (
           <div className="text-center py-12 bg-white rounded-2xl border-2 border-gray-200 max-w-2xl mx-auto mb-12">
             <div className="text-5xl mb-4">📝</div>
             <h3 className="text-2xl font-bold text-gray-900 mb-3">Complete Your Profile First</h3>
@@ -219,7 +208,7 @@ export default function JobMatchPage() {
         )}
 
         {/* Job Description Input */}
-        {userProfile && (
+        {hasProfile && (
           <div className="bg-white rounded-2xl border-2 border-gray-200 p-8 shadow-sm mb-8">
             <label className="block text-lg font-bold text-gray-900 mb-4">
               Job Description

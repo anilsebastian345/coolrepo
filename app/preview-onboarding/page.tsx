@@ -1,11 +1,14 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState as useModalState } from "react";
 import Link from "next/link";
 import ProfileModal from '@/app/components/ProfileModal';
 import ResumeModal from "../components/ResumeModal";
 import LinkedInModal from "../components/LinkedInModal";
+import CareerStageStep from "../components/CareerStageStep";
+import { useUserProfile } from "../hooks/useUserProfile";
+import { CareerStageUserSelected } from "@/lib/careerStage";
 
 function SageLogo() {
   return (
@@ -136,18 +139,6 @@ const options = [
     desc: "Let me review your professional experience",
   },
   {
-    key: "questions",
-    icon: (
-      <svg className="w-6 h-6 text-[#9DC183]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-        <rect x="4" y="4" width="16" height="16" rx="3" fill="#F8FAFC" stroke="#E2E8F0" />
-        <path d="M12 8v4" stroke="#9DC183" strokeWidth="2" strokeLinecap="round" />
-        <circle cx="12" cy="16" r="1" fill="#9DC183" />
-      </svg>
-    ),
-    title: "Answer a few questions",
-    desc: "We'll have a brief conversation to get started",
-  },
-  {
     key: "linkedin-pdf",
     icon: (
       <svg className="w-6 h-6 text-[#9DC183]" fill="currentColor" viewBox="0 0 24 24">
@@ -159,9 +150,37 @@ const options = [
     title: "Upload LinkedIn PDF",
     desc: "Upload your LinkedIn profile as a PDF",
   },
+  {
+    key: "career-stage",
+    icon: (
+      <svg className="w-6 h-6 text-[#9DC183]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+        <rect x="4" y="4" width="16" height="16" rx="3" fill="#F8FAFC" stroke="#E2E8F0" />
+        <path d="M8 10h8M8 14h4M16 14l2-2m0 0l2 2m-2-2v6" stroke="#9DC183" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+    title: "Career stage",
+    desc: "Tell us where you are in your career",
+  },
+  {
+    key: "questions",
+    icon: (
+      <svg className="w-6 h-6 text-[#9DC183]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+        <rect x="4" y="4" width="16" height="16" rx="3" fill="#F8FAFC" stroke="#E2E8F0" />
+        <path d="M12 8v4" stroke="#9DC183" strokeWidth="2" strokeLinecap="round" />
+        <circle cx="12" cy="16" r="1" fill="#9DC183" />
+      </svg>
+    ),
+    title: "Answer a few questions",
+    desc: "We'll have a brief conversation to get started",
+  },
 ];
 
 export default function PreviewOnboarding() {
+  const searchParams = useSearchParams();
+  const mode = searchParams.get('mode') || 'create'; // 'create' or 'edit'
+  const isEditMode = mode === 'edit';
+  const { userProfile } = useUserProfile();
+  
   const [selected, setSelected] = useState("questions");
   const [linkedinProgress, setLinkedinProgress] = useState(0);
   const [questionsProgress, setQuestionsProgress] = useState(0);
@@ -174,6 +193,8 @@ export default function PreviewOnboarding() {
   const router = useRouter();
   const [resumeInfo, setResumeInfo] = useState<{fileName: string, uploadedAt: string} | null>(null);
   const [resumeModalOpen, setResumeModalOpen] = useState(false);
+  const [careerStage, setCareerStage] = useState<CareerStageUserSelected | null>(null);
+  const [showCareerStageModal, setShowCareerStageModal] = useState(false);
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -215,6 +236,12 @@ export default function PreviewOnboarding() {
       // Check if questions were completed (legacy check)
       const questionsDone = localStorage.getItem('onboarding_questions_completed');
       if (questionsDone === 'true') setQuestionsCompleted(true);
+      
+      // Check career stage selection
+      const savedCareerStage = localStorage.getItem('onboarding_career_stage');
+      if (savedCareerStage) {
+        setCareerStage(savedCareerStage as CareerStageUserSelected);
+      }
     }
   }, []);
 
@@ -288,6 +315,10 @@ export default function PreviewOnboarding() {
       setLinkedinModalOpen(true);
       return;
     }
+    if (key === "career-stage") {
+      setShowCareerStageModal(true);
+      return;
+    }
     setSelected(key);
   }
 
@@ -320,15 +351,28 @@ export default function PreviewOnboarding() {
     <div className="min-h-screen bg-gradient-to-br from-[#FEFEFE] via-[#F9FAFB] to-[#F3F4F6] flex flex-col items-center py-8 px-4 font-sans" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>
       <SageLogo />
       <h2 className="text-[28px] font-semibold text-[#1F2937] mt-2 mb-0 tracking-tight">
-        {userName ? `Welcome, ${userName}` : 'Welcome'}
+        {isEditMode ? 'Update your profile' : (userName ? `Welcome, ${userName}` : 'Welcome')}
       </h2>
       <br />
-      <p className="text-base font-normal text-black text-center mb-1">Help me get to know you so I can guide you better.</p>
+      <p className="text-base font-normal text-black text-center mb-1">
+        {isEditMode 
+          ? 'Upload a new resume or LinkedIn profile and refresh your guidance.'
+          : 'Help me get to know you so I can guide you better.'}
+      </p>
       <br />
       <p className="text-sm text-[#7a7a7a] text-center mb-8" style={{whiteSpace: 'pre-line'}}>
-        You can paste your LinkedIn summary,
-        <br />upload your resume, or answer a few questions.
-        <br />Whatever works for you.
+        {isEditMode ? (
+          <>
+            Update your information to get refreshed insights.
+            <br />You can replace your resume or LinkedIn data anytime.
+          </>
+        ) : (
+          <>
+            You can paste your LinkedIn summary,
+            <br />upload your resume, or answer a few questions.
+            <br />Whatever works for you.
+          </>
+        )}
       </p>
       
       {/* Hidden file input for resume upload */}
@@ -357,10 +401,12 @@ export default function PreviewOnboarding() {
           const isLinkedInPDF = opt.key === 'linkedin-pdf';
           const isResume = opt.key === 'resume';
           const isQuestions = opt.key === 'questions';
+          const isCareerStage = opt.key === 'career-stage';
           const isLinkedInPDFComplete = isLinkedInPDF && linkedinProgress > 0;
           const isResumeComplete = isResume && resumeUploaded;
           const isQuestionsComplete = isQuestions && questionsCompleted;
-          const isComplete = isLinkedInPDFComplete || isResumeComplete || isQuestionsComplete;
+          const isCareerStageComplete = isCareerStage && careerStage !== null;
+          const isComplete = isLinkedInPDFComplete || isResumeComplete || isQuestionsComplete || isCareerStageComplete;
           
           // Calculate progress percentage
           let progressPercent = 0;
@@ -370,6 +416,8 @@ export default function PreviewOnboarding() {
             progressPercent = (questionsProgress / 5) * 100;
           } else if (isResume) {
             progressPercent = resumeUploaded ? 100 : 0;
+          } else if (isCareerStage) {
+            progressPercent = careerStage ? 100 : 0;
           }
           
           return (
@@ -393,9 +441,23 @@ export default function PreviewOnboarding() {
                 </div>
                 <div className="text-[13px] text-[#7a7a7a] font-normal leading-snug" style={{whiteSpace: 'pre-line'}}>
                   {opt.key === 'resume' ? (
-                    <>Let me review your professional<br />experience</>
+                    isEditMode && userProfile?.resume ? (
+                      <>Current resume on file<br />Upload a new one to replace</>
+                    ) : (
+                      <>Let me review your professional<br />experience</>
+                    )
+                  ) : opt.key === 'linkedin-pdf' ? (
+                    isEditMode && userProfile?.linkedin?.imported ? (
+                      <>Current LinkedIn on file<br />Upload a new PDF to replace</>
+                    ) : (
+                      opt.desc
+                    )
                   ) : opt.key === 'questions' ? (
-                    <>We'll have a brief conversation to<br />get started</>
+                    isEditMode && userProfile?.onboardingComplete ? (
+                      <>Update your responses<br />to refresh your profile</>
+                    ) : (
+                      <>We'll have a brief conversation to<br />get started</>
+                    )
                   ) : (
                     opt.desc
                   )}
@@ -462,12 +524,37 @@ export default function PreviewOnboarding() {
         resumeComplete={resumeUploaded}
         questionsComplete={questionsCompleted || questionsProgress === 5}
         router={router}
+        careerStage={careerStage}
       />
+      
+      {/* Career Stage Modal */}
+      {showCareerStageModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="relative w-full max-w-2xl">
+            <button
+              onClick={() => setShowCareerStageModal(false)}
+              className="absolute -top-2 -right-2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white hover:bg-gray-100 shadow-lg transition-colors"
+            >
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <CareerStageStep
+              onSelect={(stage) => {
+                setCareerStage(stage);
+                // Auto-close after selection
+                setTimeout(() => setShowCareerStageModal(false), 800);
+              }}
+              initialValue={careerStage || undefined}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComplete, router }: { linkedinComplete: boolean; resumeComplete: boolean; questionsComplete: boolean; router: any }) {
+function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComplete, router, careerStage }: { linkedinComplete: boolean; resumeComplete: boolean; questionsComplete: boolean; router: any; careerStage: CareerStageUserSelected | null }) {
   const [loading, setLoading] = useModalState(false);
   const [showModal, setShowModal] = useModalState(false);
   const [profile, setProfile] = useModalState("");
@@ -501,12 +588,14 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
   const hasAnyProgress = hasLinkedInProgress || resumeComplete || hasQuestionsProgress;
 
   async function handleGenerateProfile() {
+    console.log('=== GENERATE PROFILE CLICKED ===');
     setLoading(true);
     setError("");
     setStreamingContent("");
     setIsStreaming(false);
     
     try {
+      console.log('Starting profile generation...');
       // Get questions, LinkedIn data, and resume from localStorage
       let questionsData = {};
       let linkedinData: any = null;
@@ -551,12 +640,16 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
           userId: 'temp-user-id',
           questions: questionsData,
           linkedin: linkedinData,
-          resume: resumeData
+          resume: resumeData,
+          careerStageUserSelected: careerStage || undefined
         }),
       });
       
+      console.log('Response status:', response.status);
+      
       if (!response.ok) {
         const err = await response.json();
+        console.error('API error:', err);
         setError(err.error || 'Failed to generate profile');
         setLoading(false);
         return;
@@ -622,6 +715,7 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
       }
       
     } catch (e) {
+      console.error('Profile generation error:', e);
       setError('Failed to generate profile');
       setIsStreaming(false);
     } finally {
