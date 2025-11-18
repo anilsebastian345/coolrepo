@@ -150,10 +150,10 @@ export default function DashboardPage() {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
 
-  // Derive state from userProfile instead of localStorage
-  const hasProfile = userProfile?.onboardingComplete || false;
+  // Derive state from userProfile and localStorage
   const hasResume = !!userProfile?.resume;
   const hasLinkedIn = !!userProfile?.linkedin?.imported;
+  const [hasProfile, setHasProfile] = useState(false);
 
   useEffect(() => {
     // Load profile and extract data
@@ -164,6 +164,7 @@ export default function DashboardPage() {
         try {
           const parsed = JSON.parse(profileJson);
           setProfile(parsed);
+          setHasProfile(true);
           
           // Extract first name from title (format: "🧠 John Doe – Executive Psychographic Profile")
           if (parsed.title) {

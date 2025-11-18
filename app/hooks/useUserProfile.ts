@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { CareerStage, CareerStageUserSelected, ResumeSignals } from '@/lib/careerStage';
+import { CareerStage, CareerStageUserSelected, ResumeSignals, CareerPreferences } from '@/lib/careerStage';
 
 export interface UserProfile {
   userId: string;
@@ -28,6 +28,13 @@ export interface UserProfile {
   careerStageUserSelected?: CareerStageUserSelected;
   resumeSignals?: ResumeSignals;
   careerStage?: CareerStage;
+  // Career preferences fields
+  careerPreferences?: CareerPreferences;
+  careerPreferencesCompleted?: boolean;
+  // Additional data for AI-powered features
+  psychographicProfile?: any;
+  resumeText?: string;
+  linkedInSummary?: string;
 }
 
 interface UseUserProfileReturn {

@@ -1,22 +1,4 @@
-export type CareerStage =
-  | 'college'
-  | 'recent_grad'
-  | 'early_career'
-  | 'mid_career'
-  | 'senior'
-  | 'unknown';
-
-export type CareerStageUserSelected = CareerStage | 'prefer_not_to_say';
-
-export interface ResumeSignals {
-  yearsExperience: number | null;
-  roleCount: number | null;
-  titles: string[];
-  graduationYear: number | null;
-  seniorityHints: string[];
-}
-
-export type OptionTag =
+type OptionTag =
   | 'creative'
   | 'people_helping'
   | 'analytical'
@@ -39,15 +21,7 @@ export type OptionTag =
   | 'env_research'
   | 'env_outdoors';
 
-export interface CareerPreferences {
-  energizingWork: OptionTag[];
-  avoidWork: OptionTag[];
-  environments: OptionTag[];
-  peopleVsIC: 'ic' | 'mix' | 'lead' | null;
-  changeAppetite: 'stay_close' | 'pivot' | 'big_shift' | null;
-}
-
-export type StageQuestionConfig = {
+type StageQuestionConfig = {
   introTitle: string;
   introSubtitle: string;
   q1: {
@@ -80,10 +54,10 @@ export type StageQuestionConfig = {
   };
 };
 
-export const careerPreferencesConfig: Record<CareerStage, StageQuestionConfig> = {
+const careerPreferencesConfig: Record<CareerStage, StageQuestionConfig> = {
   college: {
-    introTitle: "Let's calibrate your Career Direction Map",
-    introSubtitle: "We'll use this to suggest directions and fields that could fit you.",
+    introTitle: "Let’s calibrate your Career Direction Map",
+    introSubtitle: "We’ll use this to suggest directions and fields that could fit you.",
     q1: {
       title: "What kinds of activities energize you?",
       subtitle: "Pick up to 3 that sound most like you.",
@@ -141,8 +115,8 @@ export const careerPreferencesConfig: Record<CareerStage, StageQuestionConfig> =
     },
   },
   recent_grad: {
-    introTitle: "Let's calibrate your Career Direction Map",
-    introSubtitle: "We'll use this to suggest early-career directions that fit your strengths.",
+    introTitle: "Let’s calibrate your Career Direction Map",
+    introSubtitle: "We’ll use this to suggest early-career directions that fit your strengths.",
     q1: {
       title: "Which types of work do you feel naturally drawn to?",
       subtitle: "Pick up to 3.",
@@ -202,8 +176,8 @@ export const careerPreferencesConfig: Record<CareerStage, StageQuestionConfig> =
     },
   },
   early_career: {
-    introTitle: "Let's calibrate your Career Direction Map",
-    introSubtitle: "We'll use this to refine your next steps and possible pivots.",
+    introTitle: "Let’s calibrate your Career Direction Map",
+    introSubtitle: "We’ll use this to refine your next steps and possible pivots.",
     q1: {
       title: "Which types of work give you energy today?",
       subtitle: "Pick up to 3.",
@@ -263,8 +237,8 @@ export const careerPreferencesConfig: Record<CareerStage, StageQuestionConfig> =
     },
   },
   mid_career: {
-    introTitle: "Let's calibrate your next chapter",
-    introSubtitle: "We'll use this to shape your next chapter and potential pivots.",
+    introTitle: "Let’s calibrate your next chapter",
+    introSubtitle: "We’ll use this to shape your next chapter and potential pivots.",
     q1: {
       title: "Which types of work feel most fulfilling for your next chapter?",
       subtitle: "Pick up to 3.",
@@ -324,228 +298,11 @@ export const careerPreferencesConfig: Record<CareerStage, StageQuestionConfig> =
     },
   },
   senior: {
-    introTitle: "Let's calibrate your next chapter",
-    introSubtitle: "We'll use this to shape your next chapter and potential pivots.",
-    q1: {
-      title: "Which types of work feel most fulfilling for your next chapter?",
-      subtitle: "Pick up to 3.",
-      maxSelect: 3,
-      options: [
-        { tag: 'creative', label: "Creative strategy, storytelling, or design leadership" },
-        { tag: 'people_helping', label: "Coaching, teaching, mentoring, or supporting others" },
-        { tag: 'analytical', label: "Analytical problem solving at a strategic level" },
-        { tag: 'systems_building', label: "Operational leadership and building systems" },
-        { tag: 'technical_building', label: "Technical depth / expert IC work" },
-        { tag: 'leading', label: "Leading teams and shaping organizations" },
-        { tag: 'hands_on', label: "Hands-on craft, trades, or entrepreneurial building" },
-      ],
-    },
-    q2: {
-      title: "What do you want to avoid in your next chapter?",
-      subtitle: "Pick up to 3.",
-      maxSelect: 3,
-      options: [
-        { tag: 'avoid_large_team_mgmt', label: "Managing large teams" },
-        { tag: 'avoid_constant_meetings', label: "Political stakeholder management and constant meetings" },
-        { tag: 'avoid_repetitive', label: "Routine execution without growth" },
-        { tag: 'avoid_heavy_numbers', label: "Heavy detailed number-crunching" },
-        { tag: 'avoid_emotional_labor', label: "High emotional labor roles" },
-        { tag: 'avoid_physical_labor', label: "Physically demanding or on-your-feet-all-day work" },
-      ],
-    },
-    q3: {
-      title: "Which environments are aligned with your next chapter?",
-      subtitle: "Pick up to 2.",
-      maxSelect: 2,
-      options: [
-        { tag: 'env_large_org', label: "High-stability organizations" },
-        { tag: 'env_mid_growth', label: "Growth-stage organizations" },
-        { tag: 'env_startup', label: "Early-stage / startup environments" },
-        { tag: 'env_public_impact', label: "Mission- or impact-driven organizations" },
-        { tag: 'env_freelance', label: "Independent / consulting / portfolio work" },
-      ],
-    },
-    q4: {
-      title: "How much do you want to lead others vs do individual work?",
-      subtitle: "",
-      options: [
-        { value: 'ic', label: "Mostly as an IC with high autonomy" },
-        { value: 'mix', label: "Mix of IC work and leadership" },
-        { value: 'lead', label: "Mostly leading people and organizations" },
-      ],
-    },
-    q5: {
-      title: "How open are you to shifting your career direction?",
-      subtitle: "",
-      options: [
-        { value: 'stay_close', label: "Prefer staying close to my current function" },
-        { value: 'pivot', label: "Open to an adjacent pivot" },
-        { value: 'big_shift', label: "Open to a significant career shift if it aligns deeply" },
-      ],
-    },
+    // For now, reuse mid_career config; we can customize later.
+    ...same as mid_career
   },
   unknown: {
-    introTitle: "Let's calibrate your Career Direction Map",
-    introSubtitle: "We'll use this to refine your next steps and possible pivots.",
-    q1: {
-      title: "Which types of work give you energy today?",
-      subtitle: "Pick up to 3.",
-      maxSelect: 3,
-      options: [
-        { tag: 'creative', label: "Creative / design / storytelling work" },
-        { tag: 'people_helping', label: "People-facing work (support, partnerships, customers)" },
-        { tag: 'analytical', label: "Analytical problem solving" },
-        { tag: 'systems_building', label: "Operational execution / making things run smoothly" },
-        { tag: 'technical_building', label: "Technical building (engineering, data, systems)" },
-        { tag: 'leading', label: "Leading teams or coordinating people" },
-        { tag: 'hands_on', label: "Hands-on work / building real things" },
-      ],
-    },
-    q2: {
-      title: "What drains your energy at work?",
-      subtitle: "Pick up to 3.",
-      maxSelect: 3,
-      options: [
-        { tag: 'avoid_constant_meetings', label: "Lots of meetings and stakeholder wrangling" },
-        { tag: 'avoid_heavy_numbers', label: "Deep number-crunching and spreadsheets" },
-        { tag: 'avoid_emotional_labor', label: "High emotional labor (escalations, conflicts)" },
-        { tag: 'avoid_large_team_mgmt', label: "Managing people at this stage" },
-        { tag: 'avoid_repetitive', label: "Repetitive, process-only work" },
-        { tag: 'avoid_physical_labor', label: "Hands-on or physical labor" },
-      ],
-    },
-    q3: {
-      title: "Which environments fit you best right now?",
-      subtitle: "Pick up to 2.",
-      maxSelect: 2,
-      options: [
-        { tag: 'env_large_org', label: "Structured, predictable organizations" },
-        { tag: 'env_mid_growth', label: "Fast-moving growth environments" },
-        { tag: 'env_startup', label: "Startup / messy but exciting" },
-        { tag: 'env_public_impact', label: "Mission-driven or impact organizations" },
-        { tag: 'env_freelance', label: "Client-facing / consulting / freelance" },
-      ],
-    },
-    q4: {
-      title: "In the next few years, how do you want to balance people vs IC work?",
-      subtitle: "",
-      options: [
-        { value: 'ic', label: "Mostly as an individual contributor" },
-        { value: 'mix', label: "A mix of IC work and guiding others" },
-        { value: 'lead', label: "Mostly leading and managing people" },
-      ],
-    },
-    q5: {
-      title: "How open are you to shifting your direction?",
-      subtitle: "",
-      options: [
-        { value: 'stay_close', label: "Prefer to grow within my current lane" },
-        { value: 'pivot', label: "Open to an adjacent pivot" },
-        { value: 'big_shift', label: "Open to a significant shift if it truly fits me" },
-      ],
-    },
+    // Fallback: reuse early_career config
+    ...same as early_career
   },
 };
-
-export const CAREER_STAGE_OPTIONS = [
-  { value: 'college', label: 'College student' },
-  { value: 'recent_grad', label: 'Recent graduate (0–2 years)' },
-  { value: 'early_career', label: 'Early career (2–7 years)' },
-  { value: 'mid_career', label: 'Mid-career (7–15 years)' },
-  { value: 'senior', label: 'Senior (15+ years)' },
-  { value: 'prefer_not_to_say', label: 'Prefer not to say' },
-] as const;
-
-/**
- * Determines the user's career stage based on their selection and resume signals.
- * 
- * Priority order:
- * 1. User's explicit selection (if not "prefer not to say")
- * 2. Years of experience from resume
- * 3. Role count from resume
- * 4. Job titles from resume
- * 5. Graduation year from resume
- * 6. Falls back to 'unknown' if no data available
- */
-export function determineCareerStage(
-  userSelected: CareerStageUserSelected,
-  resumeSignals: ResumeSignals
-): CareerStage {
-
-  // 1. If user selected a stage AND it's reasonable → trust it
-  if (userSelected !== 'prefer_not_to_say') {
-    return userSelected as CareerStage;
-  }
-
-  // 2. Infer from years of experience
-  if (resumeSignals.yearsExperience != null) {
-    const y = resumeSignals.yearsExperience;
-    if (y <= 0) return 'college';
-    if (y > 0 && y <= 2) return 'recent_grad';
-    if (y > 2 && y <= 7) return 'early_career';
-    if (y > 7 && y <= 15) return 'mid_career';
-    if (y > 15) return 'senior';
-  }
-
-  // 3. Infer from role count
-  if (resumeSignals.roleCount != null) {
-    const rc = resumeSignals.roleCount;
-    if (rc === 0) return 'college';
-    if (rc <= 2) return 'recent_grad';
-    if (rc <= 4) return 'early_career';
-    if (rc <= 6) return 'mid_career';
-    if (rc > 6) return 'senior';
-  }
-
-  // 4. Infer from titles (fallback)
-  const titlesString = resumeSignals.titles.join(' ').toLowerCase();
-  if (titlesString.includes('intern')) return 'college';
-  if (titlesString.includes('junior') || titlesString.includes('assistant')) return 'recent_grad';
-  if (titlesString.includes('senior')) return 'mid_career';
-  if (
-    titlesString.includes('manager') ||
-    titlesString.includes('lead') ||
-    titlesString.includes('consultant')
-  )
-    return 'mid_career';
-  if (
-    titlesString.includes('director') ||
-    titlesString.includes('head') ||
-    titlesString.includes('vp') ||
-    titlesString.includes('founder')
-  )
-    return 'senior';
-
-  // 5. Graduation year fallback
-  if (resumeSignals.graduationYear != null) {
-    const yrsAgo = new Date().getFullYear() - resumeSignals.graduationYear;
-    if (yrsAgo <= 1) return 'recent_grad';
-    if (yrsAgo <= 7) return 'early_career';
-    if (yrsAgo <= 15) return 'mid_career';
-    return 'senior';
-  }
-
-  // 6. Last fallback if no data
-  return 'unknown';
-}
-
-/**
- * Gets a human-readable label for a career stage
- */
-export function getCareerStageLabel(stage: CareerStage): string {
-  const option = CAREER_STAGE_OPTIONS.find(opt => opt.value === stage);
-  return option?.label || 'Unknown';
-}
-
-/**
- * Creates an empty ResumeSignals object
- */
-export function createEmptyResumeSignals(): ResumeSignals {
-  return {
-    yearsExperience: null,
-    roleCount: null,
-    titles: [],
-    graduationYear: null,
-    seniorityHints: [],
-  };
-}

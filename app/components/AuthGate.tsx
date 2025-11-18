@@ -55,11 +55,9 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
 
       // If profile loaded successfully, check onboarding status
       if (userProfile) {
-        // If onboarding not complete and not on onboarding page, redirect
-        if (!userProfile.onboardingComplete && !pathname.startsWith('/onboarding')) {
-          router.push('/onboarding/questions');
-          return;
-        }
+        // All feature pages handle their own empty states
+        // Don't redirect - let pages show "complete onboarding" message if needed
+        // This prevents redirect loops and gives better UX
         
         // Note: We deliberately don't redirect from / to /dashboard
         // to allow users to see the welcome page and choose where to go

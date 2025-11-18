@@ -153,8 +153,9 @@ export default function JobMatchPage() {
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<JobMatchAnalysis | null>(null);
 
-  // Check if user has completed onboarding
-  const hasProfile = userProfile?.onboardingComplete || false;
+  // Check if user has profile data (either from userProfile or localStorage)
+  const hasProfileData = typeof window !== 'undefined' && localStorage.getItem('onboarding_psych_profile');
+  const hasProfile = !!hasProfileData || userProfile?.onboardingComplete || false;
 
   const handleAnalyze = async () => {
     if (!jobDescription.trim()) {

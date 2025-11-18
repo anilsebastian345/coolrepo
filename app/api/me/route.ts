@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
-import { CareerStage, CareerStageUserSelected, ResumeSignals } from '@/lib/careerStage';
+import { CareerStage, CareerStageUserSelected, ResumeSignals, CareerPreferences } from '@/lib/careerStage';
 
 export const runtime = 'nodejs';
 
@@ -32,6 +32,8 @@ interface UserProfile {
   careerStageUserSelected?: CareerStageUserSelected;
   resumeSignals?: ResumeSignals;
   careerStage?: CareerStage;
+  careerPreferences?: CareerPreferences;
+  careerPreferencesCompleted?: boolean;
 }
 
 export async function GET(req: NextRequest) {
@@ -73,6 +75,9 @@ export async function GET(req: NextRequest) {
           careerStageUserSelected: cachedProfile.careerStageUserSelected,
           resumeSignals: cachedProfile.resumeSignals,
           careerStage: cachedProfile.careerStage,
+          // Career preferences fields
+          careerPreferences: cachedProfile.careerPreferences,
+          careerPreferencesCompleted: cachedProfile.careerPreferencesCompleted || false,
         };
       }
     }
