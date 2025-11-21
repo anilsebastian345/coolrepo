@@ -257,18 +257,37 @@ export default function DashboardPage() {
               Your AI-powered career intelligence hub
             </p>
           </div>
-          {hasProfile && (
-            <button
-              onClick={() => setShowUpdateModal(true)}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              <span>Update my info</span>
-            </button>
-          )}
+          <button
+            onClick={() => setShowUpdateModal(true)}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            <span>Update my info</span>
+          </button>
         </div>
+
+        {/* Alert if no resume */}
+        {!hasResume && !hasLinkedIn && (
+          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+            <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-lg">📄</span>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-blue-900 mb-1">Upload your resume to unlock all features</h3>
+              <p className="text-sm text-blue-700 mb-3">
+                Get AI-powered resume analysis, job matching, and personalized career insights.
+              </p>
+              <button
+                onClick={() => router.push('/preview-onboarding')}
+                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Upload Resume
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Profile Snapshot Card */}
         {profile && (
