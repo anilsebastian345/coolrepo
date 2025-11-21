@@ -165,8 +165,18 @@ export default function DashboardPage() {
         linkedInLength: userProfile.linkedInSummary?.length,
         keys: Object.keys(userProfile)
       });
+      console.log('Dashboard - Full userProfile object:', userProfile);
     }
   }, [userProfile]);
+
+  useEffect(() => {
+    console.log('Dashboard state:', {
+      hasResume,
+      hasLinkedIn,
+      hasProfile,
+      isLoading
+    });
+  }, [hasResume, hasLinkedIn, hasProfile, isLoading]);
 
   useEffect(() => {
     // Load profile and extract data
