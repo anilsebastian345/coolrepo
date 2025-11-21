@@ -68,10 +68,15 @@ export async function GET(req: NextRequest) {
       const tempProfile = allProfiles['temp-user-id'];
       const hasInputsInTemp = tempProfile?.inputs;
       
-      console.log('Found cached profile for:', userId);
-      console.log('Profile keys:', Object.keys(cachedProfile || {}));
+      console.log('=== /api/me DEBUG ===');
+      console.log('Looking for user:', userId);
+      console.log('Found cached profile for:', userId, '?', !!allProfiles[userId]);
+      console.log('Found temp profile?', !!tempProfile);
+      console.log('User profile keys:', Object.keys(cachedProfile || {}));
+      console.log('Profile keys:', Object.keys(allProfiles));
       console.log('Has inputs in user profile?:', !!cachedProfile?.inputs);
       console.log('Has inputs in temp profile?:', !!hasInputsInTemp);
+      console.log('===================');
       
       if (cachedProfile) {
         // Extract resume text and LinkedIn summary from inputs if available
