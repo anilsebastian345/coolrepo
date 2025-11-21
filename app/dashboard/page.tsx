@@ -155,6 +155,19 @@ export default function DashboardPage() {
   const hasLinkedIn = !!userProfile?.linkedInSummary;
   const [hasProfile, setHasProfile] = useState(false);
 
+  // Debug logging
+  useEffect(() => {
+    if (userProfile) {
+      console.log('Dashboard - userProfile:', {
+        hasResumeText: !!userProfile.resumeText,
+        resumeTextLength: userProfile.resumeText?.length,
+        hasLinkedInSummary: !!userProfile.linkedInSummary,
+        linkedInLength: userProfile.linkedInSummary?.length,
+        keys: Object.keys(userProfile)
+      });
+    }
+  }, [userProfile]);
+
   useEffect(() => {
     // Load profile and extract data
     if (typeof window !== 'undefined') {
