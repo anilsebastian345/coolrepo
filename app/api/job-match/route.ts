@@ -1,90 +1,290 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { JobMatchResult } from '@/app/types/features';
+import { JobMatchAnalysis } from '@/app/types/jobMatch';
+import { CareerStage, CareerPreferences } from '@/lib/careerStage';
+import { CareerDirectionRecommendation } from '@/app/types/careerDirections';
 
-export const runtime = 'nodejs';
+const AZURE_OPENAI_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT || '';
+const AZURE_OPENAI_KEY = process.env.AZURE_OPENAI_KEY || '';
+const AZURE_OPENAI_DEPLOYMENT = process.env.AZURE_OPENAI_DEPLOYMENT || '';
+
+type JobMatchRequest = {
+  jobTitle?: string;
+  jobDescription: string;
+  userProfile: {
+    careerStage?: CareerStage;
+    careerPreferences?: CareerPreferences;
+    careerDirections?: CareerDirectionRecommendation[];
+    resumeText: string;
+    linkedInSummary?: string;
+    psychographicProfile?: any;
+  };
+};
+
+type JobMatchResponse = {
+  analysis: JobMatchAnalysis;
+};
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId, jobDescription, profile, resume, linkedin } = await req.json();
+    const body: JobMatchRequest = await req.json();
+    const { jobTitle, jobDescription, userProfile } = body;
 
-    if (!jobDescription || jobDescription.trim().length === 0) {
+    if (!jobDescription || !jobDescription.trim()) {
       return NextResponse.json(
         { error: 'Job description is required' },
         { status: 400 }
       );
     }
 
-    // TODO: Replace with actual Azure OpenAI call
-    // For now, return mock data
-    const mockResponse: JobMatchResult = {
-      matchPercentage: 78,
-      overallAssessment: `Strong match overall. Your cross-functional leadership experience, technical depth in AI/data, and proven track record of building empowered teams align well with this role's requirements. The main gaps are in specific domain expertise and some advanced technical certifications, but your learning agility and systems thinking approach position you well to close these quickly.`,
-      strengths: [
-        {
-          skill: 'Cross-Functional Leadership',
-          evidence: 'Led teams spanning supply chain, product, data, and AI functions with proven results in team empowerment and retention',
-          impact: 'Directly addresses the requirement for managing diverse stakeholder groups and building collaborative cultures'
-        },
-        {
-          skill: 'AI/ML Implementation',
-          evidence: 'Hands-on experience architecting and deploying AI solutions, including demand forecasting and analytics platforms',
-          impact: 'Matches the need for practical AI experience beyond theoretical knowledge'
-        },
-        {
-          skill: 'Data-Driven Decision Making',
-          evidence: 'Track record of using analytics to drive operational improvements and strategic decisions',
-          impact: 'Aligns with emphasis on metrics, KPIs, and evidence-based leadership'
-        },
-        {
-          skill: 'Change Management',
-          evidence: 'Successfully led transformation initiatives across supply chain and technology infrastructure',
-          impact: 'Demonstrates ability to drive organizational change, a key requirement for this role'
-        },
-        {
-          skill: 'Team Development',
-          evidence: 'Built teams from 3 to 15+ members with 90% retention and multiple promotions to senior roles',
-          impact: 'Exceeds expectations for talent development and succession planning'
-        }
-      ],
-      gaps: [
-        {
-          skill: 'Industry-Specific Domain Expertise',
-          importance: 'important',
-          suggestion: 'Research this industry\'s unique challenges and regulatory landscape. Consider informational interviews with industry leaders and read 3-5 key industry publications to build contextual knowledge quickly.'
-        },
-        {
-          skill: 'Advanced Cloud Architecture Certifications',
-          importance: 'nice-to-have',
-          suggestion: 'While you have hands-on AWS experience, obtaining AWS Solutions Architect Professional or equivalent certification would strengthen your candidacy and signal commitment to cloud-native approaches.'
-        },
-        {
-          skill: 'P&L Management Experience',
-          importance: 'critical',
-          suggestion: 'Highlight any budget ownership or financial impact from past roles. If limited, emphasize cost optimization results and financial modeling experience. Consider taking a finance for non-finance managers course.'
-        },
-        {
-          skill: 'Executive Stakeholder Management',
-          importance: 'important',
-          suggestion: 'Prepare specific examples of presenting to C-suite or board members. If experience is limited, focus on your communication style and ability to translate technical concepts to business outcomes.'
-        }
-      ],
-      recommendations: [
-        'Emphasize your full-stack operational experience and ability to connect AI/technology initiatives to business outcomes',
-        'Prepare 2-3 detailed case studies showcasing your team empowerment approach and measurable results',
-        'Research the company\'s specific challenges in this industry and prepare insights on how your experience applies',
-        'Highlight your learning agility and examples of quickly mastering new domains',
-        'Address P&L management in your cover letter by quantifying financial impact of your initiatives',
-        'Connect your systems thinking and calm, methodical approach to their need for strategic leadership',
-        'Prepare questions that demonstrate understanding of their business model and growth challenges'
-      ]
-    };
+    if (!userProfile?.resumeText) {
+      return NextResponse.json(
+        { error: 'Resume text is required in user profile' },
+        { status: 400 }
+      );
+    }
 
-    return NextResponse.json(mockResponse);
+    // Build the comprehensive prompt
+    const prompt = buildJobMatchPrompt({
+      jobTitle,
+      jobDescription,
+      careerStage: userProfile.careerStage,
+      careerPreferences: userProfile.careerPreferences,
+      careerDirections: userProfile.careerDirections || [],
+      resumeText: userProfile.resumeText,
+      linkedInSummary: userProfile.linkedInSummary,
+      psychographicProfile: userProfile.psychographicProfile,
+    });
+
+    // Call Azure OpenAI
+    const response = await fetch(
+      `${AZURE_OPENAI_ENDPOINT}/openai/deployments/${AZURE_OPENAI_DEPLOYMENT}/chat/completions?api-version=2024-08-01-preview`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'api-key': AZURE_OPENAI_KEY,
+        },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+          temperature: 0.7,
+          max_tokens: 3000,
+          response_format: { type: 'json_object' },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Azure OpenAI error:', errorText);
+      return NextResponse.json(
+        { error: 'Failed to generate job match analysis', details: errorText },
+        { status: 500 }
+      );
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+
+    if (!content) {
+      return NextResponse.json(
+        { error: 'No content received from AI' },
+        { status: 500 }
+      );
+    }
+
+    // Parse the JSON response
+    let parsedResponse: JobMatchResponse;
+    try {
+      parsedResponse = JSON.parse(content);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      console.error('Raw content:', content);
+      return NextResponse.json(
+        { error: 'Failed to parse AI response', details: String(parseError) },
+        { status: 500 }
+      );
+    }
+
+    // Validate the response structure
+    if (!parsedResponse.analysis) {
+      return NextResponse.json(
+        { error: 'Invalid response structure: missing analysis' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(parsedResponse);
   } catch (error) {
     console.error('Job match error:', error);
     return NextResponse.json(
-      { error: 'Failed to analyze job match' },
+      { error: 'Internal server error', details: String(error) },
       { status: 500 }
     );
   }
+}
+
+function buildJobMatchPrompt(params: {
+  jobTitle?: string;
+  jobDescription: string;
+  careerStage?: CareerStage;
+  careerPreferences?: CareerPreferences;
+  careerDirections: CareerDirectionRecommendation[];
+  resumeText: string;
+  linkedInSummary?: string;
+  psychographicProfile?: any;
+}): string {
+  const {
+    jobTitle,
+    jobDescription,
+    careerStage,
+    careerPreferences,
+    careerDirections,
+    resumeText,
+    linkedInSummary,
+    psychographicProfile,
+  } = params;
+
+  return `You are an expert, inclusive career coach and hiring advisor.
+You help candidates from ALL backgrounds:
+- trades and hands-on work (electricians, mechanics, carpenters, chefs, skilled labor)
+- healthcare (nurses, doctors, technicians, caregivers)
+- education and social impact (teachers, trainers, NGO workers, government)
+- creative fields (designers, artists, content creators, media, performers)
+- business and corporate roles (operations, product, finance, marketing, management)
+- technical and digital (software, hardware, data, IT)
+
+You will compare ONE candidate against ONE specific job description.
+You must NOT assume every candidate is trying to be a tech worker. Respect the field of the job description.
+
+----
+CANDIDATE DATA (JSON):
+
+Career stage:
+${careerStage ? JSON.stringify(careerStage, null, 2) : 'Not provided'}
+
+Career preferences:
+${careerPreferences ? JSON.stringify(careerPreferences, null, 2) : 'Not provided'}
+
+Top career directions from previous analysis:
+${careerDirections.length > 0 ? JSON.stringify(careerDirections.slice(0, 3), null, 2) : 'Not provided'}
+
+Psychographic profile (if present):
+${psychographicProfile ? JSON.stringify(psychographicProfile, null, 2) : 'Not provided'}
+
+Resume text:
+${resumeText}
+
+LinkedIn summary (if present):
+${linkedInSummary || 'Not provided'}
+
+----
+JOB DESCRIPTION:
+${jobTitle ? `Job Title: ${jobTitle}\n` : ''}${jobDescription}
+
+----
+YOUR TASK:
+
+1. Understand this job:
+   - key responsibilities
+   - required and preferred skills
+   - level / seniority
+   - environment (pace, type of organization, culture signals)
+
+2. Compare the candidate to this specific job and produce:
+
+   A) overallMatchScore (0–100):
+      - Higher = stronger match for THIS job.
+
+   B) dimensionScores (array) with 4 dimensions:
+      - "skills"
+      - "experience"
+      - "responsibilities"
+      - "culture_environment"
+      For each:
+        - score: 0–100
+        - comment: 1–2 sentences explaining the score in plain language.
+
+   C) strengths:
+      - 4–8 bullet points that describe where this candidate is strong for THIS job,
+        grounded in their actual resume and profile.
+
+   D) gaps:
+      - 4–8 bullet points that describe important gaps or missing pieces for THIS job.
+      - Include both skill gaps and experience gaps.
+
+   E) recommendedSkills:
+      - 5–10 specific skills or capabilities the candidate could build to be a stronger match,
+        tailored to the domain of this job (e.g., clinical skills for a nurse role,
+        safety procedures for a trades role, design tools for creative, etc.).
+
+   F) tailoringSuggestions:
+      - summary: a rewritten resume summary paragraph tailored to THIS job,
+        aligned with the candidate's strengths, career stage, and directions.
+      - keyBullets: an array where each item is:
+        {
+          "original": string | null, // original bullet from resume if clearly mappable, otherwise null
+          "improved": string,        // a stronger version tailored to THIS job
+          "note": string             // 1 sentence explaining why this bullet helps for THIS job
+        }
+      - Make the bullets appropriate for the candidate's field and level.
+        For example, do not force corporate jargon on a trades or nursing candidate.
+
+   G) riskFlags:
+      - 0–5 short bullets for any meaningful concerns a recruiter might have for THIS job
+        (e.g., "No direct experience in clinical settings", "Limited leadership experience for a manager role").
+
+3. Very important:
+   - Use simple, clear language.
+   - Respect the job's domain (healthcare vs trades vs corporate vs creative, etc.).
+   - Do NOT suggest changing to a different field; focus ONLY on fit for THIS job description.
+
+4. Output STRICT JSON with this exact shape:
+
+{
+  "analysis": {
+    "jobTitle": "${jobTitle || 'Job Opportunity'}",
+    "overallMatchScore": number,
+    "dimensionScores": [
+      {
+        "dimension": "skills",
+        "score": number,
+        "comment": string
+      },
+      {
+        "dimension": "experience",
+        "score": number,
+        "comment": string
+      },
+      {
+        "dimension": "responsibilities",
+        "score": number,
+        "comment": string
+      },
+      {
+        "dimension": "culture_environment",
+        "score": number,
+        "comment": string
+      }
+    ],
+    "strengths": [string],
+    "gaps": [string],
+    "recommendedSkills": [string],
+    "tailoringSuggestions": {
+      "summary": string,
+      "keyBullets": [
+        {
+          "original": string | null,
+          "improved": string,
+          "note": string
+        }
+      ]
+    },
+    "riskFlags": [string]
+  }
+}`;
 }

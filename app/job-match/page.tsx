@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { JobMatchAnalysis } from "@/app/types/features";
-import { getJobMatch } from "@/lib/careerCoach";
-import { useUserProfile } from "../hooks/useUserProfile";
+import { useUserProfile } from '@/app/hooks/useUserProfile';
+import { JobMatchAnalysis } from '@/app/types/jobMatch';
+import { CareerDirectionRecommendation } from '@/app/types/careerDirections';
+import { getCareerDirectionRecommendations } from '@/lib/careerDirections';
 
-// TopNav Component
 function TopNav({ activeTab }: { activeTab: string }) {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', href: '/dashboard' },
@@ -46,339 +46,401 @@ function TopNav({ activeTab }: { activeTab: string }) {
               ))}
             </div>
           </div>
-          <button className="md:hidden p-2 rounded-lg hover:bg-gray-100">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
         </div>
       </div>
     </nav>
   );
 }
 
-// Circular Progress Indicator
-function CircularProgress({ percentage }: { percentage: number }) {
-  const radius = 80;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (percentage / 100) * circumference;
+export default function JobMatchPage() {
+  const router = useRouter();
+  const { userProfile, isLoading: profileLoading } = useUserProfile();
+  const [jobTitle, setJobTitle] = useState('');
+  const [jobDescription, setJobDescription] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [analysis, setAnalysis] = useState<JobMatchAnalysis | null>(null);
+  const [careerDirections, setCareerDirections] = useState<CareerDirectionRecommendation[]>([]);
+  const [copiedBulletIndex, setCopiedBulletIndex] = useState<number | null>(null);
+  const [copiedSummary, setCopiedSummary] = useState(false);
 
-  const getColor = (score: number) => {
-    if (score >= 75) return '#10b981'; // green
-    if (score >= 50) return '#3b82f6'; // blue
-    return '#f59e0b'; // orange
+  useEffect(() => {
+    if (!profileLoading && userProfile?.careerStage && userProfile?.careerPreferences) {
+      // Fetch career directions
+      const fetchDirections = async () => {
+        const directions = await getCareerDirectionRecommendations({
+          careerStage: userProfile.careerStage!,
+          careerPreferences: userProfile.careerPreferences!,
+          psychographicProfile: userProfile.psychographicProfile,
+          resumeText: userProfile.resumeText,
+          linkedInSummary: userProfile.linkedInSummary
+        });
+        setCareerDirections(directions.slice(0, 3));
+      };
+      fetchDirections();
+    }
+  }, [userProfile, profileLoading]);
+
+  const handleAnalyze = async () => {
+    if (!jobDescription.trim()) {
+      setError('Please enter a job description');
+      return;
+    }
+
+    if (!userProfile?.resumeText) {
+      setError('No resume found. Please upload your resume first.');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setAnalysis(null);
+
+    try {
+      const response = await fetch('/api/job-match', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jobTitle: jobTitle.trim() || undefined,
+          jobDescription: jobDescription.trim(),
+          userProfile: {
+            careerStage: userProfile.careerStage,
+            careerPreferences: userProfile.careerPreferences,
+            careerDirections: careerDirections,
+            resumeText: userProfile.resumeText,
+            linkedInSummary: userProfile.linkedInSummary,
+            psychographicProfile: userProfile.psychographicProfile,
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        const errorMessage = errorData.error || errorData.details || 'Failed to analyze job match';
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+      console.log('Received analysis:', data);
+      setAnalysis(data.analysis);
+    } catch (err) {
+      console.error('Error analyzing job match:', err);
+      setError(err instanceof Error ? err.message : 'Failed to analyze job match');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  return (
-    <div className="relative inline-flex items-center justify-center">
-      <svg className="transform -rotate-90" width="200" height="200">
-        {/* Background circle */}
-        <circle
-          cx="100"
-          cy="100"
-          r={radius}
-          stroke="#e5e7eb"
-          strokeWidth="16"
-          fill="none"
-        />
-        {/* Progress circle */}
-        <circle
-          cx="100"
-          cy="100"
-          r={radius}
-          stroke={getColor(percentage)}
-          strokeWidth="16"
-          fill="none"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          className="transition-all duration-1000 ease-out"
-        />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <div className="text-5xl font-bold text-gray-900">{percentage}%</div>
-        <div className="text-sm text-gray-500 mt-1">Match</div>
-      </div>
-    </div>
-  );
-}
-
-// Copy Button Component
-function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
+  const copyToClipboard = async (text: string, index?: number) => {
     try {
       await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      if (index !== undefined) {
+        setCopiedBulletIndex(index);
+        setTimeout(() => setCopiedBulletIndex(null), 2000);
+      } else {
+        setCopiedSummary(true);
+        setTimeout(() => setCopiedSummary(false), 2000);
+      }
     } catch (err) {
       console.error('Failed to copy:', err);
     }
   };
 
-  return (
-    <button
-      onClick={handleCopy}
-      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1.5 ${
-        copied
-          ? 'bg-green-100 text-green-700 border-2 border-green-200'
-          : 'bg-[#f8faf6] text-[#55613b] border-2 border-[#e8f0e3] hover:bg-[#e8f0e3]'
-      }`}
-    >
-      {copied ? (
-        <>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          <span>Copied!</span>
-        </>
-      ) : (
-        <>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-          </svg>
-          <span>{label}</span>
-        </>
-      )}
-    </button>
-  );
-}
-
-// Main Page Component
-export default function JobMatchPage() {
-  const router = useRouter();
-  const { userProfile, isLoading } = useUserProfile();
-  const [jobDescription, setJobDescription] = useState("");
-  const [analyzing, setAnalyzing] = useState(false);
-  const [result, setResult] = useState<JobMatchAnalysis | null>(null);
-
-  // Check if user has profile data (either from userProfile or localStorage)
-  const hasProfileData = typeof window !== 'undefined' && localStorage.getItem('onboarding_psych_profile');
-  const hasProfile = !!hasProfileData || userProfile?.onboardingComplete || false;
-
-  const handleAnalyze = async () => {
-    if (!jobDescription.trim()) {
-      alert("Please paste a job description first");
-      return;
-    }
-
-    setAnalyzing(true);
-    try {
-      const analysis = await getJobMatch(jobDescription, userProfile);
-      setResult(analysis);
-    } catch (err) {
-      console.error('Analysis failed:', err);
-      alert("Failed to analyze job match. Please try again.");
-    } finally {
-      setAnalyzing(false);
-    }
+  const getMatchLabel = (score: number) => {
+    if (score >= 80) return { text: 'Strong match', color: 'text-green-600' };
+    if (score >= 60) return { text: 'Moderate match', color: 'text-yellow-600' };
+    return { text: 'Developing match', color: 'text-orange-600' };
   };
 
+  const getDimensionLabel = (dimension: string) => {
+    const labels: { [key: string]: string } = {
+      skills: 'Skills',
+      experience: 'Experience',
+      responsibilities: 'Responsibilities',
+      culture_environment: 'Culture & Environment'
+    };
+    return labels[dimension] || dimension;
+  };
+
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <TopNav activeTab="jobmatch" />
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mb-8 animate-pulse"></div>
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <div className="h-6 bg-gray-200 rounded w-1/4 mb-4 animate-pulse"></div>
+            <div className="h-40 bg-gray-200 rounded mb-4 animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f8faf6] via-white to-[#e8f0e3]">
+    <div className="min-h-screen bg-slate-50">
       <TopNav activeTab="jobmatch" />
       
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="text-6xl mb-4">🎯</div>
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            Job Match & Skill Gaps
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+        <div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Job Match & Fit Analysis
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Paste a job description to see how well you match, where you're strong, and what to improve.
+          <p className="text-lg text-gray-600">
+            See how you match with any job opportunity
           </p>
         </div>
 
-        {/* No Profile State */}
-        {!hasProfile && (
-          <div className="text-center py-12 bg-white rounded-2xl border-2 border-gray-200 max-w-2xl mx-auto mb-12">
-            <div className="text-5xl mb-4">📝</div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">Complete Your Profile First</h3>
-            <p className="text-gray-600 mb-6">
-              We need your profile and resume to analyze job matches.
-            </p>
-            <button
-              onClick={() => router.push('/preview-onboarding')}
-              className="px-8 py-3 bg-[#8a9a5b] text-white rounded-xl font-medium hover:bg-[#55613b] transition-colors"
-            >
-              Start Onboarding
-            </button>
+        {/* Input Card */}
+        <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+          <div>
+            <label htmlFor="jobTitle" className="block text-sm font-medium text-gray-700 mb-2">
+              Job Title (optional)
+            </label>
+            <input
+              id="jobTitle"
+              type="text"
+              value={jobTitle}
+              onChange={(e) => setJobTitle(e.target.value)}
+              placeholder="e.g., Senior Product Manager"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+            />
           </div>
-        )}
 
-        {/* Job Description Input */}
-        {hasProfile && (
-          <div className="bg-white rounded-2xl border-2 border-gray-200 p-8 shadow-sm mb-8">
-            <label className="block text-lg font-bold text-gray-900 mb-4">
-              Job Description
+          <div>
+            <label htmlFor="jobDescription" className="block text-sm font-medium text-gray-700 mb-2">
+              Job Description <span className="text-red-500">*</span>
             </label>
             <textarea
+              id="jobDescription"
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
-              placeholder="Paste the full job description here, including responsibilities, requirements, and preferred qualifications..."
-              className="w-full h-64 p-4 border-2 border-gray-200 rounded-xl focus:border-[#8a9a5b] focus:outline-none resize-none text-gray-700 leading-relaxed"
+              placeholder="Paste the full job description here..."
+              rows={12}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent font-mono text-sm"
             />
-            <div className="mt-4 flex items-center justify-between">
-              <p className="text-sm text-gray-500">
-                {jobDescription.length} characters • The more detail, the better the analysis
-              </p>
-              <button
-                onClick={handleAnalyze}
-                disabled={analyzing || !jobDescription.trim()}
-                className={`px-8 py-3 rounded-xl font-medium transition-all flex items-center gap-2 ${
-                  analyzing || !jobDescription.trim()
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-[#8a9a5b] text-white hover:bg-[#55613b] shadow-md hover:shadow-lg'
-                }`}
-              >
-                {analyzing ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Analyzing...</span>
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                    </svg>
-                    <span>Analyze Job</span>
-                  </>
-                )}
-              </button>
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-red-700 text-sm">{error}</p>
             </div>
+          )}
+
+          <button
+            onClick={handleAnalyze}
+            disabled={!jobDescription.trim() || loading}
+            className="w-full bg-slate-900 text-white rounded-lg px-4 py-3 font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {loading ? 'Analyzing...' : 'Analyze Fit'}
+          </button>
+        </div>
+
+        {/* Loading State */}
+        {loading && (
+          <div className="space-y-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white rounded-2xl shadow-sm p-6">
+                <div className="h-6 bg-gray-200 rounded w-1/4 mb-4 animate-pulse"></div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded w-5/6 animate-pulse"></div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
-        {/* Results Section */}
-        {result && (
-          <div className="space-y-8 animate-fade-in">
-            {/* Match Score */}
-            <div className="bg-white rounded-2xl border-2 border-gray-200 p-12 shadow-md text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-8">Your Match Score</h2>
-              <CircularProgress percentage={result.matchScore} />
-              <p className="mt-6 text-gray-600 max-w-2xl mx-auto">
-                {result.matchScore >= 75
-                  ? "Excellent match! You meet most of the key requirements. Focus on highlighting your strengths and addressing the gaps below."
-                  : result.matchScore >= 50
-                  ? "Good match with room for improvement. You have relevant experience but some gaps to address in your application."
-                  : "This role is a stretch. Consider whether it's worth applying or if you should focus on roles that better match your background."}
+        {/* Results */}
+        {analysis && !loading && (
+          <div className="space-y-6">
+            {/* Overall Match Card */}
+            <div className="bg-white rounded-2xl shadow-sm p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{analysis.jobTitle}</h2>
+              <div className="flex items-baseline gap-3 mb-2">
+                <span className="text-5xl font-bold text-slate-900">{analysis.overallMatchScore}</span>
+                <span className="text-2xl text-gray-500">/100</span>
+              </div>
+              <p className={`text-lg font-medium ${getMatchLabel(analysis.overallMatchScore).color}`}>
+                {getMatchLabel(analysis.overallMatchScore).text}
               </p>
             </div>
 
-            {/* Three Column Cards */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Top Strengths */}
-              <div className="bg-white rounded-2xl border-2 border-green-200 p-6 shadow-sm">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="text-3xl">💪</div>
-                  <h3 className="text-lg font-bold text-gray-900">Top Strengths</h3>
-                </div>
-                <ul className="space-y-3">
-                  {result.strengths.map((strength, idx) => (
-                    <li key={idx} className="flex items-start">
-                      <span className="text-green-500 mr-2 mt-1 text-lg font-bold">✓</span>
-                      <span className="text-sm text-gray-700 leading-relaxed">{strength}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Critical Gaps */}
-              <div className="bg-white rounded-2xl border-2 border-orange-200 p-6 shadow-sm">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="text-3xl">⚠️</div>
-                  <h3 className="text-lg font-bold text-gray-900">Critical Gaps</h3>
-                </div>
-                <ul className="space-y-3">
-                  {result.gaps.slice(0, 5).map((gap, idx) => (
-                    <li key={idx} className="flex items-start">
-                      <span className="text-orange-500 mr-2 mt-1 text-lg font-bold">!</span>
-                      <span className="text-sm text-gray-700 leading-relaxed">{gap}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Suggested Actions */}
-              <div className="bg-white rounded-2xl border-2 border-blue-200 p-6 shadow-sm">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="text-3xl">🚀</div>
-                  <h3 className="text-lg font-bold text-gray-900">Suggested Actions</h3>
-                </div>
-                <ul className="space-y-3">
-                  {result.suggestedActions.slice(0, 5).map((action, idx) => (
-                    <li key={idx} className="flex items-start">
-                      <span className="text-blue-500 mr-2 mt-1 font-bold text-sm">{idx + 1}.</span>
-                      <span className="text-sm text-gray-700 leading-relaxed">{action}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            {/* Tailored Resume Bullets */}
-            <div className="bg-white rounded-2xl border-2 border-gray-200 p-8 shadow-sm">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="text-3xl">✍️</div>
-                <h2 className="text-2xl font-bold text-gray-900">Suggested Resume Tweaks for This Job</h2>
-              </div>
-              <p className="text-gray-600 mb-6">
-                Here are resume bullets tailored specifically to this job description. Use these to customize your application:
-              </p>
-              <div className="space-y-4">
-                {result.tailoredBullets.map((bullet, idx) => (
-                  <div key={idx} className="bg-gradient-to-br from-[#f8faf6] to-white border-2 border-[#e8f0e3] rounded-xl p-5">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="bg-[#8a9a5b] text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold">
-                            {idx + 1}
-                          </span>
-                          <span className="text-xs font-semibold text-[#55613b] uppercase tracking-wide">
-                            Tailored Bullet
-                          </span>
-                        </div>
-                        <p className="text-gray-900 leading-relaxed">{bullet}</p>
-                      </div>
-                      <div className="flex-shrink-0">
-                        <CopyButton text={bullet} />
-                      </div>
-                    </div>
+            {/* Dimension Scores */}
+            <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+              <h3 className="text-xl font-semibold text-gray-900">Match Breakdown</h3>
+              {analysis.dimensionScores.map((dim, idx) => (
+                <div key={idx}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-gray-900">{getDimensionLabel(dim.dimension)}</span>
+                    <span className="text-sm font-semibold text-gray-700">{dim.score}%</span>
                   </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                    <div
+                      className="bg-slate-900 h-2 rounded-full transition-all"
+                      style={{ width: `${dim.score}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-sm text-slate-600">{dim.comment}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Strengths & Gaps */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="bg-white rounded-2xl shadow-sm p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  Where You're Strong
+                </h3>
+                <ul className="space-y-2">
+                  {analysis.strengths.map((strength, idx) => (
+                    <li key={idx} className="flex items-start">
+                      <span className="text-green-500 mr-2 mt-1">•</span>
+                      <span className="text-gray-700 text-sm">{strength}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="bg-white rounded-2xl shadow-sm p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                  <span className="text-orange-500 mr-2">⚠</span>
+                  Gaps for This Job
+                </h3>
+                <ul className="space-y-2">
+                  {analysis.gaps.map((gap, idx) => (
+                    <li key={idx} className="flex items-start">
+                      <span className="text-orange-500 mr-2 mt-1">•</span>
+                      <span className="text-gray-700 text-sm">{gap}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Recommended Skills */}
+            <div className="bg-white rounded-2xl shadow-sm p-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Recommended Skills to Develop</h3>
+              <div className="flex flex-wrap gap-2">
+                {analysis.recommendedSkills.map((skill, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex rounded-full border border-slate-300 px-3 py-1 text-xs text-slate-700"
+                  >
+                    {skill}
+                  </span>
                 ))}
               </div>
             </div>
 
-            {/* Additional Actions */}
-            {result.suggestedActions.length > 5 && (
-              <div className="bg-gradient-to-br from-blue-50 to-white rounded-2xl border-2 border-blue-200 p-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                  <span className="text-2xl mr-2">💡</span>
-                  More Ways to Strengthen Your Application
+            {/* Tailoring Suggestions */}
+            <div className="bg-white rounded-2xl shadow-sm p-6 space-y-6">
+              <h3 className="text-xl font-semibold text-gray-900">Tailoring Suggestions</h3>
+              
+              {/* Summary */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium text-gray-900">Tailored Resume Summary for This Job</h4>
+                  <button
+                    onClick={() => copyToClipboard(analysis.tailoringSuggestions.summary)}
+                    className="px-3 py-1 text-sm bg-slate-100 text-slate-700 rounded hover:bg-slate-200 transition-colors flex items-center gap-2"
+                  >
+                    {copiedSummary ? (
+                      <>
+                        <span>✓</span>
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Copy
+                      </>
+                    )}
+                  </button>
+                </div>
+                <div className="bg-slate-50 rounded-lg p-4">
+                  <p className="text-gray-800 leading-relaxed">{analysis.tailoringSuggestions.summary}</p>
+                </div>
+              </div>
+
+              {/* Bullets */}
+              <div>
+                <h4 className="font-medium text-gray-900 mb-3">Example Bullets You Can Use</h4>
+                <div className="space-y-4">
+                  {analysis.tailoringSuggestions.keyBullets.map((bullet, idx) => (
+                    <div key={idx} className="border-l-4 border-slate-300 pl-4">
+                      {bullet.original && (
+                        <div className="mb-2">
+                          <p className="text-xs font-semibold text-gray-500 mb-1">Original:</p>
+                          <p className="text-sm text-gray-600 italic">{bullet.original}</p>
+                        </div>
+                      )}
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-2">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1">
+                            <p className="text-xs font-semibold text-green-700 mb-1">Improved:</p>
+                            <p className="text-sm text-gray-900">{bullet.improved}</p>
+                          </div>
+                          <button
+                            onClick={() => copyToClipboard(bullet.improved, idx)}
+                            className="flex-shrink-0 p-2 text-green-600 hover:bg-green-100 rounded transition-colors"
+                            title="Copy to clipboard"
+                          >
+                            {copiedBulletIndex === idx ? (
+                              <span className="text-sm">✓</span>
+                            ) : (
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-600 italic">{bullet.note}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Risk Flags */}
+            {analysis.riskFlags.length > 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                  <span className="text-yellow-600 mr-2">⚡</span>
+                  Potential Concerns a Recruiter Might Have
                 </h3>
-                <ul className="space-y-3">
-                  {result.suggestedActions.slice(5).map((action, idx) => (
+                <ul className="space-y-2">
+                  {analysis.riskFlags.map((flag, idx) => (
                     <li key={idx} className="flex items-start">
-                      <span className="text-blue-500 mr-3 font-bold">{idx + 6}.</span>
-                      <span className="text-gray-700">{action}</span>
+                      <span className="text-yellow-600 mr-2 mt-1">•</span>
+                      <span className="text-sm text-gray-700">{flag}</span>
                     </li>
                   ))}
                 </ul>
               </div>
             )}
 
-            {/* Reset Button */}
-            <div className="text-center pt-4">
+            {/* Action Buttons */}
+            <div className="flex gap-4">
               <button
                 onClick={() => {
-                  setResult(null);
-                  setJobDescription("");
+                  setAnalysis(null);
+                  setJobTitle('');
+                  setJobDescription('');
                 }}
-                className="px-8 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+                className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
               >
                 Analyze Another Job
+              </button>
+              <button
+                onClick={() => router.push('/career-map')}
+                className="px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
+              >
+                View Career Directions
               </button>
             </div>
           </div>

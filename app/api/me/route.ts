@@ -34,6 +34,10 @@ interface UserProfile {
   careerStage?: CareerStage;
   careerPreferences?: CareerPreferences;
   careerPreferencesCompleted?: boolean;
+  // Additional data for AI-powered features
+  psychographicProfile?: any;
+  resumeText?: string;
+  linkedInSummary?: string;
 }
 
 export async function GET(req: NextRequest) {
@@ -58,26 +62,82 @@ export async function GET(req: NextRequest) {
       const allProfiles = JSON.parse(profileContent);
       
       // Try to find profile by email first, then fallback to temp-user-id for development
-      const cachedProfile = allProfiles[userId] || allProfiles['temp-user-id'];
+      let cachedProfile = allProfiles[userId] || allProfiles['temp-user-id'];
+      
+      // If user's profile doesn't have inputs, also check temp-user-id for resume data
+      const tempProfile = allProfiles['temp-user-id'];
+      const hasInputsInTemp = tempProfile?.inputs;
+      
+      console.log('Found cached profile for:', userId);
+      console.log('Profile keys:', Object.keys(cachedProfile || {}));
+      console.log('Has inputs in user profile?:', !!cachedProfile?.inputs);
+      console.log('Has inputs in temp profile?:', !!hasInputsInTemp);
       
       if (cachedProfile) {
+        // Extract resume text and LinkedIn summary from inputs if available
+        let resumeText: string | undefined;
+        let linkedInSummary: string | undefined;
+        let psychographicProfile: any;
+        
+        // Try user profile first, then temp profile for inputs
+        const inputSource = cachedProfile.inputs ? cachedProfile : tempProfile;
+        
+        if (inputSource?.inputs) {
+          try {
+            // Clean up the inputs string if it has a suffix
+            let inputsString = typeof inputSource.inputs === 'string' 
+              ? inputSource.inputs 
+              : JSON.stringify(inputSource.inputs);
+            
+            // Remove any _prompt_updated suffix that might be appended
+            inputsString = inputsString.replace(/_prompt_updated_\d+$/, '');
+            
+            const inputs = JSON.parse(inputsString);
+            resumeText = inputs.resume;
+            linkedInSummary = inputs.linkedin;
+            console.log('Parsed inputs - Resume text length:', resumeText?.length, 'LinkedIn length:', linkedInSummary?.length);
+          } catch (e) {
+            console.error('Error parsing inputs:', e);
+          }
+        } else {
+          console.log('No inputs found in cached profile or temp profile');
+        }
+        
+        // Parse psychographic profile from profile field (try both sources)
+        const profileSource = cachedProfile.profile ? cachedProfile : tempProfile;
+        if (profileSource?.profile) {
+          try {
+            psychographicProfile = typeof profileSource.profile === 'string'
+              ? JSON.parse(profileSource.profile)
+              : profileSource.profile;
+          } catch (e) {
+            console.error('Error parsing profile:', e);
+          }
+        }
+        
         profileData = {
           userId,
           email: session.user.email,
           name: session.user.name || undefined,
-          onboardingComplete: cachedProfile.onboardingComplete || false,
+          onboardingComplete: cachedProfile.onboardingComplete || tempProfile?.onboardingComplete || false,
           // Parse profile text to extract structured data if available
-          summary: cachedProfile.profile || undefined,
+          summary: cachedProfile.profile || tempProfile?.profile || undefined,
           last_updated: cachedProfile.timestamp 
             ? new Date(cachedProfile.timestamp).toISOString() 
-            : undefined,
-          // Career stage fields
-          careerStageUserSelected: cachedProfile.careerStageUserSelected,
-          resumeSignals: cachedProfile.resumeSignals,
-          careerStage: cachedProfile.careerStage,
+            : tempProfile?.timestamp 
+              ? new Date(tempProfile.timestamp).toISOString()
+              : undefined,
+          // Career stage fields (fallback to temp profile)
+          careerStageUserSelected: cachedProfile.careerStageUserSelected || tempProfile?.careerStageUserSelected,
+          resumeSignals: cachedProfile.resumeSignals || tempProfile?.resumeSignals,
+          careerStage: cachedProfile.careerStage || tempProfile?.careerStage,
           // Career preferences fields
           careerPreferences: cachedProfile.careerPreferences,
           careerPreferencesCompleted: cachedProfile.careerPreferencesCompleted || false,
+          // Additional data for AI-powered features
+          resumeText,
+          linkedInSummary,
+          psychographicProfile,
         };
       }
     }
