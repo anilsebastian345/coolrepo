@@ -151,8 +151,8 @@ export default function DashboardPage() {
   const [showProfileModal, setShowProfileModal] = useState(false);
 
   // Derive state from userProfile and localStorage
-  const hasResume = !!userProfile?.resume;
-  const hasLinkedIn = !!userProfile?.linkedin?.imported;
+  const hasResume = !!userProfile?.resumeText;
+  const hasLinkedIn = !!userProfile?.linkedInSummary;
   const [hasProfile, setHasProfile] = useState(false);
 
   useEffect(() => {
