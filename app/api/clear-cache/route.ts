@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
+import { getServerSession } from 'next-auth';
+import { saveUserProfile } from '@/lib/storage';
 
 export async function POST(req: NextRequest) {
   try {
-    // Clear the profile cache
-    const cachePath = join(process.cwd(), 'profile_cache.json');
-    await writeFile(cachePath, '{}');
+    const session = await getServerSession();
+    const userId = session?.user?.email || 'temp-user-id';
     
-    console.log('Profile cache cleared successfully');
+    // Clear the user's profile cache in KV
+    await saveUserProfile(userId, {});
+    
+    console.log('Profile cache cleared successfully for user:', userId);
     
     return NextResponse.json({ 
       success: true, 

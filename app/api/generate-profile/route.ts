@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 import { determineCareerStage, CareerStageUserSelected, ResumeSignals, createEmptyResumeSignals } from '@/lib/careerStage';
 import { extractCareerSignalsFromResume } from '@/lib/resumeParser';
 import { getUserProfile, saveUserProfile } from '@/lib/storage';
