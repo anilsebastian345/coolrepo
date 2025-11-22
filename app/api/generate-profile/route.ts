@@ -4,10 +4,27 @@ import { join } from 'path';
 import { determineCareerStage, CareerStageUserSelected, ResumeSignals, createEmptyResumeSignals } from '@/lib/careerStage';
 import { extractCareerSignalsFromResume } from '@/lib/resumeParser';
 import { getUserProfile, saveUserProfile } from '@/lib/storage';
+import { kv } from '@vercel/kv';
 
 export const runtime = 'nodejs';
 
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
+// Helper function to invalidate resume review cache when resume changes
+async function invalidateResumeReviewCache(userId: string) {
+  try {
+    // Delete all resume-review cache keys for this user
+    const pattern = 'resume-review:*';
+    const keys = await kv.keys(pattern);
+    if (keys.length > 0) {
+      await Promise.all(keys.map(key => kv.del(key)));
+      console.log(`Invalidated ${keys.length} resume review cache entries`);
+    }
+  } catch (error) {
+    console.warn('Failed to invalidate resume review cache:', error);
+    // Don't throw - cache invalidation failure shouldn't block the request
+  }
+}
 
 function getInputHash(questions: any, resume?: string, linkedin?: string): string {
   // Create a comprehensive hash that includes all input sources
@@ -238,6 +255,10 @@ ${resumeSignals.titles.length > 0 ? `Job titles: ${resumeSignals.titles.join(', 
           if (data === '[DONE]') {
             // Cache the complete profile - merge with existing data to preserve fields
             const existingProfile = await getUserProfile(userId) || {};
+            
+            // Check if resume text is changing
+            const resumeTextChanged = resumeData && resumeData !== existingProfile.resumeText;
+            
             const updatedProfile = {
               ...existingProfile, // Preserve existing data like careerPreferences
               profile: fullProfile,
@@ -252,6 +273,11 @@ ${resumeSignals.titles.length > 0 ? `Job titles: ${resumeSignals.titles.join(', 
               questions: questions || existingProfile.questions
             };
             await saveUserProfile(userId, updatedProfile);
+            
+            // Invalidate resume review cache if resume changed
+            if (resumeTextChanged) {
+              await invalidateResumeReviewCache(userId);
+            }
             
             console.log('Generated new profile for user:', userId, 'Input hash:', inputHash.substring(0, 50) + '...');
             
@@ -285,6 +311,10 @@ ${resumeSignals.titles.length > 0 ? `Job titles: ${resumeSignals.titles.join(', 
     if (fullProfile) {
       // Cache what we have - merge with existing data to preserve fields
       const existingProfile = await getUserProfile(userId) || {};
+      
+      // Check if resume text is changing
+      const resumeTextChanged = resumeData && resumeData !== existingProfile.resumeText;
+      
       const updatedProfile = {
         ...existingProfile, // Preserve existing data like careerPreferences
         profile: fullProfile,
@@ -299,6 +329,11 @@ ${resumeSignals.titles.length > 0 ? `Job titles: ${resumeSignals.titles.join(', 
         questions: questions || existingProfile.questions
       };
       await saveUserProfile(userId, updatedProfile);
+      
+      // Invalidate resume review cache if resume changed
+      if (resumeTextChanged) {
+        await invalidateResumeReviewCache(userId);
+      }
       
       return NextResponse.json({ 
         profile: fullProfile,
