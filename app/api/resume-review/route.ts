@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { CareerStage, CareerPreferences } from '@/lib/careerStage';
 import { CareerDirectionRecommendation } from '@/app/types/careerDirections';
 import { ResumeReview } from '@/app/types/resumeReview';
+import { kv } from '@vercel/kv';
+import crypto from 'crypto';
 
 type ResumeReviewRequest = {
   resumeText: string;
@@ -31,6 +33,29 @@ export async function POST(req: NextRequest) {
         { error: 'resumeText is required' },
         { status: 400 }
       );
+    }
+
+    // Create cache key based on resume content and context
+    const cacheKey = `resume-review:${crypto
+      .createHash('sha256')
+      .update(JSON.stringify({
+        resumeText,
+        careerStage,
+        careerPreferences,
+        careerDirections: careerDirections?.map(d => d.id).slice(0, 3),
+      }))
+      .digest('hex')}`;
+
+    // Check cache first
+    try {
+      const cached = await kv.get<ResumeReview>(cacheKey);
+      if (cached) {
+        console.log('Returning cached resume review');
+        return NextResponse.json({ review: cached });
+      }
+    } catch (cacheError) {
+      console.warn('Cache read error:', cacheError);
+      // Continue to generate if cache fails
     }
 
     // Get top 3 career directions for alignment analysis
@@ -165,6 +190,15 @@ Return ONLY valid JSON. No markdown, no explanation.`;
     // Validate the structure
     if (!parsedReview.strengths || !parsedReview.weaknesses || !parsedReview.extractedSkills) {
       throw new Error('Invalid review structure from OpenAI');
+    }
+
+    // Cache the result for 7 days
+    try {
+      await kv.set(cacheKey, parsedReview, { ex: 60 * 60 * 24 * 7 });
+      console.log('Cached resume review');
+    } catch (cacheError) {
+      console.warn('Cache write error:', cacheError);
+      // Don't fail the request if caching fails
     }
 
     const result: ResumeReviewResponse = {
