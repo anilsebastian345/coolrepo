@@ -596,6 +596,9 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
     setStreamingContent("");
     setIsStreaming(false);
     
+    // Capture userId from session
+    const userId = session?.user?.email || 'temp-user-id';
+    
     try {
       console.log('Starting profile generation...');
       // Get questions, LinkedIn data, and resume from localStorage
@@ -639,7 +642,7 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          userId: session?.user?.email || 'temp-user-id',
+          userId: userId,
           questions: questionsData,
           linkedin: linkedinData,
           resume: resumeData,
