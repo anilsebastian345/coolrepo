@@ -169,49 +169,39 @@ export default function Home() {
 
           {/* Value Panel */}
           {showValuePanel && (
-            <div className="mt-4 bg-white rounded-xl border border-[#E5E5E5] p-6 shadow-md animate-fadeIn">
-              <h3 className="text-base font-semibold text-[#232323] mb-4" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                What Sage can do for you
-              </h3>
+            <div className="mt-4 bg-white rounded-xl border border-[#E5E5E5] p-6 shadow-lg animate-fade-in-up">
+              {/* Aspirational Value Statement */}
+              <p className="text-base font-medium text-[#232323] mb-6 leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                Understand your strengths. Make confident career decisions.
+              </p>
               
+              {/* Benefit List */}
               <div className="space-y-3">
-                {/* Item 1 */}
-                <div className="border-l-4 border-[#7A8E50] pl-3">
-                  <h4 className="text-sm font-semibold text-[#232323] mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                    Psychographic Profile
-                  </h4>
-                  <p className="text-xs text-[#6F6F6F]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                    Understand your strengths and patterns.
+                <div className="flex items-start gap-3">
+                  <div className="w-1 h-1 rounded-full bg-[#7A8E50] mt-2 flex-shrink-0"></div>
+                  <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    Understand your strengths
                   </p>
                 </div>
 
-                {/* Item 2 */}
-                <div className="border-l-4 border-[#7A8E50] pl-3">
-                  <h4 className="text-sm font-semibold text-[#232323] mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                    Career Direction Map
-                  </h4>
-                  <p className="text-xs text-[#6F6F6F]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                    Discover roles that fit how you work.
+                <div className="flex items-start gap-3">
+                  <div className="w-1 h-1 rounded-full bg-[#7A8E50] mt-2 flex-shrink-0"></div>
+                  <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    Explore best-fit roles
                   </p>
                 </div>
 
-                {/* Item 3 */}
-                <div className="border-l-4 border-[#7A8E50] pl-3">
-                  <h4 className="text-sm font-semibold text-[#232323] mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                    Resume & Profile Intel
-                  </h4>
-                  <p className="text-xs text-[#6F6F6F]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                    Upgrade how you present yourself.
+                <div className="flex items-start gap-3">
+                  <div className="w-1 h-1 rounded-full bg-[#7A8E50] mt-2 flex-shrink-0"></div>
+                  <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    Refine your resume & story
                   </p>
                 </div>
 
-                {/* Item 4 */}
-                <div className="border-l-4 border-[#7A8E50] pl-3">
-                  <h4 className="text-sm font-semibold text-[#232323] mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                    Job Match & Skill Gaps
-                  </h4>
-                  <p className="text-xs text-[#6F6F6F]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                    See how you stack up against real roles.
+                <div className="flex items-start gap-3">
+                  <div className="w-1 h-1 rounded-full bg-[#7A8E50] mt-2 flex-shrink-0"></div>
+                  <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    See how you match real roles
                   </p>
                 </div>
               </div>
