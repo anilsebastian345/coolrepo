@@ -42,7 +42,7 @@ function TopNav({ activeTab, firstName }: { activeTab: string; firstName?: strin
   
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', href: '/dashboard' },
-    { id: 'profile', label: 'Profile', href: '/preview-onboarding' },
+    { id: 'profile', label: 'Profile', href: '/profile' },
     { id: 'career', label: 'Career Map', href: '/career-map' },
     { id: 'resume', label: 'Resume Intel', href: '/resume-intel' },
     { id: 'jobmatch', label: 'Job Match', href: '/job-match' },
@@ -115,7 +115,17 @@ function TopNav({ activeTab, firstName }: { activeTab: string; firstName?: strin
 
               {/* Dropdown Menu */}
               {showUserDropdown && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-[#E5E5E5] rounded-lg shadow-lg py-1">
+                <div className="absolute right-0 mt-2 w-56 bg-white border border-[#E5E5E5] rounded-lg shadow-lg py-1">
+                  <button
+                    onClick={() => {
+                      setShowUserDropdown(false);
+                      router.push('/profile');
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-[#4A4A4A] hover:bg-gray-50 transition-colors"
+                    style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                  >
+                    Profile
+                  </button>
                   <button
                     onClick={() => {
                       setShowUserDropdown(false);
@@ -124,7 +134,7 @@ function TopNav({ activeTab, firstName }: { activeTab: string; firstName?: strin
                     className="w-full text-left px-4 py-2 text-sm text-[#4A4A4A] hover:bg-gray-50 transition-colors"
                     style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
                   >
-                    Profile
+                    Update profile inputs
                   </button>
                   <button
                     onClick={() => {
@@ -216,6 +226,8 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [firstName, setFirstName] = useState('');
   const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [expandedStrengths, setExpandedStrengths] = useState<Set<number>>(new Set());
+  const [expandedRisks, setExpandedRisks] = useState<Set<number>>(new Set());
 
   // Derive state from userProfile and localStorage
   const hasResume = !!userProfile?.resumeText;
@@ -378,7 +390,7 @@ export default function DashboardPage() {
                 <p className="text-xs text-[#8F8F8F] uppercase tracking-wider font-light" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Based on your profile and past inputs</p>
               </div>
               <button
-                onClick={() => router.push('/profile-insights')}
+                onClick={() => router.push('/profile')}
                 className="text-sm text-[#7A8E50] hover:text-[#55613b] font-medium flex items-center gap-1 transition-colors"
                 style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
               >
@@ -389,7 +401,7 @@ export default function DashboardPage() {
               </button>
             </div>
             
-            {/* Zone 1: Core Theme Header */}
+            {/* Core Theme Header - Enhanced */}
             {(profile.core_theme || profile.archetype || profile.summary) && (
               <div className="mx-8 mb-6 bg-[#F4F7EF] rounded-xl p-6 border border-[#E5E5E5]">
                 <div className="flex items-start gap-4">
@@ -405,12 +417,15 @@ export default function DashboardPage() {
                         <h3 className="text-xs text-[#6F6F6F] uppercase tracking-wider font-medium mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
                           Core theme
                         </h3>
-                        <p className="text-lg font-bold text-[#232323] mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                        <p className="text-lg font-bold text-[#232323] mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
                           {profile.core_theme || profile.archetype || 'The Strategic Transformer'}
                         </p>
-                        {profile.summary && (
+                        {/* Enhanced Summary - 1-2 sentences */}
+                        {(profile.summary || profile.leadership_style || profile.cognitive_style) && (
                           <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                            {profile.summary.length > 150 ? profile.summary.substring(0, 150) + '...' : profile.summary}
+                            {profile.summary 
+                              ? (profile.summary.split('.').slice(0, 2).join('.') + (profile.summary.split('.').length > 2 ? '.' : ''))
+                              : (profile.leadership_style || profile.cognitive_style || '')}
                           </p>
                         )}
                       </div>
@@ -437,8 +452,8 @@ export default function DashboardPage() {
               </div>
             )}
             
-            {/* Zone 2: Two-Column Layout - Strengths vs Risks */}
-            <div className="px-8 mb-6">
+            {/* Two-Column Layout - Strengths vs Risks (Expandable Cards) */}
+            <div className="px-8 mb-8">
               <div className="grid md:grid-cols-2 gap-6">
                 {/* Left Column: Top Strengths */}
                 {profile.strength_signatures && Array.isArray(profile.strength_signatures) && profile.strength_signatures.length > 0 && (
@@ -449,20 +464,70 @@ export default function DashboardPage() {
                     <div className="space-y-3">
                       {profile.strength_signatures.slice(0, 3).map((strength, idx) => {
                         const icons = ['🧩', '⚡', '🤝'];
+                        const isExpanded = expandedStrengths.has(idx);
+                        
                         return (
                           <div
                             key={idx}
-                            className="bg-white rounded-lg p-4 border border-[#E5E5E5] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+                            onClick={() => {
+                              const newSet = new Set(expandedStrengths);
+                              if (isExpanded) {
+                                newSet.delete(idx);
+                              } else {
+                                newSet.add(idx);
+                              }
+                              setExpandedStrengths(newSet);
+                            }}
+                            className="bg-white rounded-xl p-4 border border-[#E5E5E5] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
                           >
                             <div className="flex items-start gap-3">
                               <span className="text-lg flex-shrink-0">{icons[idx] || '✨'}</span>
                               <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-[#232323] text-sm mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                                <h4 className="font-semibold text-[#232323] text-sm mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
                                   {strength.trait}
                                 </h4>
-                                <p className="text-xs text-[#6F6F6F] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                                  {strength.evidence.length > 80 ? strength.evidence.substring(0, 80) + '...' : strength.evidence}
-                                </p>
+                                
+                                {/* Collapsed View */}
+                                {!isExpanded && (
+                                  <>
+                                    <p className="text-xs text-[#6F6F6F] leading-relaxed mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                                      {strength.evidence.length > 80 ? strength.evidence.substring(0, 80) + '...' : strength.evidence}
+                                    </p>
+                                    <p className="text-xs text-[#7A8E50] font-medium" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                                      💡 {strength.why_it_matters.length > 60 ? strength.why_it_matters.substring(0, 60) + '...' : strength.why_it_matters}
+                                    </p>
+                                  </>
+                                )}
+                                
+                                {/* Expanded View */}
+                                {isExpanded && (
+                                  <div className="space-y-3 animate-fadeIn">
+                                    <div className="bg-[#F7F7F2] rounded-lg p-3 border-l-2 border-[#7A8E50]">
+                                      <p className="text-xs text-[#8F8F8F] uppercase tracking-wider font-medium mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                                        Evidence
+                                      </p>
+                                      <p className="text-xs text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                                        {strength.evidence}
+                                      </p>
+                                    </div>
+                                    <div className="bg-[#F4F7EF] rounded-lg p-3 border-l-2 border-[#7A8E50]">
+                                      <p className="text-xs text-[#8F8F8F] uppercase tracking-wider font-medium mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                                        Why it matters
+                                      </p>
+                                      <p className="text-xs text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                                        {strength.why_it_matters}
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {/* Expand/Collapse Indicator */}
+                                <div className="mt-2 flex items-center gap-1 text-xs text-[#8F8F8F]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                                  <span>{isExpanded ? 'Click to collapse' : 'Click to expand'}</span>
+                                  <svg className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -479,73 +544,87 @@ export default function DashboardPage() {
                       Blind spots & risks
                     </h3>
                     <div className="space-y-3">
-                      {profile.latent_risks_and_blind_spots.slice(0, 3).map((risk, idx) => (
-                        <div
-                          key={idx}
-                          className="bg-white rounded-lg p-4 border border-[#F5E6D3] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
-                        >
-                          <div className="flex items-start gap-3">
-                            <span className="text-lg flex-shrink-0 text-amber-600">⚠️</span>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-[#232323] text-sm mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                                {risk.pattern}
-                              </h4>
-                              <p className="text-xs text-[#6F6F6F] leading-relaxed mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                                {risk.risk.length > 80 ? risk.risk.substring(0, 80) + '...' : risk.risk}
-                              </p>
-                              {risk.coaching_prompt && (
-                                <p className="text-xs text-[#8F8F8F] italic leading-snug" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                                  💭 {risk.coaching_prompt.length > 60 ? risk.coaching_prompt.substring(0, 60) + '...' : risk.coaching_prompt}
-                                </p>
-                              )}
+                      {profile.latent_risks_and_blind_spots.slice(0, 3).map((risk, idx) => {
+                        const isExpanded = expandedRisks.has(idx);
+                        
+                        return (
+                          <div
+                            key={idx}
+                            onClick={() => {
+                              const newSet = new Set(expandedRisks);
+                              if (isExpanded) {
+                                newSet.delete(idx);
+                              } else {
+                                newSet.add(idx);
+                              }
+                              setExpandedRisks(newSet);
+                            }}
+                            className="bg-white rounded-xl p-4 border border-[#F5E6D3] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+                          >
+                            <div className="flex items-start gap-3">
+                              <span className="text-lg flex-shrink-0 text-amber-600">⚠️</span>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-[#232323] text-sm mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                                  {risk.pattern}
+                                </h4>
+                                
+                                {/* Collapsed View */}
+                                {!isExpanded && (
+                                  <>
+                                    <p className="text-xs text-[#6F6F6F] leading-relaxed mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                                      {risk.risk.length > 80 ? risk.risk.substring(0, 80) + '...' : risk.risk}
+                                    </p>
+                                    {risk.coaching_prompt && (
+                                      <p className="text-xs text-[#D97706] italic leading-snug flex items-start gap-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                                        <span className="flex-shrink-0">💬</span>
+                                        <span>{risk.coaching_prompt.length > 60 ? risk.coaching_prompt.substring(0, 60) + '...' : risk.coaching_prompt}</span>
+                                      </p>
+                                    )}
+                                  </>
+                                )}
+                                
+                                {/* Expanded View */}
+                                {isExpanded && (
+                                  <div className="space-y-3 animate-fadeIn">
+                                    <div className="bg-[#FFF9F0] rounded-lg p-3 border-l-2 border-amber-500">
+                                      <p className="text-xs text-[#8F8F8F] uppercase tracking-wider font-medium mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                                        Risk
+                                      </p>
+                                      <p className="text-xs text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                                        {risk.risk}
+                                      </p>
+                                    </div>
+                                    {risk.coaching_prompt && (
+                                      <div className="bg-[#FEF3E7] rounded-lg p-3 border-l-2 border-[#D97706]">
+                                        <p className="text-xs text-[#8F8F8F] uppercase tracking-wider font-medium mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                                          Coaching prompt
+                                        </p>
+                                        <p className="text-xs text-[#4A4A4A] leading-relaxed italic flex items-start gap-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                                          <span className="flex-shrink-0">💬</span>
+                                          <span>{risk.coaching_prompt}</span>
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                                
+                                {/* Expand/Collapse Indicator */}
+                                <div className="mt-2 flex items-center gap-1 text-xs text-[#8F8F8F]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                                  <span>{isExpanded ? 'Click to collapse' : 'Click to expand'}</span>
+                                  <svg className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
               </div>
             </div>
-            
-            {/* Zone 3: Priority Focus Footer */}
-            {(profile.suggested_focus || (profile.personalized_coaching_focus && Array.isArray(profile.personalized_coaching_focus) && profile.personalized_coaching_focus.length > 0)) && (
-              <div className="mx-8 mb-8 bg-[#EDF3FF] rounded-xl p-6 border border-[#D4E4FF]">
-                <div className="flex items-start gap-4">
-                  {/* Icon */}
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#4F83CC] to-[#3B5998] flex items-center justify-center flex-shrink-0 shadow-sm">
-                    <span className="text-xl">🎯</span>
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="flex-1">
-                    <h3 className="text-xs text-[#6F6F6F] uppercase tracking-wider font-semibold mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                      Priority focus for this quarter
-                    </h3>
-                    
-                    {/* Focus Area Pills */}
-                    {profile.personalized_coaching_focus && profile.personalized_coaching_focus.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {profile.personalized_coaching_focus.slice(0, 2).map((focus, idx) => (
-                          <span
-                            key={idx}
-                            className="px-3 py-1 bg-white border border-[#D4E4FF] rounded-full text-xs font-medium text-[#3B5998] shadow-sm"
-                            style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
-                          >
-                            {focus.area}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    
-                    {/* Explanation Text */}
-                    <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                      {profile.suggested_focus || (profile.personalized_coaching_focus && profile.personalized_coaching_focus[0] ? profile.personalized_coaching_focus[0].goal : '')}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
             
             {/* Fallback to old format if new fields don't exist */}
             {(!profile.strength_signatures || !profile.latent_risks_and_blind_spots) && (

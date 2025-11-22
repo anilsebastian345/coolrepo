@@ -36,10 +36,19 @@ export default function Home() {
     window.location.href = '/onboarding/questions';
   };
 
-  // If user is already signed in, redirect to dashboard
+  // If user is already signed in, redirect based on profile existence
   useEffect(() => {
     if (session) {
-      router.push('/dashboard');
+      // Check if user has a psychographic profile
+      const hasProfile = typeof window !== 'undefined' && localStorage.getItem('onboarding_psych_profile');
+      
+      if (hasProfile) {
+        // Returning user with profile - go to dashboard
+        router.push('/dashboard');
+      } else {
+        // New user without profile - go to onboarding
+        router.push('/preview-onboarding');
+      }
     }
   }, [session, router]);
 

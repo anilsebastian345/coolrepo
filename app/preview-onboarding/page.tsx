@@ -406,13 +406,11 @@ export default function PreviewOnboarding() {
     <div className="min-h-screen bg-gradient-to-br from-[#FEFEFE] via-[#F9FAFB] to-[#F3F4F6] flex flex-col items-center py-8 px-4 font-sans" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>
       <SageLogo />
       <h2 className="text-[28px] font-semibold text-[#1F2937] mt-2 mb-0 tracking-tight">
-        {isEditMode ? 'Update your profile' : (userName ? `Welcome, ${userName}` : 'Welcome')}
+        Update your profile inputs
       </h2>
       <br />
       <p className="text-base font-normal text-black text-center mb-1">
-        {isEditMode 
-          ? 'Upload a new resume or LinkedIn profile and refresh your guidance.'
-          : 'Help me get to know you so I can guide you better.'}
+        Edit the information Sage uses to understand your experience.
       </p>
       <br />
       <p className="text-sm text-[#7a7a7a] text-center mb-8" style={{whiteSpace: 'pre-line'}}>
@@ -734,8 +732,8 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
           localStorage.setItem('onboarding_psych_profile', data.profile);
         }
         setLoading(false);
-        // Redirect to dashboard instead of showing modal
-        router.push('/dashboard');
+        // Redirect to profile page for new users
+        router.push('/profile');
         return;
       }
 
@@ -769,8 +767,8 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
                   localStorage.setItem('onboarding_psych_profile', data.profile);
                 }
                 setLoading(false);
-                // Redirect to dashboard instead of showing modal
-                router.push('/dashboard');
+                // Redirect to profile page for new users
+                router.push('/profile');
                 return;
               } else if (data.partial && data.content) {
                 // Partial content update
