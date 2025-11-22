@@ -111,6 +111,11 @@ export async function GET(req: NextRequest) {
         let linkedInSummary: string | undefined;
         let psychographicProfile: any;
         
+        // Debug logging
+        console.log('[RESUME DEBUG] cachedProfile.resumeText:', !!cachedProfile.resumeText, cachedProfile.resumeText?.substring(0, 100));
+        console.log('[RESUME DEBUG] tempProfile?.resumeText:', !!tempProfile?.resumeText, tempProfile?.resumeText?.substring(0, 100));
+        console.log('[RESUME DEBUG] All cachedProfile keys:', Object.keys(cachedProfile));
+        
         // First check if resume/LinkedIn are stored directly in the cache
         resumeText = cachedProfile.resumeText || tempProfile?.resumeText;
         linkedInSummary = cachedProfile.linkedInSummary || tempProfile?.linkedInSummary;
