@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState as useModalState } from "react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import ProfileModal from '@/app/components/ProfileModal';
 import ResumeModal from "../components/ResumeModal";
@@ -180,6 +181,7 @@ export default function PreviewOnboarding() {
   const mode = searchParams.get('mode') || 'create'; // 'create' or 'edit'
   const isEditMode = mode === 'edit';
   const { userProfile } = useUserProfile();
+  const { data: session } = useSession();
   
   const [selected, setSelected] = useState("questions");
   const [linkedinProgress, setLinkedinProgress] = useState(0);
@@ -637,7 +639,7 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          userId: 'temp-user-id',
+          userId: session?.user?.email || 'temp-user-id',
           questions: questionsData,
           linkedin: linkedinData,
           resume: resumeData,
