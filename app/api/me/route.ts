@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { readFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
 import { CareerStage, CareerStageUserSelected, ResumeSignals, CareerPreferences } from '@/lib/careerStage';
@@ -60,6 +60,32 @@ export async function GET(req: NextRequest) {
     if (existsSync(profilePath)) {
       const profileContent = await readFile(profilePath, 'utf-8');
       const allProfiles = JSON.parse(profileContent);
+      
+      // MIGRATION: If user has no resume but temp-user-id does, copy it over
+      const tempProfile = allProfiles['temp-user-id'];
+      const userHasProfile = !!allProfiles[userId];
+      const userHasResume = allProfiles[userId]?.resumeText || allProfiles[userId]?.profile;
+      const tempHasResume = tempProfile?.resumeText || tempProfile?.profile;
+      
+      if (tempHasResume && !userHasResume) {
+        console.log('[MIGRATION] Copying temp-user-id data to', userId);
+        allProfiles[userId] = {
+          ...allProfiles[userId],
+          profile: tempProfile.profile,
+          timestamp: tempProfile.timestamp,
+          inputs: tempProfile.inputs,
+          onboardingComplete: tempProfile.onboardingComplete,
+          careerStageUserSelected: tempProfile.careerStageUserSelected,
+          resumeSignals: tempProfile.resumeSignals,
+          careerStage: tempProfile.careerStage,
+          resumeText: tempProfile.resumeText,
+          linkedInSummary: tempProfile.linkedInSummary
+        };
+        
+        // Save migrated data
+        await writeFile(profilePath, JSON.stringify(allProfiles, null, 2));
+        console.log('[MIGRATION] Complete - saved to profile_cache.json');
+      }
       
       // Try to find profile by email first, then fallback to temp-user-id for development
       let cachedProfile = allProfiles[userId] || allProfiles['temp-user-id'];
