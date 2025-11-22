@@ -303,6 +303,9 @@ export default function PreviewOnboarding() {
       
       // Call generate-profile API
       try {
+        console.log('[PROFILE GEN] Calling /api/generate-profile with userId:', userId);
+        console.log('[PROFILE GEN] Resume text length:', result.fullText?.length);
+        
         const genResponse = await fetch('/api/generate-profile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -315,12 +318,24 @@ export default function PreviewOnboarding() {
           }),
         });
         
+        console.log('[PROFILE GEN] Response status:', genResponse.status);
+        
         if (genResponse.ok) {
-          console.log('Profile generated successfully');
+          const genData = await genResponse.json();
+          console.log('[PROFILE GEN] Profile generated successfully', genData);
+          
+          // Small delay to ensure cache is written
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
           // Redirect to dashboard after successful generation
           router.push('/dashboard');
+        } else {
+          const errorData = await genResponse.json();
+          console.error('[PROFILE GEN] Failed:', errorData);
+          alert('Profile generation failed. Please try again.');
         }
       } catch (e) {
+        console.error('[PROFILE GEN] Error:', e);
         console.log('Profile generation failed, but resume is uploaded');
       }
     } catch (error) {
