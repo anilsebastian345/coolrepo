@@ -79,33 +79,39 @@ export async function GET(req: NextRequest) {
       console.log('===================');
       
       if (cachedProfile) {
-        // Extract resume text and LinkedIn summary from inputs if available
+        // Extract resume text and LinkedIn summary - prioritize direct fields, fallback to inputs parsing
         let resumeText: string | undefined;
         let linkedInSummary: string | undefined;
         let psychographicProfile: any;
         
-        // Try user profile first, then temp profile for inputs
-        const inputSource = cachedProfile.inputs ? cachedProfile : tempProfile;
+        // First check if resume/LinkedIn are stored directly in the cache
+        resumeText = cachedProfile.resumeText || tempProfile?.resumeText;
+        linkedInSummary = cachedProfile.linkedInSummary || tempProfile?.linkedInSummary;
         
-        if (inputSource?.inputs) {
-          try {
-            // Clean up the inputs string if it has a suffix
-            let inputsString = typeof inputSource.inputs === 'string' 
-              ? inputSource.inputs 
-              : JSON.stringify(inputSource.inputs);
-            
-            // Remove any _prompt_updated suffix that might be appended
-            inputsString = inputsString.replace(/_prompt_updated_\d+$/, '');
-            
-            const inputs = JSON.parse(inputsString);
-            resumeText = inputs.resume;
-            linkedInSummary = inputs.linkedin;
-            console.log('Parsed inputs - Resume text length:', resumeText?.length, 'LinkedIn length:', linkedInSummary?.length);
-          } catch (e) {
-            console.error('Error parsing inputs:', e);
+        console.log('Direct fields - Resume text length:', resumeText?.length, 'LinkedIn length:', linkedInSummary?.length);
+        
+        // Fallback: Try to parse from inputs field if not found directly
+        if (!resumeText || !linkedInSummary) {
+          const inputSource = cachedProfile.inputs ? cachedProfile : tempProfile;
+          
+          if (inputSource?.inputs) {
+            try {
+              // Clean up the inputs string if it has a suffix
+              let inputsString = typeof inputSource.inputs === 'string' 
+                ? inputSource.inputs 
+                : JSON.stringify(inputSource.inputs);
+              
+              // Remove any _prompt_updated suffix that might be appended
+              inputsString = inputsString.replace(/_prompt_updated_\d+$/, '');
+              
+              const inputs = JSON.parse(inputsString);
+              resumeText = resumeText || inputs.resume;
+              linkedInSummary = linkedInSummary || inputs.linkedin;
+              console.log('Parsed from inputs - Resume text length:', resumeText?.length, 'LinkedIn length:', linkedInSummary?.length);
+            } catch (e) {
+              console.error('Error parsing inputs:', e);
+            }
           }
-        } else {
-          console.log('No inputs found in cached profile or temp profile');
         }
         
         // Parse psychographic profile from profile field (try both sources)

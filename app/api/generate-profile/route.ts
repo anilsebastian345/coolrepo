@@ -17,6 +17,8 @@ interface ProfileCache {
     careerStageUserSelected?: CareerStageUserSelected;
     resumeSignals?: ResumeSignals;
     careerStage?: string;
+    resumeText?: string;
+    linkedInSummary?: string;
   };
 }
 
@@ -290,7 +292,9 @@ ${resumeSignals.titles.length > 0 ? `Job titles: ${resumeSignals.titles.join(', 
               onboardingComplete: true,
               careerStageUserSelected: careerStageUserSelected,
               resumeSignals: resumeSignals,
-              careerStage: careerStage
+              careerStage: careerStage,
+              resumeText: resumeData || undefined,
+              linkedInSummary: linkedinData || undefined
             };
             await saveCache(cache);
             
@@ -332,7 +336,9 @@ ${resumeSignals.titles.length > 0 ? `Job titles: ${resumeSignals.titles.join(', 
         onboardingComplete: true,
         careerStageUserSelected: careerStageUserSelected,
         resumeSignals: resumeSignals,
-        careerStage: careerStage
+        careerStage: careerStage,
+        resumeText: resumeData || undefined,
+        linkedInSummary: linkedinData || undefined
       };
       await saveCache(cache);
       
