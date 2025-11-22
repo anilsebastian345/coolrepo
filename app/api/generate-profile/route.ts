@@ -1,52 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readFile, writeFile } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
 import { determineCareerStage, CareerStageUserSelected, ResumeSignals, createEmptyResumeSignals } from '@/lib/careerStage';
 import { extractCareerSignalsFromResume } from '@/lib/resumeParser';
+import { getUserProfile, saveUserProfile } from '@/lib/storage';
 
 export const runtime = 'nodejs';
 
-// Cache structure
-interface ProfileCache {
-  [userId: string]: {
-    profile: string;
-    timestamp: number;
-    inputs: string;
-    onboardingComplete?: boolean;
-    careerStageUserSelected?: CareerStageUserSelected;
-    resumeSignals?: ResumeSignals;
-    careerStage?: string;
-    resumeText?: string;
-    linkedInSummary?: string;
-    questions?: any;
-  };
-}
-
-const CACHE_FILE = 'profile_cache.json';
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
-
-async function loadCache(): Promise<ProfileCache> {
-  try {
-    const cachePath = join(process.cwd(), CACHE_FILE);
-    if (existsSync(cachePath)) {
-      const cacheData = await readFile(cachePath, 'utf-8');
-      return JSON.parse(cacheData);
-    }
-  } catch (error) {
-    console.error('Error loading cache:', error);
-  }
-  return {};
-}
-
-async function saveCache(cache: ProfileCache): Promise<void> {
-  try {
-    const cachePath = join(process.cwd(), CACHE_FILE);
-    await writeFile(cachePath, JSON.stringify(cache, null, 2));
-  } catch (error) {
-    console.error('Error saving cache:', error);
-  }
-}
 
 function getInputHash(questions: any, resume?: string, linkedin?: string): string {
   // Create a comprehensive hash that includes all input sources
@@ -93,8 +52,8 @@ export async function POST(req: NextRequest) {
 
     // Clear cache if requested
     if (clearCache) {
-      console.log('Clearing profile cache...');
-      await saveCache({});
+      console.log('Clearing profile cache for user:', userId);
+      await saveUserProfile(userId, {});
       return NextResponse.json({ message: 'Cache cleared successfully' });
     }
 
@@ -187,13 +146,13 @@ export async function POST(req: NextRequest) {
     }
 
     // Check cache with comprehensive input hash
-    const cache = await loadCache();
+    const cachedProfile = await getUserProfile(userId);
     // Add timestamp to force fresh generation when prompt changes
     const inputHash = getInputHash(questions, resumeData, linkedinData) + '_prompt_updated_' + Date.now().toString().slice(-6);
-    const cachedProfile = cache[userId];
     
     if (cachedProfile && 
         cachedProfile.inputs === inputHash && 
+        cachedProfile.timestamp &&
         (Date.now() - cachedProfile.timestamp) < CACHE_DURATION) {
       console.log('Returning cached profile for user:', userId);
       
@@ -286,20 +245,21 @@ ${resumeSignals.titles.length > 0 ? `Job titles: ${resumeSignals.titles.join(', 
           const data = line.slice(6);
           if (data === '[DONE]') {
             // Cache the complete profile - merge with existing data to preserve fields
-            cache[userId] = {
-              ...cache[userId], // Preserve existing data like careerPreferences
+            const existingProfile = await getUserProfile(userId) || {};
+            const updatedProfile = {
+              ...existingProfile, // Preserve existing data like careerPreferences
               profile: fullProfile,
               timestamp: Date.now(),
               inputs: inputHash,
               onboardingComplete: true,
-              careerStageUserSelected: careerStageUserSelected || cache[userId]?.careerStageUserSelected,
-              resumeSignals: resumeSignals || cache[userId]?.resumeSignals,
-              careerStage: careerStage || cache[userId]?.careerStage,
-              resumeText: resumeData || cache[userId]?.resumeText,
-              linkedInSummary: linkedinData || cache[userId]?.linkedInSummary,
-              questions: questions || cache[userId]?.questions
+              careerStageUserSelected: careerStageUserSelected || existingProfile.careerStageUserSelected,
+              resumeSignals: resumeSignals || existingProfile.resumeSignals,
+              careerStage: careerStage || existingProfile.careerStage,
+              resumeText: resumeData || existingProfile.resumeText,
+              linkedInSummary: linkedinData || existingProfile.linkedInSummary,
+              questions: questions || existingProfile.questions
             };
-            await saveCache(cache);
+            await saveUserProfile(userId, updatedProfile);
             
             console.log('Generated new profile for user:', userId, 'Input hash:', inputHash.substring(0, 50) + '...');
             
@@ -332,20 +292,21 @@ ${resumeSignals.titles.length > 0 ? `Job titles: ${resumeSignals.titles.join(', 
     // If we get here, stream ended without [DONE] marker
     if (fullProfile) {
       // Cache what we have - merge with existing data to preserve fields
-      cache[userId] = {
-        ...cache[userId], // Preserve existing data like careerPreferences
+      const existingProfile = await getUserProfile(userId) || {};
+      const updatedProfile = {
+        ...existingProfile, // Preserve existing data like careerPreferences
         profile: fullProfile,
         timestamp: Date.now(),
         inputs: inputHash,
         onboardingComplete: true,
-        careerStageUserSelected: careerStageUserSelected || cache[userId]?.careerStageUserSelected,
-        resumeSignals: resumeSignals || cache[userId]?.resumeSignals,
-        careerStage: careerStage || cache[userId]?.careerStage,
-        resumeText: resumeData || cache[userId]?.resumeText,
-        linkedInSummary: linkedinData || cache[userId]?.linkedInSummary,
-        questions: questions || cache[userId]?.questions
+        careerStageUserSelected: careerStageUserSelected || existingProfile.careerStageUserSelected,
+        resumeSignals: resumeSignals || existingProfile.resumeSignals,
+        careerStage: careerStage || existingProfile.careerStage,
+        resumeText: resumeData || existingProfile.resumeText,
+        linkedInSummary: linkedinData || existingProfile.linkedInSummary,
+        questions: questions || existingProfile.questions
       };
-      await saveCache(cache);
+      await saveUserProfile(userId, updatedProfile);
       
       return NextResponse.json({ 
         profile: fullProfile,

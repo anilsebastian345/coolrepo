@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { readFile, writeFile } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
-import { CareerPreferences, OptionTag } from '@/lib/careerStage';
+import { CareerPreferences } from '@/lib/careerStage';
+import { updateUserProfile } from '@/lib/storage';
 
 export const runtime = 'nodejs';
-
-const CACHE_FILE = join(process.cwd(), 'profile_cache.json');
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,24 +35,12 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    // Read existing cache
-    let cache: any = {};
-    if (existsSync(CACHE_FILE)) {
-      const cacheData = await readFile(CACHE_FILE, 'utf-8');
-      cache = JSON.parse(cacheData);
-    }
-    
-    // Update user's profile with career preferences
-    if (!cache[userId]) {
-      cache[userId] = {};
-    }
-    
-    cache[userId].careerPreferences = careerPreferences;
-    cache[userId].careerPreferencesCompleted = true;
-    cache[userId].last_updated = new Date().toISOString();
-    
-    // Write back to cache
-    await writeFile(CACHE_FILE, JSON.stringify(cache, null, 2), 'utf-8');
+    // Update user's profile with career preferences using KV
+    await updateUserProfile(userId, {
+      careerPreferences,
+      careerPreferencesCompleted: true,
+      last_updated: new Date().toISOString(),
+    });
     
     // Return the updated profile
     return NextResponse.json({
@@ -65,7 +49,7 @@ export async function POST(req: NextRequest) {
         userId,
         careerPreferences,
         careerPreferencesCompleted: true,
-        last_updated: cache[userId].last_updated,
+        last_updated: new Date().toISOString(),
       },
     });
     

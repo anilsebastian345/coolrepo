@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { readFile, writeFile } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
 import { CareerStage, CareerStageUserSelected, ResumeSignals, CareerPreferences } from '@/lib/careerStage';
+import { getUserProfile } from '@/lib/storage';
 
 export const runtime = 'nodejs';
 
@@ -54,105 +52,44 @@ export async function GET(req: NextRequest) {
 
     const userId = session.user.email;
     
-    // Check if profile exists
-    const profilePath = join(process.cwd(), 'profile_cache.json');
+    // Get profile from KV storage
     let profileData: UserProfile | null = null;
+    const cachedProfile = await getUserProfile(userId);
     
-    if (existsSync(profilePath)) {
-      const profileContent = await readFile(profilePath, 'utf-8');
-      const allProfiles = JSON.parse(profileContent);
-      
-      // MIGRATION: If user has no resume but temp-user-id does, copy it over
-      const tempProfile = allProfiles['temp-user-id'];
-      const userHasProfile = !!allProfiles[userId];
-      const userHasResume = allProfiles[userId]?.resumeText || allProfiles[userId]?.profile;
-      const tempHasResume = tempProfile?.resumeText || tempProfile?.profile;
-      
-      if (tempHasResume && !userHasResume) {
-        console.log('[MIGRATION] Copying temp-user-id data to', userId);
-        allProfiles[userId] = {
-          ...allProfiles[userId],
-          profile: tempProfile.profile,
-          timestamp: tempProfile.timestamp,
-          inputs: tempProfile.inputs,
-          onboardingComplete: tempProfile.onboardingComplete,
-          careerStageUserSelected: tempProfile.careerStageUserSelected,
-          resumeSignals: tempProfile.resumeSignals,
-          careerStage: tempProfile.careerStage,
-          resumeText: tempProfile.resumeText,
-          linkedInSummary: tempProfile.linkedInSummary,
-          questions: tempProfile.questions
-        };
-        
-        // Save migrated data
-        await writeFile(profilePath, JSON.stringify(allProfiles, null, 2));
-        console.log('[MIGRATION] Complete - saved to profile_cache.json');
-      }
-      
-      // Try to find profile by email first, then fallback to temp-user-id for development
-      let cachedProfile = allProfiles[userId] || allProfiles['temp-user-id'];
-      
-      // tempProfile already declared above for migration
-      const hasInputsInTemp = tempProfile?.inputs;
-      
-      console.log('=== /api/me DEBUG ===');
-      console.log('Looking for user:', userId);
-      console.log('Found cached profile for:', userId, '?', !!allProfiles[userId]);
-      console.log('Found temp profile?', !!tempProfile);
-      console.log('User profile keys:', Object.keys(cachedProfile || {}));
-      console.log('Profile keys:', Object.keys(allProfiles));
-      console.log('Has inputs in user profile?:', !!cachedProfile?.inputs);
-      console.log('Has inputs in temp profile?:', !!hasInputsInTemp);
-      console.log('===================');
+    console.log('=== /api/me DEBUG ===');
+    console.log('Looking for user:', userId);
+    console.log('Found profile?:', !!cachedProfile);
+    console.log('Profile keys:', Object.keys(cachedProfile || {}));
+    console.log('===================');
       
       if (cachedProfile) {
         // Extract resume text and LinkedIn summary - prioritize direct fields, fallback to inputs parsing
         let resumeText: string | undefined;
         let linkedInSummary: string | undefined;
         let psychographicProfile: any;
+      
+      if (cachedProfile) {
+        // Extract resume text and LinkedIn summary
+        let resumeText: string | undefined;
+        let linkedInSummary: string | undefined;
+        let psychographicProfile: any;
         
         // Debug logging
         console.log('[RESUME DEBUG] cachedProfile.resumeText:', !!cachedProfile.resumeText, cachedProfile.resumeText?.substring(0, 100));
-        console.log('[RESUME DEBUG] tempProfile?.resumeText:', !!tempProfile?.resumeText, tempProfile?.resumeText?.substring(0, 100));
         console.log('[RESUME DEBUG] All cachedProfile keys:', Object.keys(cachedProfile));
         
-        // First check if resume/LinkedIn are stored directly in the cache
-        resumeText = cachedProfile.resumeText || tempProfile?.resumeText;
-        linkedInSummary = cachedProfile.linkedInSummary || tempProfile?.linkedInSummary;
+        // Get resume/LinkedIn from cache
+        resumeText = cachedProfile.resumeText;
+        linkedInSummary = cachedProfile.linkedInSummary;
         
         console.log('Direct fields - Resume text length:', resumeText?.length, 'LinkedIn length:', linkedInSummary?.length);
         
-        // Fallback: Try to parse from inputs field if not found directly
-        if (!resumeText || !linkedInSummary) {
-          const inputSource = cachedProfile.inputs ? cachedProfile : tempProfile;
-          
-          if (inputSource?.inputs) {
-            try {
-              // Clean up the inputs string if it has a suffix
-              let inputsString = typeof inputSource.inputs === 'string' 
-                ? inputSource.inputs 
-                : JSON.stringify(inputSource.inputs);
-              
-              // Remove any _prompt_updated suffix that might be appended
-              inputsString = inputsString.replace(/_prompt_updated_\d+$/, '');
-              
-              const inputs = JSON.parse(inputsString);
-              resumeText = resumeText || inputs.resume;
-              linkedInSummary = linkedInSummary || inputs.linkedin;
-              console.log('Parsed from inputs - Resume text length:', resumeText?.length, 'LinkedIn length:', linkedInSummary?.length);
-            } catch (e) {
-              console.error('Error parsing inputs:', e);
-            }
-          }
-        }
-        
-        // Parse psychographic profile from profile field (try both sources)
-        const profileSource = cachedProfile.profile ? cachedProfile : tempProfile;
-        if (profileSource?.profile) {
+        // Parse psychographic profile from profile field
+        if (cachedProfile.profile) {
           try {
-            psychographicProfile = typeof profileSource.profile === 'string'
-              ? JSON.parse(profileSource.profile)
-              : profileSource.profile;
+            psychographicProfile = typeof cachedProfile.profile === 'string'
+              ? JSON.parse(cachedProfile.profile)
+              : cachedProfile.profile;
           } catch (e) {
             console.error('Error parsing profile:', e);
           }
@@ -162,64 +99,21 @@ export async function GET(req: NextRequest) {
           userId,
           email: session.user.email,
           name: session.user.name || undefined,
-          onboardingComplete: cachedProfile.onboardingComplete || tempProfile?.onboardingComplete || false,
-          // Parse profile text to extract structured data if available
-          summary: cachedProfile.profile || tempProfile?.profile || undefined,
+          onboardingComplete: cachedProfile.onboardingComplete || false,
+          summary: cachedProfile.profile || undefined,
           last_updated: cachedProfile.timestamp 
             ? new Date(cachedProfile.timestamp).toISOString() 
-            : tempProfile?.timestamp 
-              ? new Date(tempProfile.timestamp).toISOString()
-              : undefined,
-          // Career stage fields (fallback to temp profile)
-          careerStageUserSelected: cachedProfile.careerStageUserSelected || tempProfile?.careerStageUserSelected,
-          resumeSignals: cachedProfile.resumeSignals || tempProfile?.resumeSignals,
-          careerStage: cachedProfile.careerStage || tempProfile?.careerStage,
-          // Career preferences fields
+            : undefined,
+          careerStageUserSelected: cachedProfile.careerStageUserSelected as CareerStageUserSelected | undefined,
+          resumeSignals: cachedProfile.resumeSignals,
+          careerStage: cachedProfile.careerStage as CareerStage | undefined,
           careerPreferences: cachedProfile.careerPreferences,
           careerPreferencesCompleted: cachedProfile.careerPreferencesCompleted || false,
-          // Additional data for AI-powered features
           resumeText,
           linkedInSummary,
           psychographicProfile,
-          questions: cachedProfile.questions || tempProfile?.questions,
+          questions: cachedProfile.questions,
         };
-      }
-    }
-    
-    // Check for uploaded resume
-    const resumeMetadataPath = join(process.cwd(), 'uploads', 'resumes', 'metadata.json');
-    if (existsSync(resumeMetadataPath)) {
-      try {
-        const resumeMetadata = JSON.parse(await readFile(resumeMetadataPath, 'utf-8'));
-        // Find resume for this user (check both actual userId and temp-user-id)
-        const userResume = resumeMetadata.find((r: any) => 
-          r.userId === userId || r.userId === 'temp-user-id'
-        );
-        if (userResume && profileData) {
-          profileData.resume = {
-            filename: userResume.originalName,
-            uploadedAt: userResume.uploadedAt,
-          };
-        }
-      } catch (e) {
-        console.error('Error reading resume metadata:', e);
-      }
-    }
-    
-    // Check for LinkedIn import
-    const linkedinDir = join(process.cwd(), 'uploads', 'linkedin_profiles');
-    if (existsSync(linkedinDir)) {
-      try {
-        const files = await readFile(linkedinDir, 'utf-8');
-        // Simple check if any LinkedIn files exist
-        if (profileData) {
-          profileData.linkedin = {
-            imported: true,
-            importedAt: new Date().toISOString(),
-          };
-        }
-      } catch (e) {
-        // LinkedIn directory might not exist or be empty
       }
     }
     
