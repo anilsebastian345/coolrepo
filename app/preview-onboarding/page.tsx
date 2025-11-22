@@ -285,8 +285,44 @@ export default function PreviewOnboarding() {
       setResumeModalOpen(false);
       
       // Automatically generate profile after resume upload
-      console.log('Resume uploaded successfully, auto-generating profile...');
-      await handleGenerateProfile();
+      console.log('Resume uploaded successfully, triggering profile generation...');
+      
+      // Get userId from /api/me
+      let userId = 'temp-user-id';
+      try {
+        const meResponse = await fetch('/api/me');
+        if (meResponse.ok) {
+          const meData = await meResponse.json();
+          if (meData.userId) {
+            userId = meData.userId;
+          }
+        }
+      } catch (e) {
+        console.log('Could not fetch user, using temp-user-id');
+      }
+      
+      // Call generate-profile API
+      try {
+        const genResponse = await fetch('/api/generate-profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: userId,
+            questions: {},
+            linkedin: null,
+            resume: result.fullText,
+            careerStageUserSelected: undefined
+          }),
+        });
+        
+        if (genResponse.ok) {
+          console.log('Profile generated successfully');
+          // Redirect to dashboard after successful generation
+          router.push('/dashboard');
+        }
+      } catch (e) {
+        console.log('Profile generation failed, but resume is uploaded');
+      }
     } catch (error) {
       console.error('=== FRONTEND UPLOAD ERROR ===');
       console.error('Upload error:', error);
