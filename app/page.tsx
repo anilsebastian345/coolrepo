@@ -64,8 +64,8 @@ export default function Home() {
       // Create a guest session by setting localStorage and redirecting
       localStorage.setItem('userName', 'Guest User');
       localStorage.setItem('guestMode', 'true');
-      console.log('localStorage set, navigating to /preview-onboarding');
-      router.push('/preview-onboarding');
+      console.log('localStorage set, navigating to /onboarding/questions');
+      router.push('/onboarding/questions');
     } catch (error) {
       console.error('Error in guest sign-in:', error);
       setIsLoading(false);
