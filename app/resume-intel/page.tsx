@@ -11,6 +11,7 @@ import { getCareerDirectionRecommendations } from '@/lib/careerDirections';
 import AnalysisLoader from '@/app/components/AnalysisLoader';
 import ExportPDFModal from '@/app/components/ExportPDFModal';
 import { ExportSections } from '@/app/types/pdfExport';
+import { generateReportPDF } from '@/lib/pdfGenerator';
 
 function TopNav({ activeTab }: { activeTab: string }) {
   const router = useRouter();
@@ -210,56 +211,20 @@ export default function ResumeIntelPage() {
         fitScore: dir.fitScore
       }));
 
-      const response = await fetch('/api/export-pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sections,
-          data: {
-            firstName,
-            firstImpression: review?.firstImpression,
-            improvedSummary: review?.improvedSummary,
-            strengths: review?.strengths,
-            weaknesses: review?.weaknesses,
-            extractedSkills: review?.extractedSkills,
-            bulletAnalysis: review?.bulletAnalysis,
-            careerDirections: mappedCareerDirections
-          }
-        })
+      // Generate PDF client-side using jsPDF
+      generateReportPDF(sections, {
+        firstName,
+        firstImpression: review?.firstImpression,
+        improvedSummary: review?.improvedSummary,
+        strengths: review?.strengths,
+        weaknesses: review?.weaknesses,
+        extractedSkills: review?.extractedSkills,
+        bulletAnalysis: review?.bulletAnalysis,
+        careerDirections: mappedCareerDirections
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        throw new Error(errorData.error || 'Failed to generate PDF');
-      }
-
-      // Verify we got a PDF
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/pdf')) {
-        throw new Error('Server did not return a PDF file');
-      }
-
-      const blob = await response.blob();
-      
-      // Verify blob is not empty
-      if (blob.size === 0) {
-        throw new Error('Received empty PDF file');
-      }
-
-      console.log('PDF blob received, size:', blob.size, 'bytes');
-      
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `sage-report-${new Date().toISOString().split('T')[0]}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      
-      // Clean up after a short delay
-      setTimeout(() => {
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      }, 100);
+      // PDF generated and downloaded successfully
+      console.log('PDF generated successfully');
     } catch (err) {
       console.error('Error exporting PDF:', err);
       alert('Failed to generate PDF. Please try again.');
