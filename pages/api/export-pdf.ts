@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import puppeteer from 'puppeteer';
 import { generatePDFTemplate } from '@/lib/pdfTemplate';
 
 export const config = {
@@ -34,16 +33,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       reportData: data,
     });
 
-    // Launch Puppeteer
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-      ],
-    });
+    let browser;
+    
+    try {
+      // Try to use Puppeteer with Chromium for serverless
+      const puppeteer = require('puppeteer-core');
+      const chromium = require('@sparticuz/chromium');
+      
+      browser = await puppeteer.launch({
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath(),
+        headless: chromium.headless,
+      });
+    } catch (error) {
+      // Fallback to regular Puppeteer for local development
+      const puppeteer = require('puppeteer');
+      browser = await puppeteer.launch({
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+        ],
+      });
+    }
 
     const page = await browser.newPage();
     
