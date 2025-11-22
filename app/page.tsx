@@ -58,12 +58,18 @@ export default function Home() {
   };
 
   const handleGuestSignIn = async () => {
+    console.log('Guest sign-in clicked');
     setIsLoading(true);
-    // Create a guest session by setting localStorage and redirecting
-    localStorage.setItem('userName', 'Guest User');
-    localStorage.setItem('guestMode', 'true');
-    router.push('/preview-onboarding');
-    setIsLoading(false);
+    try {
+      // Create a guest session by setting localStorage and redirecting
+      localStorage.setItem('userName', 'Guest User');
+      localStorage.setItem('guestMode', 'true');
+      console.log('localStorage set, navigating to /preview-onboarding');
+      router.push('/preview-onboarding');
+    } catch (error) {
+      console.error('Error in guest sign-in:', error);
+      setIsLoading(false);
+    }
   };
 
   return (
