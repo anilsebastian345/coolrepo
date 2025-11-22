@@ -7,7 +7,7 @@ interface FitLevelChipProps {
 export default function FitLevelChip({ level }: FitLevelChipProps) {
   const styles = {
     high: 'bg-[#7F915F] text-white shadow-sm',
-    strong: 'bg-[#CDBF92] text-[#232323]',
+    strong: 'bg-[#D2C6A3] text-[#232323]',
     possible: 'bg-gray-300 text-[#232323]',
   };
 
@@ -19,7 +19,7 @@ export default function FitLevelChip({ level }: FitLevelChipProps) {
 
   return (
     <span
-      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${styles[level]}`}
+      className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${styles[level]}`}
       style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
     >
       {labels[level]}
