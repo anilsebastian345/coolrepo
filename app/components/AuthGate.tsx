@@ -66,7 +66,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   }, [sessionStatus, profileLoading, userProfile, error, router, pathname]);
 
   // Allow public routes to render immediately
-  if (PUBLIC_ROUTES.includes(pathname)) {
+  if (pathname && PUBLIC_ROUTES.includes(pathname)) {
     return <>{children}</>;
   }
 
