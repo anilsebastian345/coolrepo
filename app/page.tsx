@@ -158,7 +158,7 @@ export default function Home() {
         </div>
 
         {/* 7. What can Sage do for me? Link */}
-        <div className="mt-8 w-full">
+        <div className="mt-8 w-full flex justify-center">
           <button
             onClick={() => setShowValuePanel(!showValuePanel)}
             className="text-sm text-[#7A8E50] hover:text-[#55613b] font-medium transition-colors"
@@ -166,6 +166,7 @@ export default function Home() {
           >
             What can Sage do for me?
           </button>
+        </div>
 
           {/* Value Panel */}
           {showValuePanel && (
@@ -207,7 +208,6 @@ export default function Home() {
               </div>
             </div>
           )}
-        </div>
 
       </div>
     </div>
