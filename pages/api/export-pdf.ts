@@ -79,14 +79,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await browser.close();
 
+    // Validate PDF buffer
+    if (!pdfBuffer || pdfBuffer.length === 0) {
+      throw new Error('PDF buffer is empty');
+    }
+
+    console.log('PDF generated successfully, size:', pdfBuffer.length, 'bytes');
+
     // Set headers and send PDF
     const fileName = `sage-report-${new Date().toISOString().split('T')[0]}.pdf`;
     
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-    res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Content-Length', pdfBuffer.length.toString());
     
-    res.status(200).send(pdfBuffer);
+    return res.status(200).send(pdfBuffer);
   } catch (error) {
     console.error('PDF generation error:', error);
     res.status(500).json({ 
