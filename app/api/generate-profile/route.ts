@@ -285,18 +285,19 @@ ${resumeSignals.titles.length > 0 ? `Job titles: ${resumeSignals.titles.join(', 
         if (line.startsWith('data: ')) {
           const data = line.slice(6);
           if (data === '[DONE]') {
-            // Cache the complete profile
+            // Cache the complete profile - merge with existing data to preserve fields
             cache[userId] = {
+              ...cache[userId], // Preserve existing data like careerPreferences
               profile: fullProfile,
               timestamp: Date.now(),
               inputs: inputHash,
               onboardingComplete: true,
-              careerStageUserSelected: careerStageUserSelected,
-              resumeSignals: resumeSignals,
-              careerStage: careerStage,
-              resumeText: resumeData || undefined,
-              linkedInSummary: linkedinData || undefined,
-              questions: questions || undefined
+              careerStageUserSelected: careerStageUserSelected || cache[userId]?.careerStageUserSelected,
+              resumeSignals: resumeSignals || cache[userId]?.resumeSignals,
+              careerStage: careerStage || cache[userId]?.careerStage,
+              resumeText: resumeData || cache[userId]?.resumeText,
+              linkedInSummary: linkedinData || cache[userId]?.linkedInSummary,
+              questions: questions || cache[userId]?.questions
             };
             await saveCache(cache);
             
@@ -330,18 +331,19 @@ ${resumeSignals.titles.length > 0 ? `Job titles: ${resumeSignals.titles.join(', 
     
     // If we get here, stream ended without [DONE] marker
     if (fullProfile) {
-      // Cache what we have
+      // Cache what we have - merge with existing data to preserve fields
       cache[userId] = {
+        ...cache[userId], // Preserve existing data like careerPreferences
         profile: fullProfile,
         timestamp: Date.now(),
         inputs: inputHash,
         onboardingComplete: true,
-        careerStageUserSelected: careerStageUserSelected,
-        resumeSignals: resumeSignals,
-        careerStage: careerStage,
-        resumeText: resumeData || undefined,
-        linkedInSummary: linkedinData || undefined,
-        questions: questions || undefined
+        careerStageUserSelected: careerStageUserSelected || cache[userId]?.careerStageUserSelected,
+        resumeSignals: resumeSignals || cache[userId]?.resumeSignals,
+        careerStage: careerStage || cache[userId]?.careerStage,
+        resumeText: resumeData || cache[userId]?.resumeText,
+        linkedInSummary: linkedinData || cache[userId]?.linkedInSummary,
+        questions: questions || cache[userId]?.questions
       };
       await saveCache(cache);
       
