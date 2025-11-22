@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { signOut, useSession } from 'next-auth/react';
 import { useUserProfile } from "../hooks/useUserProfile";
 
 interface ProfileData {
   title?: string;
   archetype?: string;
+  core_theme?: string;
   core_drives_and_values?: string;
   cognitive_style?: string;
   leadership_style?: string;
@@ -29,10 +31,14 @@ interface ProfileData {
     area: string;
     goal: string;
   }>;
+  suggested_focus?: string;
 }
 
-function TopNav({ activeTab }: { activeTab: string }) {
+function TopNav({ activeTab, firstName }: { activeTab: string; firstName?: string }) {
   const router = useRouter();
+  const { data: session } = useSession();
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', href: '/dashboard' },
@@ -41,6 +47,19 @@ function TopNav({ activeTab }: { activeTab: string }) {
     { id: 'resume', label: 'Resume Intel', href: '/resume-intel' },
     { id: 'jobmatch', label: 'Job Match', href: '/job-match' },
   ];
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowUserDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const displayName = firstName || session?.user?.name?.split(' ')[0] || 'User';
 
   return (
     <nav className="bg-white/90 backdrop-blur-md border-b border-[#E5E5E5] sticky top-0 z-40 shadow-sm">
@@ -56,31 +75,79 @@ function TopNav({ activeTab }: { activeTab: string }) {
             <span className="text-lg font-semibold text-[#7A8E50]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Sage</span>
           </Link>
           
-          {/* Nav Items */}
-          <div className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => (
+          {/* Nav Items & User Dropdown */}
+          <div className="flex items-center gap-4">
+            {/* Nav Items */}
+            <div className="hidden md:flex items-center gap-1">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => router.push(item.href)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    activeTab === item.id
+                      ? 'bg-[#7A8E50] text-white shadow-sm'
+                      : 'text-[#4A4A4A] hover:bg-gray-50'
+                  }`}
+                  style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
+            {/* User Dropdown */}
+            <div className="relative" ref={dropdownRef}>
               <button
-                key={item.id}
-                onClick={() => router.push(item.href)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  activeTab === item.id
-                    ? 'bg-[#7A8E50] text-white shadow-sm'
-                    : 'text-[#4A4A4A] hover:bg-gray-50'
-                }`}
+                onClick={() => setShowUserDropdown(!showUserDropdown)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
                 style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
               >
-                {item.label}
+                <span className="text-sm font-medium text-[#4A4A4A]">{displayName}</span>
+                <svg
+                  className={`w-4 h-4 text-[#6F6F6F] transition-transform ${showUserDropdown ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
               </button>
-            ))}
-          </div>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden">
-            <button className="p-2 rounded-lg text-[#4A4A4A] hover:bg-gray-50">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
+              {/* Dropdown Menu */}
+              {showUserDropdown && (
+                <div className="absolute right-0 mt-2 w-48 bg-white border border-[#E5E5E5] rounded-lg shadow-lg py-1">
+                  <button
+                    onClick={() => {
+                      setShowUserDropdown(false);
+                      router.push('/preview-onboarding');
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-[#4A4A4A] hover:bg-gray-50 transition-colors"
+                    style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                  >
+                    Profile
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowUserDropdown(false);
+                      signOut();
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-[#4A4A4A] hover:bg-gray-50 transition-colors"
+                    style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                  >
+                    Sign out
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden">
+              <button className="p-2 rounded-lg text-[#4A4A4A] hover:bg-gray-50">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -255,7 +322,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#FAFAF6]">
-      <TopNav activeTab="dashboard" />
+      <TopNav activeTab="dashboard" firstName={firstName} />
       
       <div className="max-w-6xl mx-auto px-6 py-12">
         {/* Welcome Section */}
@@ -322,27 +389,55 @@ export default function DashboardPage() {
               </button>
             </div>
             
+            {/* Core Theme Section */}
+            {(profile.core_theme || profile.archetype) && (
+              <div className="mb-6">
+                <h3 className="text-xs text-[#8F8F8F] uppercase tracking-wider font-medium mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Core theme</h3>
+                <p className="text-base font-semibold text-[#232323] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                  {profile.core_theme || profile.archetype}
+                </p>
+              </div>
+            )}
+            
             {/* Strength Signal Section */}
             {profile.strength_signatures && Array.isArray(profile.strength_signatures) && profile.strength_signatures.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-xs text-[#8F8F8F] uppercase tracking-wider font-medium mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Strength Signal</h3>
-                <div className="bg-[#F5F7F4] rounded-lg p-5 border border-[#E5E5E5]">
-                  <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                    <span className="font-semibold text-[#232323]">{profile.strength_signatures[0].trait}:</span> {profile.strength_signatures[0].evidence}
-                  </p>
+                <div className="space-y-3">
+                  {profile.strength_signatures.slice(0, 3).map((strength, idx) => (
+                    <div key={idx} className="bg-[#F5F7F4] rounded-lg p-5 border border-[#E5E5E5]">
+                      <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                        <span className="font-semibold text-[#232323]">{strength.trait}:</span> {strength.evidence}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
             
             {/* Watch-out Section */}
             {profile.latent_risks_and_blind_spots && Array.isArray(profile.latent_risks_and_blind_spots) && profile.latent_risks_and_blind_spots.length > 0 && (
-              <div>
+              <div className="mb-6">
                 <h3 className="text-xs text-[#8F8F8F] uppercase tracking-wider font-medium mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Watch-out</h3>
-                <div className="bg-[#FFF9F0] rounded-lg p-5 border border-[#F5E6D3]">
-                  <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                    <span className="font-semibold text-[#232323]">{profile.latent_risks_and_blind_spots[0].pattern}:</span> {profile.latent_risks_and_blind_spots[0].risk}
-                  </p>
+                <div className="space-y-3">
+                  {profile.latent_risks_and_blind_spots.slice(0, 3).map((risk, idx) => (
+                    <div key={idx} className="bg-[#FFF9F0] rounded-lg p-5 border border-[#F5E6D3]">
+                      <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                        <span className="font-semibold text-[#232323]">{risk.pattern}:</span> {risk.risk}
+                      </p>
+                    </div>
+                  ))}
                 </div>
+              </div>
+            )}
+            
+            {/* Suggested Focus Section */}
+            {(profile.suggested_focus || (profile.personalized_coaching_focus && Array.isArray(profile.personalized_coaching_focus) && profile.personalized_coaching_focus.length > 0)) && (
+              <div>
+                <h3 className="text-xs text-[#8F8F8F] uppercase tracking-wider font-medium mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Suggested focus</h3>
+                <p className="text-sm text-[#6F6F6F] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                  {profile.suggested_focus || (profile.personalized_coaching_focus && profile.personalized_coaching_focus[0] ? `${profile.personalized_coaching_focus[0].area}: ${profile.personalized_coaching_focus[0].goal}` : '')}
+                </p>
               </div>
             )}
             
