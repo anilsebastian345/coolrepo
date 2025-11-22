@@ -177,7 +177,7 @@ const options = [
 
 export default function PreviewOnboarding() {
   const searchParams = useSearchParams();
-  const mode = searchParams.get('mode') || 'create'; // 'create' or 'edit'
+  const mode = searchParams?.get('mode') || 'create'; // 'create' or 'edit'
   const isEditMode = mode === 'edit';
   const { userProfile } = useUserProfile();
   
