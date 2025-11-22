@@ -38,6 +38,7 @@ interface UserProfile {
   psychographicProfile?: any;
   resumeText?: string;
   linkedInSummary?: string;
+  questions?: any;
 }
 
 export async function GET(req: NextRequest) {
@@ -79,7 +80,8 @@ export async function GET(req: NextRequest) {
           resumeSignals: tempProfile.resumeSignals,
           careerStage: tempProfile.careerStage,
           resumeText: tempProfile.resumeText,
-          linkedInSummary: tempProfile.linkedInSummary
+          linkedInSummary: tempProfile.linkedInSummary,
+          questions: tempProfile.questions
         };
         
         // Save migrated data
@@ -90,8 +92,7 @@ export async function GET(req: NextRequest) {
       // Try to find profile by email first, then fallback to temp-user-id for development
       let cachedProfile = allProfiles[userId] || allProfiles['temp-user-id'];
       
-      // If user's profile doesn't have inputs, also check temp-user-id for resume data
-      const tempProfile = allProfiles['temp-user-id'];
+      // tempProfile already declared above for migration
       const hasInputsInTemp = tempProfile?.inputs;
       
       console.log('=== /api/me DEBUG ===');
@@ -175,6 +176,7 @@ export async function GET(req: NextRequest) {
           resumeText,
           linkedInSummary,
           psychographicProfile,
+          questions: cachedProfile.questions || tempProfile?.questions,
         };
       }
     }
