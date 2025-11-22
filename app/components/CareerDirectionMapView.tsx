@@ -9,6 +9,7 @@ import { CareerDirectionRecommendation } from "@/app/types/careerDirections";
 import { getCareerDirectionRecommendations } from "@/lib/careerDirections";
 import FitLevelChip from "./FitLevelChip";
 import TagPill from "./TagPill";
+import AnalysisLoader from "./AnalysisLoader";
 
 interface CareerDirectionMapViewProps {
   userProfile: UserProfile;
@@ -135,14 +136,14 @@ export default function CareerDirectionMapView({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FAFAF6] flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block w-12 h-12 border-4 border-[#7F915F] border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-[#6F6F6F]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-            Loading your career direction map...
-          </p>
-        </div>
-      </div>
+      <AnalysisLoader
+        title="Building your career direction map…"
+        messages={[
+          "Reviewing your profile and preferences.",
+          "Matching your patterns to potential directions.",
+          "Prioritizing the best fits for this stage of your career."
+        ]}
+      />
     );
   }
 

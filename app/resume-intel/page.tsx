@@ -1,49 +1,102 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { signOut, useSession } from 'next-auth/react';
 import { useUserProfile } from '@/app/hooks/useUserProfile';
 import { ResumeReview } from '@/app/types/resumeReview';
 import { CareerDirectionRecommendation } from '@/app/types/careerDirections';
 import { getCareerDirectionRecommendations } from '@/lib/careerDirections';
+import AnalysisLoader from '@/app/components/AnalysisLoader';
 
 function TopNav({ activeTab }: { activeTab: string }) {
+  const router = useRouter();
+  const { data: session } = useSession();
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', href: '/dashboard' },
-    { id: 'profile', label: 'Profile', href: '/preview-onboarding' },
+    { id: 'profile', label: 'Profile', href: '/profile' },
     { id: 'career', label: 'Career Map', href: '/career-map' },
     { id: 'resume', label: 'Resume Intel', href: '/resume-intel' },
     { id: 'jobmatch', label: 'Job Match', href: '/job-match' },
   ];
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowUserDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const displayName = session?.user?.name?.split(' ')[0] || 'User';
+
   return (
-    <nav className="bg-white border-b border-gray-200 mb-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="bg-white border-b border-[#E5E5E5] sticky top-0 z-40 shadow-sm">
+      <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-8">
-            <Link href="/dashboard" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#8a9a5b] to-[#55613b] flex items-center justify-center shadow-md">
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"/>
-                </svg>
-              </div>
-              <span className="text-lg font-semibold text-[#55613b]">Sage</span>
-            </Link>
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <div className="relative w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#7A8E50] to-[#55613b] shadow-md">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <span className="text-lg font-semibold text-[#7A8E50]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Sage</span>
+          </Link>
+          
+          <div className="flex items-center gap-4">
             <div className="hidden md:flex items-center gap-1">
               {navItems.map((item) => (
-                <Link
+                <button
                   key={item.id}
-                  href={item.href}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  onClick={() => router.push(item.href)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     activeTab === item.id
-                      ? 'bg-[#f8faf6] text-[#55613b]'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-[#7A8E50] text-white shadow-sm'
+                      : 'text-[#4A4A4A] hover:bg-gray-50'
                   }`}
+                  style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
                 >
                   {item.label}
-                </Link>
+                </button>
               ))}
+            </div>
+
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setShowUserDropdown(!showUserDropdown)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+              >
+                <span className="text-sm font-medium text-[#232323]">{displayName}</span>
+                <svg className={`w-4 h-4 text-[#6F6F6F] transition-transform ${showUserDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {showUserDropdown && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-[#E5E5E5] py-2 animate-fade-in">
+                  <button
+                    onClick={() => { router.push('/preview-onboarding'); setShowUserDropdown(false); }}
+                    className="w-full px-4 py-2 text-left text-sm text-[#4A4A4A] hover:bg-gray-50 transition-colors"
+                    style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                  >
+                    Update Profile Inputs
+                  </button>
+                  <button
+                    onClick={() => signOut({ callbackUrl: '/' })}
+                    className="w-full px-4 py-2 text-left text-sm text-[#4A4A4A] hover:bg-gray-50 transition-colors"
+                    style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -138,38 +191,29 @@ export default function ResumeIntelPage() {
 
   if (profileLoading || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#f8faf6] via-white to-[#e8f0e3]">
-        <TopNav activeTab="resume" />
-        <div className="max-w-6xl mx-auto px-6 py-12">
-          <div className="mb-8">
-            <div className="h-10 bg-gray-200 rounded w-1/3 mb-4 animate-pulse"></div>
-            <div className="h-6 bg-gray-200 rounded w-2/3 animate-pulse"></div>
-          </div>
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-2xl shadow p-6 mb-6">
-              <div className="h-6 bg-gray-200 rounded w-1/4 mb-4 animate-pulse"></div>
-              <div className="space-y-2">
-                <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
-                <div className="h-4 bg-gray-200 rounded w-5/6 animate-pulse"></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <AnalysisLoader
+        title="Analyzing your resume…"
+        messages={[
+          "Reading your experience and accomplishments.",
+          "Mapping your strengths, gaps, and skills.",
+          "Preparing concrete edits you can paste into your resume."
+        ]}
+      />
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#f8faf6] via-white to-[#e8f0e3]">
+      <div className="min-h-screen bg-[#FAFAF6]">
         <TopNav activeTab="resume" />
         <div className="max-w-6xl mx-auto px-6 py-12">
           <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
-            <h2 className="text-xl font-semibold text-red-900 mb-2">Error</h2>
-            <p className="text-red-700">{error}</p>
+            <h2 className="text-xl font-semibold text-red-900 mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Error</h2>
+            <p className="text-red-700" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>{error}</p>
             <button
               onClick={() => router.push('/dashboard')}
               className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
             >
               Go to Dashboard
             </button>
@@ -182,52 +226,96 @@ export default function ResumeIntelPage() {
   if (!review) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f8faf6] via-white to-[#e8f0e3]">
+    <div className="min-h-screen bg-[#FAFAF6]">
       <TopNav activeTab="resume" />
       
       <div className="max-w-6xl mx-auto px-6 py-12">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Resume Review & Skill Gap Analysis
+        <div className="mb-12 text-center">
+          <h1 
+            className="text-3xl font-semibold text-[#232323] mb-3"
+            style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+          >
+            Resume Intel
           </h1>
-          <p className="text-lg text-gray-600">
+          <p 
+            className="text-base text-[#6F6F6F]"
+            style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+          >
             AI-powered insights from your actual resume
           </p>
         </div>
 
         {/* First Impression */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl shadow-lg p-6 mb-6 text-white">
-          <h2 className="text-2xl font-semibold mb-3">First Impression</h2>
-          <p className="text-lg leading-relaxed">{review.firstImpression}</p>
+        <div className="bg-[#F4F7EF] rounded-2xl shadow-sm p-8 mb-8 border border-[#E5E5E5]">
+          <h2 
+            className="text-lg font-semibold text-[#232323] mb-4"
+            style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+          >
+            First impression
+          </h2>
+          <p 
+            className="text-[#333] leading-relaxed mb-4"
+            style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+          >
+            {review.firstImpression}
+          </p>
+          {review.strengths && review.strengths.length > 0 && (
+            <div className="mt-4">
+              <h3 
+                className="text-sm font-medium text-[#6F6F6F] mb-2"
+                style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+              >
+                What stands out
+              </h3>
+              <ul className="space-y-1.5">
+                {review.strengths.slice(0, 3).map((strength, idx) => (
+                  <li 
+                    key={idx} 
+                    className="flex items-start gap-2 text-sm text-[#4A4A4A]"
+                    style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                  >
+                    <span className="w-1 h-1 rounded-full bg-[#7F915F] mt-2 flex-shrink-0"></span>
+                    <span>{strength}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         {/* Strengths & Weaknesses */}
-        <div className="grid md:grid-cols-2 gap-6 mb-6">
-          <div className="bg-white rounded-2xl shadow p-6">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4 flex items-center">
-              <span className="text-green-500 mr-2">✓</span>
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <div className="bg-white rounded-2xl shadow-sm p-6 border border-[#E5E5E5]">
+            <h2 
+              className="text-lg font-semibold text-[#232323] mb-4 flex items-center"
+              style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+            >
+              <span className="text-[#7F915F] mr-2">✓</span>
               Strengths
             </h2>
-            <ul className="space-y-2">
+            <ul className="space-y-2.5">
               {review.strengths.map((strength, idx) => (
                 <li key={idx} className="flex items-start">
-                  <span className="text-green-500 mr-2 mt-1">•</span>
-                  <span className="text-gray-700">{strength}</span>
+                  <span className="text-[#7F915F] mr-2 mt-1">•</span>
+                  <span className="text-[#4A4A4A]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>{strength}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="bg-white rounded-2xl shadow p-6">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4 flex items-center">
+          <div className="bg-white rounded-2xl shadow-sm p-6 border border-[#E5E5E5]">
+            <h2 
+              className="text-lg font-semibold text-[#232323] mb-4 flex items-center"
+              style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+            >
               <span className="text-orange-500 mr-2">⚠</span>
               Areas for Improvement
             </h2>
-            <ul className="space-y-2">
+            <ul className="space-y-2.5">
               {review.weaknesses.map((weakness, idx) => (
                 <li key={idx} className="flex items-start">
                   <span className="text-orange-500 mr-2 mt-1">•</span>
-                  <span className="text-gray-700">{weakness}</span>
+                  <span className="text-[#4A4A4A]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>{weakness}</span>
                 </li>
               ))}
             </ul>
@@ -235,19 +323,28 @@ export default function ResumeIntelPage() {
         </div>
 
         {/* Extracted Skills */}
-        <div className="bg-white rounded-2xl shadow p-6 mb-6">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Extracted Skills</h2>
+        <div className="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-[#E5E5E5]">
+          <h2 
+            className="text-lg font-semibold text-[#232323] mb-4"
+            style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+          >
+            Extracted Skills
+          </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Object.entries(review.extractedSkills).map(([category, skills]) => (
               <div key={category}>
-                <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">
+                <h3 
+                  className="text-xs font-medium text-[#6F6F6F] uppercase tracking-wider mb-2"
+                  style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                >
                   {category}
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {skills.map((skill, idx) => (
                     <span
                       key={idx}
-                      className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                      className="px-3 py-1 bg-[#EEF2E8] text-[#4A4A4A] rounded-full text-sm border border-[#E5E5E5]"
+                      style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
                     >
                       {skill}
                     </span>
@@ -260,27 +357,50 @@ export default function ResumeIntelPage() {
 
         {/* Bullet Analysis */}
         {review.bulletAnalysis.length > 0 && (
-          <div className="bg-white rounded-2xl shadow p-6 mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+          <div className="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-[#E5E5E5]">
+            <h2 
+              className="text-lg font-semibold text-[#232323] mb-4"
+              style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+            >
               📝 Improved Resume Bullets
             </h2>
             <div className="space-y-6">
               {review.bulletAnalysis.map((bullet, idx) => (
-                <div key={idx} className="border-l-4 border-blue-500 pl-4">
+                <div key={idx} className="border-l-4 border-[#7F915F] pl-4">
                   <div className="mb-2">
-                    <p className="text-sm font-semibold text-gray-600 mb-1">Original:</p>
-                    <p className="text-gray-700 italic">{bullet.original}</p>
+                    <p 
+                      className="text-sm font-medium text-[#6F6F6F] mb-1"
+                      style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                    >
+                      Original:
+                    </p>
+                    <p 
+                      className="text-[#4A4A4A] italic"
+                      style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                    >
+                      {bullet.original}
+                    </p>
                   </div>
 
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <div className="bg-[#F5F7F1] border border-[#E5E5E5] rounded-lg p-3">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <p className="text-sm font-semibold text-green-700 mb-1">Improved:</p>
-                        <p className="text-gray-900">{bullet.improved}</p>
+                        <p 
+                          className="text-sm font-medium text-[#7F915F] mb-1"
+                          style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                        >
+                          Improved:
+                        </p>
+                        <p 
+                          className="text-[#232323]"
+                          style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                        >
+                          {bullet.improved}
+                        </p>
                       </div>
                       <button
                         onClick={() => copyToClipboard(bullet.improved, idx)}
-                        className="ml-3 p-2 text-green-600 hover:bg-green-100 rounded transition-colors"
+                        className="ml-3 p-2 text-[#7F915F] hover:bg-[#EEF2E8] rounded transition-colors"
                         title="Copy to clipboard"
                       >
                         {copiedIndex === idx ? (
@@ -300,14 +420,18 @@ export default function ResumeIntelPage() {
         )}
 
         {/* Improved Summary */}
-        <div className="bg-white rounded-2xl shadow p-6 mb-6">
+        <div className="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-[#E5E5E5]">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-semibold text-gray-900">
+            <h2 
+              className="text-lg font-semibold text-[#232323]"
+              style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+            >
               Personalized Resume Summary
             </h2>
             <button
               onClick={() => copyToClipboard(review.improvedSummary)}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center"
+              className="px-4 py-2 bg-[#7F915F] text-white rounded-lg hover:bg-[#6A7F4F] transition-colors flex items-center shadow-sm"
+              style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
             >
               {copiedSummary ? (
                 <>
@@ -324,8 +448,11 @@ export default function ResumeIntelPage() {
               )}
             </button>
           </div>
-          <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-5">
-            <p className="text-lg text-gray-800 leading-relaxed">
+          <div className="bg-[#F4F7EF] rounded-lg p-5 border border-[#E5E5E5]">
+            <p 
+              className="text-base text-[#333] leading-relaxed"
+              style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+            >
               {review.improvedSummary}
             </p>
           </div>
@@ -334,13 +461,15 @@ export default function ResumeIntelPage() {
         <div className="flex gap-4">
           <button
             onClick={() => router.push('/dashboard')}
-            className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+            className="px-6 py-3 bg-white text-[#4A4A4A] border border-[#E5E5E5] rounded-lg hover:bg-gray-50 transition-colors"
+            style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
           >
             Back to Dashboard
           </button>
           <button
             onClick={() => router.push('/career-map')}
-            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            className="px-6 py-3 bg-[#7F915F] text-white rounded-lg hover:bg-[#6A7F4F] transition-colors shadow-sm"
+            style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
           >
             View Career Directions
           </button>
