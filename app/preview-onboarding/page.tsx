@@ -283,6 +283,10 @@ export default function PreviewOnboarding() {
       setResumeUploaded(true);
       setResumeInfo({ fileName: result.fileName, uploadedAt: new Date().toISOString() });
       setResumeModalOpen(false);
+      
+      // Automatically generate profile after resume upload
+      console.log('Resume uploaded successfully, auto-generating profile...');
+      await handleGenerateProfile();
     } catch (error) {
       console.error('=== FRONTEND UPLOAD ERROR ===');
       console.error('Upload error:', error);
