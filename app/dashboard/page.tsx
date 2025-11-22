@@ -370,15 +370,16 @@ export default function DashboardPage() {
 
         {/* Profile Snapshot Card */}
         {profile && (
-          <div className="bg-white rounded-xl border border-[#E5E5E5] p-8 mb-12 shadow-sm">
-            <div className="flex items-center justify-between mb-6">
+          <div className="bg-white rounded-xl border border-[#E5E5E5] mb-12 shadow-sm overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between p-8 pb-6">
               <div>
                 <h2 className="text-2xl font-semibold text-[#232323] mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Your Profile Snapshot</h2>
                 <p className="text-xs text-[#8F8F8F] uppercase tracking-wider font-light" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Based on your profile and past inputs</p>
               </div>
               <button
                 onClick={() => router.push('/profile-insights')}
-                className="text-sm text-[#7A8E50] hover:text-[#55613b] font-medium flex items-center gap-1"
+                className="text-sm text-[#7A8E50] hover:text-[#55613b] font-medium flex items-center gap-1 transition-colors"
                 style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
               >
                 <span>View details</span>
@@ -388,66 +389,174 @@ export default function DashboardPage() {
               </button>
             </div>
             
-            {/* Core Theme Section */}
-            {(profile.core_theme || profile.archetype) && (
-              <div className="mb-6">
-                <h3 className="text-xs text-[#8F8F8F] uppercase tracking-wider font-medium mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Core theme</h3>
-                <p className="text-base font-semibold text-[#232323] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                  {profile.core_theme || profile.archetype}
-                </p>
-              </div>
-            )}
-            
-            {/* Strength Signal Section */}
-            {profile.strength_signatures && Array.isArray(profile.strength_signatures) && profile.strength_signatures.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-xs text-[#8F8F8F] uppercase tracking-wider font-medium mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Strength Signal</h3>
-                <div className="space-y-3">
-                  {profile.strength_signatures.slice(0, 3).map((strength, idx) => (
-                    <div key={idx} className="bg-[#F5F7F4] rounded-lg p-5 border border-[#E5E5E5]">
-                      <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                        <span className="font-semibold text-[#232323]">{strength.trait}:</span> {strength.evidence}
-                      </p>
+            {/* Zone 1: Core Theme Header */}
+            {(profile.core_theme || profile.archetype || profile.summary) && (
+              <div className="mx-8 mb-6 bg-[#F4F7EF] rounded-xl p-6 border border-[#E5E5E5]">
+                <div className="flex items-start gap-4">
+                  {/* Icon */}
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#7A8E50] to-[#55613b] flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <span className="text-xl">🧩</span>
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="flex-1">
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                      <div className="flex-1">
+                        <h3 className="text-xs text-[#6F6F6F] uppercase tracking-wider font-medium mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                          Core theme
+                        </h3>
+                        <p className="text-lg font-bold text-[#232323] mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                          {profile.core_theme || profile.archetype || 'The Strategic Transformer'}
+                        </p>
+                        {profile.summary && (
+                          <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                            {profile.summary.length > 150 ? profile.summary.substring(0, 150) + '...' : profile.summary}
+                          </p>
+                        )}
+                      </div>
+                      
+                      {/* Trait Pills */}
+                      <div className="flex flex-wrap gap-2 md:flex-col md:items-end">
+                        {profile.strength_signatures && profile.strength_signatures.length > 0 && (
+                          <>
+                            {profile.strength_signatures.slice(0, 3).map((strength, idx) => (
+                              <span
+                                key={idx}
+                                className="px-3 py-1 bg-white border border-[#D4D4D4] rounded-full text-xs font-medium text-[#4A4A4A] whitespace-nowrap shadow-sm"
+                                style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                              >
+                                {strength.trait}
+                              </span>
+                            ))}
+                          </>
+                        )}
+                      </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
               </div>
             )}
             
-            {/* Watch-out Section */}
-            {profile.latent_risks_and_blind_spots && Array.isArray(profile.latent_risks_and_blind_spots) && profile.latent_risks_and_blind_spots.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-xs text-[#8F8F8F] uppercase tracking-wider font-medium mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Watch-out</h3>
-                <div className="space-y-3">
-                  {profile.latent_risks_and_blind_spots.slice(0, 3).map((risk, idx) => (
-                    <div key={idx} className="bg-[#FFF9F0] rounded-lg p-5 border border-[#F5E6D3]">
-                      <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                        <span className="font-semibold text-[#232323]">{risk.pattern}:</span> {risk.risk}
-                      </p>
+            {/* Zone 2: Two-Column Layout - Strengths vs Risks */}
+            <div className="px-8 mb-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Left Column: Top Strengths */}
+                {profile.strength_signatures && Array.isArray(profile.strength_signatures) && profile.strength_signatures.length > 0 && (
+                  <div className="bg-gradient-to-br from-[#F5F7F4] to-[#FAFAF6] rounded-xl p-5 border border-[#E5E5E5]">
+                    <h3 className="text-xs text-[#6F6F6F] uppercase tracking-wider font-semibold mb-4" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      Top strengths
+                    </h3>
+                    <div className="space-y-3">
+                      {profile.strength_signatures.slice(0, 3).map((strength, idx) => {
+                        const icons = ['🧩', '⚡', '🤝'];
+                        return (
+                          <div
+                            key={idx}
+                            className="bg-white rounded-lg p-4 border border-[#E5E5E5] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+                          >
+                            <div className="flex items-start gap-3">
+                              <span className="text-lg flex-shrink-0">{icons[idx] || '✨'}</span>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-[#232323] text-sm mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                                  {strength.trait}
+                                </h4>
+                                <p className="text-xs text-[#6F6F6F] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                                  {strength.evidence.length > 80 ? strength.evidence.substring(0, 80) + '...' : strength.evidence}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
+                
+                {/* Right Column: Blind Spots & Risks */}
+                {profile.latent_risks_and_blind_spots && Array.isArray(profile.latent_risks_and_blind_spots) && profile.latent_risks_and_blind_spots.length > 0 && (
+                  <div className="bg-gradient-to-br from-[#FFF9F0] to-[#FAFAF6] rounded-xl p-5 border border-[#F5E6D3]">
+                    <h3 className="text-xs text-[#6F6F6F] uppercase tracking-wider font-semibold mb-4" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      Blind spots & risks
+                    </h3>
+                    <div className="space-y-3">
+                      {profile.latent_risks_and_blind_spots.slice(0, 3).map((risk, idx) => (
+                        <div
+                          key={idx}
+                          className="bg-white rounded-lg p-4 border border-[#F5E6D3] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className="text-lg flex-shrink-0 text-amber-600">⚠️</span>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-[#232323] text-sm mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                                {risk.pattern}
+                              </h4>
+                              <p className="text-xs text-[#6F6F6F] leading-relaxed mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                                {risk.risk.length > 80 ? risk.risk.substring(0, 80) + '...' : risk.risk}
+                              </p>
+                              {risk.coaching_prompt && (
+                                <p className="text-xs text-[#8F8F8F] italic leading-snug" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                                  💭 {risk.coaching_prompt.length > 60 ? risk.coaching_prompt.substring(0, 60) + '...' : risk.coaching_prompt}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
             
-            {/* Suggested Focus Section */}
+            {/* Zone 3: Priority Focus Footer */}
             {(profile.suggested_focus || (profile.personalized_coaching_focus && Array.isArray(profile.personalized_coaching_focus) && profile.personalized_coaching_focus.length > 0)) && (
-              <div>
-                <h3 className="text-xs text-[#8F8F8F] uppercase tracking-wider font-medium mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Suggested focus</h3>
-                <p className="text-sm text-[#6F6F6F] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                  {profile.suggested_focus || (profile.personalized_coaching_focus && profile.personalized_coaching_focus[0] ? `${profile.personalized_coaching_focus[0].area}: ${profile.personalized_coaching_focus[0].goal}` : '')}
-                </p>
+              <div className="mx-8 mb-8 bg-[#EDF3FF] rounded-xl p-6 border border-[#D4E4FF]">
+                <div className="flex items-start gap-4">
+                  {/* Icon */}
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#4F83CC] to-[#3B5998] flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <span className="text-xl">🎯</span>
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="flex-1">
+                    <h3 className="text-xs text-[#6F6F6F] uppercase tracking-wider font-semibold mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      Priority focus for this quarter
+                    </h3>
+                    
+                    {/* Focus Area Pills */}
+                    {profile.personalized_coaching_focus && profile.personalized_coaching_focus.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {profile.personalized_coaching_focus.slice(0, 2).map((focus, idx) => (
+                          <span
+                            key={idx}
+                            className="px-3 py-1 bg-white border border-[#D4E4FF] rounded-full text-xs font-medium text-[#3B5998] shadow-sm"
+                            style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                          >
+                            {focus.area}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {/* Explanation Text */}
+                    <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      {profile.suggested_focus || (profile.personalized_coaching_focus && profile.personalized_coaching_focus[0] ? profile.personalized_coaching_focus[0].goal : '')}
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
             
             {/* Fallback to old format if new fields don't exist */}
             {(!profile.strength_signatures || !profile.latent_risks_and_blind_spots) && (
-              <div className="grid md:grid-cols-2 gap-4">
-                {getProfileBullets().slice(0, 4).map((bullet, idx) => (
-                  <div key={idx} className="bg-[#F5F7F4] rounded-lg p-5 border border-[#E5E5E5]">
-                    <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>{bullet}</p>
-                  </div>
-                ))}
+              <div className="px-8 pb-8">
+                <div className="grid md:grid-cols-2 gap-4">
+                  {getProfileBullets().slice(0, 4).map((bullet, idx) => (
+                    <div key={idx} className="bg-[#F5F7F4] rounded-lg p-5 border border-[#E5E5E5]">
+                      <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>{bullet}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
