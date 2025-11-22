@@ -19,7 +19,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Allow public routes without any checks
-    if (PUBLIC_ROUTES.includes(pathname)) {
+    if (pathname && PUBLIC_ROUTES.includes(pathname)) {
       return;
     }
 
@@ -37,7 +37,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     // If authenticated, wait for profile to load (unless on auth-only routes)
     if (sessionStatus === 'authenticated') {
       // Allow access to onboarding pages while profile loads
-      if (AUTH_ONLY_ROUTES.includes(pathname)) {
+      if (pathname && AUTH_ONLY_ROUTES.includes(pathname)) {
         return;
       }
 
