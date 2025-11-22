@@ -14,6 +14,7 @@ function getInitials(name: string | undefined) {
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
+  const [showValuePanel, setShowValuePanel] = useState(false);
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -154,6 +155,68 @@ export default function Home() {
           >
             Your data is encrypted and never shared with third parties.
           </p>
+        </div>
+
+        {/* 7. What can Sage do for me? Link */}
+        <div className="mt-8 w-full">
+          <button
+            onClick={() => setShowValuePanel(!showValuePanel)}
+            className="text-sm text-[#7A8E50] hover:text-[#55613b] font-medium transition-colors"
+            style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+          >
+            What can Sage do for me?
+          </button>
+
+          {/* Value Panel */}
+          {showValuePanel && (
+            <div className="mt-4 bg-white rounded-xl border border-[#E5E5E5] p-6 shadow-md animate-fadeIn">
+              <h3 className="text-base font-semibold text-[#232323] mb-4" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                What Sage can do for you
+              </h3>
+              
+              <div className="space-y-3">
+                {/* Item 1 */}
+                <div className="border-l-4 border-[#7A8E50] pl-3">
+                  <h4 className="text-sm font-semibold text-[#232323] mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    Psychographic Profile
+                  </h4>
+                  <p className="text-xs text-[#6F6F6F]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    Understand your strengths and patterns.
+                  </p>
+                </div>
+
+                {/* Item 2 */}
+                <div className="border-l-4 border-[#7A8E50] pl-3">
+                  <h4 className="text-sm font-semibold text-[#232323] mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    Career Direction Map
+                  </h4>
+                  <p className="text-xs text-[#6F6F6F]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    Discover roles that fit how you work.
+                  </p>
+                </div>
+
+                {/* Item 3 */}
+                <div className="border-l-4 border-[#7A8E50] pl-3">
+                  <h4 className="text-sm font-semibold text-[#232323] mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    Resume & Profile Intel
+                  </h4>
+                  <p className="text-xs text-[#6F6F6F]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    Upgrade how you present yourself.
+                  </p>
+                </div>
+
+                {/* Item 4 */}
+                <div className="border-l-4 border-[#7A8E50] pl-3">
+                  <h4 className="text-sm font-semibold text-[#232323] mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    Job Match & Skill Gaps
+                  </h4>
+                  <p className="text-xs text-[#6F6F6F]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    See how you stack up against real roles.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
       </div>

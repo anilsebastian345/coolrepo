@@ -403,30 +403,70 @@ export default function PreviewOnboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FEFEFE] via-[#F9FAFB] to-[#F3F4F6] flex flex-col items-center py-8 px-4 font-sans" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>
+    <div className="min-h-screen bg-[#FAFAF6] flex flex-col items-center py-12 px-4 font-sans" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
       <SageLogo />
-      <h2 className="text-[28px] font-semibold text-[#1F2937] mt-2 mb-0 tracking-tight">
-        Update your profile inputs
-      </h2>
-      <br />
-      <p className="text-base font-normal text-black text-center mb-1">
-        Edit the information Sage uses to understand your experience.
-      </p>
-      <br />
-      <p className="text-sm text-[#7a7a7a] text-center mb-8" style={{whiteSpace: 'pre-line'}}>
-        {isEditMode ? (
-          <>
-            Update your information to get refreshed insights.
-            <br />You can replace your resume or LinkedIn data anytime.
-          </>
-        ) : (
-          <>
-            You can paste your LinkedIn summary,
-            <br />upload your resume, or answer a few questions.
-            <br />Whatever works for you.
-          </>
-        )}
-      </p>
+      
+      {/* Hero Section */}
+      <div className="max-w-3xl mx-auto text-center mb-12">
+        <h2 className="text-3xl font-semibold text-[#232323] mt-4 mb-3 tracking-tight" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+          Welcome, {userName || 'there'}. Let's build your Sage profile.
+        </h2>
+        <p className="text-lg text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+          In a few minutes, Sage will create a personalized view of who you are at work and how you can grow.
+        </p>
+      </div>
+
+      {/* Value Cards - 2x2 Grid */}
+      <div className="w-full max-w-4xl mx-auto mb-16">
+        <div className="grid md:grid-cols-2 gap-4 mb-12">
+          {/* Card 1 */}
+          <div className="bg-white rounded-xl border border-[#E5E5E5] p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 border-l-4 border-l-[#7A8E50]">
+            <h3 className="font-semibold text-[#232323] text-base mb-2" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+              Psychographic Profile
+            </h3>
+            <p className="text-sm text-[#6F6F6F] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+              Understand your strengths, blind spots, and leadership style.
+            </p>
+          </div>
+
+          {/* Card 2 */}
+          <div className="bg-white rounded-xl border border-[#E5E5E5] p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 border-l-4 border-l-[#7A8E50]">
+            <h3 className="font-semibold text-[#232323] text-base mb-2" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+              Career Direction Map
+            </h3>
+            <p className="text-sm text-[#6F6F6F] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+              Explore roles that align with how you work.
+            </p>
+          </div>
+
+          {/* Card 3 */}
+          <div className="bg-white rounded-xl border border-[#E5E5E5] p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 border-l-4 border-l-[#7A8E50]">
+            <h3 className="font-semibold text-[#232323] text-base mb-2" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+              Resume & Profile Intel
+            </h3>
+            <p className="text-sm text-[#6F6F6F] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+              Refine how you present yourself professionally.
+            </p>
+          </div>
+
+          {/* Card 4 */}
+          <div className="bg-white rounded-xl border border-[#E5E5E5] p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 border-l-4 border-l-[#7A8E50]">
+            <h3 className="font-semibold text-[#232323] text-base mb-2" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+              Job Match & Skill Gaps
+            </h3>
+            <p className="text-sm text-[#6F6F6F] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+              See how you compare to real roles and what to build next.
+            </p>
+          </div>
+        </div>
+
+        {/* Lead-in text */}
+        <div className="text-center mb-8">
+          <p className="text-base font-medium text-[#4A4A4A]" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+            First, help Sage get to know you:
+          </p>
+        </div>
+      </div>
       
       {/* Hidden file input for resume upload */}
       {/* (Removed old input and preview card) */}
@@ -805,7 +845,7 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
         {loading && (
           <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
         )}
-        <span>{loading ? 'Generating...' : 'See what I have learned'}</span>
+        <span>{loading ? 'Generating...' : 'See what Sage has learned'}</span>
       </button>
       
       {error && <div className="text-red-500 text-center mb-2">{error}</div>}
