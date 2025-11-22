@@ -181,7 +181,7 @@ export default function PreviewOnboarding() {
   const mode = searchParams.get('mode') || 'create'; // 'create' or 'edit'
   const isEditMode = mode === 'edit';
   const { userProfile } = useUserProfile();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   
   const [selected, setSelected] = useState("questions");
   const [linkedinProgress, setLinkedinProgress] = useState(0);
@@ -596,8 +596,9 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
     setStreamingContent("");
     setIsStreaming(false);
     
-    // Capture userId from session
-    const userId = session?.user?.email || 'temp-user-id';
+    // Capture userId from session - use authenticated email or fallback to temp
+    const userId = (session && session.user && session.user.email) ? session.user.email : 'temp-user-id';
+    console.log('[GENERATE] Using userId:', userId);
     
     try {
       console.log('Starting profile generation...');
