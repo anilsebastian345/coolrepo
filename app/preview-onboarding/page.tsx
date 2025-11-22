@@ -2,7 +2,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState as useModalState } from "react";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import ProfileModal from '@/app/components/ProfileModal';
 import ResumeModal from "../components/ResumeModal";
@@ -181,7 +180,6 @@ export default function PreviewOnboarding() {
   const mode = searchParams.get('mode') || 'create'; // 'create' or 'edit'
   const isEditMode = mode === 'edit';
   const { userProfile } = useUserProfile();
-  const { data: session, status } = useSession();
   
   const [selected, setSelected] = useState("questions");
   const [linkedinProgress, setLinkedinProgress] = useState(0);
@@ -596,8 +594,19 @@ function GenerateProfileButton({ linkedinComplete, resumeComplete, questionsComp
     setStreamingContent("");
     setIsStreaming(false);
     
-    // Capture userId from session - use authenticated email or fallback to temp
-    const userId = (session && session.user && session.user.email) ? session.user.email : 'temp-user-id';
+    // Get userId from /api/me to avoid session scope issues
+    let userId = 'temp-user-id';
+    try {
+      const meResponse = await fetch('/api/me');
+      if (meResponse.ok) {
+        const meData = await meResponse.json();
+        if (meData.userId) {
+          userId = meData.userId;
+        }
+      }
+    } catch (e) {
+      console.log('Could not fetch user, using temp-user-id');
+    }
     console.log('[GENERATE] Using userId:', userId);
     
     try {
