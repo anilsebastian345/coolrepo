@@ -94,7 +94,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   }
 
   // For authenticated users on auth-only routes, render immediately
-  if (AUTH_ONLY_ROUTES.includes(pathname)) {
+  if (pathname && AUTH_ONLY_ROUTES.includes(pathname)) {
     return <>{children}</>;
   }
 
