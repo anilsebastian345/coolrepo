@@ -216,7 +216,6 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [firstName, setFirstName] = useState('');
   const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [showProfileModal, setShowProfileModal] = useState(false);
 
   // Derive state from userProfile and localStorage
   const hasResume = !!userProfile?.resumeText;
@@ -378,7 +377,7 @@ export default function DashboardPage() {
                 <p className="text-xs text-[#8F8F8F] uppercase tracking-wider font-light" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Based on your profile and past inputs</p>
               </div>
               <button
-                onClick={() => setShowProfileModal(true)}
+                onClick={() => router.push('/profile-insights')}
                 className="text-sm text-[#7A8E50] hover:text-[#55613b] font-medium flex items-center gap-1"
                 style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
               >
@@ -512,120 +511,6 @@ export default function DashboardPage() {
               >
                 Continue
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Profile Details Modal */}
-      {showProfileModal && profile && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowProfileModal(false)}>
-          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {profile.title || 'Your Psychographic Profile'}
-                </h2>
-              </div>
-              <button
-                onClick={() => setShowProfileModal(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="p-6 space-y-6">
-              {profile.archetype && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Archetype</h3>
-                  <p className="text-gray-900 leading-relaxed">{profile.archetype}</p>
-                </div>
-              )}
-              {profile.core_drives_and_values && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Core Drives & Values</h3>
-                  <p className="text-gray-900 leading-relaxed">{profile.core_drives_and_values}</p>
-                </div>
-              )}
-              {profile.cognitive_style && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Cognitive Style</h3>
-                  <p className="text-gray-900 leading-relaxed">{profile.cognitive_style}</p>
-                </div>
-              )}
-              {profile.leadership_style && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Leadership Style</h3>
-                  <p className="text-gray-900 leading-relaxed">{profile.leadership_style}</p>
-                </div>
-              )}
-              {profile.communication_style && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Communication Style</h3>
-                  <p className="text-gray-900 leading-relaxed">{profile.communication_style}</p>
-                </div>
-              )}
-              {profile.risk_and_ambition && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Risk & Ambition</h3>
-                  <p className="text-gray-900 leading-relaxed">{profile.risk_and_ambition}</p>
-                </div>
-              )}
-              {profile.growth_and_blind_spots && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Growth & Blind Spots</h3>
-                  <p className="text-gray-900 leading-relaxed">{profile.growth_and_blind_spots}</p>
-                </div>
-              )}
-              {profile.summary && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Summary</h3>
-                  <p className="text-gray-900 leading-relaxed">{profile.summary}</p>
-                </div>
-              )}
-              {profile.strength_signatures && Array.isArray(profile.strength_signatures) && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Strength Signatures</h3>
-                  <div className="space-y-4">
-                    {profile.strength_signatures.map((strength: any, idx: number) => (
-                      <div key={idx} className="bg-gray-50 rounded-lg p-4">
-                        <h4 className="font-semibold text-gray-900 mb-2">{strength.trait}</h4>
-                        <p className="text-sm text-gray-700 mb-2"><span className="font-medium">Evidence:</span> {strength.evidence}</p>
-                        <p className="text-sm text-gray-600"><span className="font-medium">Why it matters:</span> {strength.why_it_matters}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {profile.latent_risks_and_blind_spots && Array.isArray(profile.latent_risks_and_blind_spots) && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Latent Risks & Blind Spots</h3>
-                  <div className="space-y-4">
-                    {profile.latent_risks_and_blind_spots.map((risk: any, idx: number) => (
-                      <div key={idx} className="bg-amber-50 rounded-lg p-4 border border-amber-200">
-                        <h4 className="font-semibold text-gray-900 mb-2">{risk.pattern}</h4>
-                        <p className="text-sm text-gray-700 mb-2"><span className="font-medium">Risk:</span> {risk.risk}</p>
-                        <p className="text-sm text-amber-800"><span className="font-medium">Coaching prompt:</span> {risk.coaching_prompt}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {profile.personalized_coaching_focus && Array.isArray(profile.personalized_coaching_focus) && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Personalized Coaching Focus</h3>
-                  <div className="space-y-3">
-                    {profile.personalized_coaching_focus.map((focus: any, idx: number) => (
-                      <div key={idx} className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
-                        <h4 className="font-semibold text-indigo-900 mb-1">{focus.area}</h4>
-                        <p className="text-sm text-gray-700">{focus.goal}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
