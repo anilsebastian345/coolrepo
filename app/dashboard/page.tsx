@@ -43,17 +43,17 @@ function TopNav({ activeTab }: { activeTab: string }) {
   ];
 
   return (
-    <nav className="bg-white/90 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+    <nav className="bg-white/90 backdrop-blur-md border-b border-[#E5E5E5] sticky top-0 z-40 shadow-sm">
+      <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="relative w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#8a9a5b] to-[#55613b] shadow-md">
+            <div className="relative w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#7A8E50] to-[#55613b] shadow-md">
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
                 <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"/>
               </svg>
             </div>
-            <span className="text-lg font-semibold text-[#8a9a5b]">Sage</span>
+            <span className="text-lg font-semibold text-[#7A8E50]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Sage</span>
           </Link>
           
           {/* Nav Items */}
@@ -64,9 +64,10 @@ function TopNav({ activeTab }: { activeTab: string }) {
                 onClick={() => router.push(item.href)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   activeTab === item.id
-                    ? 'bg-[#8a9a5b] text-white shadow-md'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-[#7A8E50] text-white shadow-sm'
+                    : 'text-[#4A4A4A] hover:bg-gray-50'
                 }`}
+                style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
               >
                 {item.label}
               </button>
@@ -75,7 +76,7 @@ function TopNav({ activeTab }: { activeTab: string }) {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden">
-            <button className="p-2 rounded-lg text-gray-600 hover:bg-gray-100">
+            <button className="p-2 rounded-lg text-[#4A4A4A] hover:bg-gray-50">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
@@ -105,27 +106,27 @@ function FeatureTile({ title, subtitle, icon, href, available }: FeatureTileProp
       className={`
         group relative p-6 rounded-xl border text-left transition-all duration-200
         ${available 
-          ? 'bg-white hover:shadow-lg hover:border-indigo-200 cursor-pointer border-gray-200' 
-          : 'bg-gray-50 cursor-not-allowed border-gray-200 opacity-60'
+          ? 'bg-white hover:shadow-md hover:border-[#7A8E50]/30 cursor-pointer border-[#E5E5E5]' 
+          : 'bg-gray-50 cursor-not-allowed border-[#E5E5E5] opacity-60'
         }
       `}
     >
       {/* Icon */}
-      <div className={`text-4xl mb-4 transition-transform duration-200 ${available ? 'group-hover:scale-110' : ''}`}>
+      <div className={`text-3xl mb-4 transition-transform duration-200 ${available ? 'group-hover:scale-105' : ''}`}>
         {icon}
       </div>
       
       {/* Content */}
-      <h3 className="text-xl font-semibold text-gray-900 mb-2">
+      <h3 className="text-lg font-semibold text-[#232323] mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
         {title}
       </h3>
-      <p className="text-sm text-gray-600 mb-4">
+      <p className="text-sm text-[#6F6F6F] mb-4 leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
         {subtitle}
       </p>
       
-      {/* Arrow indicator */}
+      {/* CTA */}
       {available && (
-        <div className="flex items-center text-indigo-600 text-sm font-medium group-hover:text-indigo-700">
+        <div className="flex items-center text-[#7A8E50] text-sm font-medium group-hover:text-[#55613b]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
           <span>Explore</span>
           <svg className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -134,7 +135,7 @@ function FeatureTile({ title, subtitle, icon, href, available }: FeatureTileProp
       )}
       
       {!available && (
-        <div className="text-sm text-gray-400 font-medium">
+        <div className="text-sm text-[#8F8F8F] font-light" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
           Complete onboarding first
         </div>
       )}
@@ -231,21 +232,21 @@ export default function DashboardPage() {
   const features = [
     {
       title: 'Career Direction Map',
-      subtitle: 'See roles that fit your strengths.',
+      subtitle: 'Explore roles where your strengths naturally fit.',
       icon: '🧭',
       href: '/career-map',
       available: hasProfile
     },
     {
       title: 'Resume & Profile Analysis',
-      subtitle: 'Improve your resume and LinkedIn story.',
+      subtitle: 'Refine how your professional story shows up on resume and LinkedIn.',
       icon: '✨',
       href: '/resume-intel',
       available: hasResume || hasLinkedIn
     },
     {
       title: 'Job Match & Skill Gaps',
-      subtitle: 'Compare your profile to a job description.',
+      subtitle: 'See how you stack up against a role and what skills to build next.',
       icon: '🎯',
       href: '/job-match',
       available: hasProfile && (hasResume || hasLinkedIn)
@@ -253,23 +254,24 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#FAFAF6]">
       <TopNav activeTab="dashboard" />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-6xl mx-auto px-6 py-12">
         {/* Welcome Section */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-12 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-4xl font-semibold text-[#232323] mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
               Welcome back{firstName ? `, ${firstName}` : ''}
             </h1>
-            <p className="text-gray-600">
-              Your AI-powered career intelligence hub
+            <p className="text-[#6F6F6F]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+              Your hub for professional clarity.
             </p>
           </div>
           <button
             onClick={() => setShowUpdateModal(true)}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors flex items-center gap-2"
+            className="px-4 py-2.5 text-sm font-medium text-[#4A4A4A] bg-white border border-[#D4D4D4] rounded-lg hover:bg-gray-50 hover:border-[#7A8E50]/40 transition-all flex items-center gap-2 shadow-sm"
+            style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -280,18 +282,19 @@ export default function DashboardPage() {
 
         {/* Alert if no resume */}
         {!hasResume && !hasLinkedIn && (
-          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-lg">📄</span>
+          <div className="mb-10 bg-white border border-[#E5E5E5] rounded-xl p-6 flex items-start gap-4 shadow-sm">
+            <div className="w-10 h-10 rounded-lg bg-[#7A8E50] flex items-center justify-center flex-shrink-0">
+              <span className="text-xl">📄</span>
             </div>
             <div className="flex-1">
-              <h3 className="text-sm font-semibold text-blue-900 mb-1">Upload your resume to unlock all features</h3>
-              <p className="text-sm text-blue-700 mb-3">
+              <h3 className="text-base font-semibold text-[#232323] mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Upload your resume to unlock all features</h3>
+              <p className="text-sm text-[#6F6F6F] mb-4" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
                 Get AI-powered resume analysis, job matching, and personalized career insights.
               </p>
               <button
                 onClick={() => router.push('/preview-onboarding')}
-                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 bg-[#7A8E50] text-white text-sm font-medium rounded-lg hover:bg-[#55613b] transition-colors shadow-sm"
+                style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
               >
                 Upload Resume
               </button>
@@ -301,17 +304,16 @@ export default function DashboardPage() {
 
         {/* Profile Snapshot Card */}
         {profile && (
-          <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                  <span className="text-xl">🧠</span>
-                </div>
-                <h2 className="text-xl font-semibold text-gray-900">Your Profile Snapshot</h2>
+          <div className="bg-white rounded-xl border border-[#E5E5E5] p-8 mb-12 shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-semibold text-[#232323] mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Your Profile Snapshot</h2>
+                <p className="text-xs text-[#8F8F8F] uppercase tracking-wider font-light" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Based on your profile and past inputs</p>
               </div>
               <button
                 onClick={() => setShowProfileModal(true)}
-                className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1"
+                className="text-sm text-[#7A8E50] hover:text-[#55613b] font-medium flex items-center gap-1"
+                style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
               >
                 <span>View details</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -319,18 +321,46 @@ export default function DashboardPage() {
                 </svg>
               </button>
             </div>
-            <div className="grid md:grid-cols-2 gap-4">
-              {getProfileBullets().slice(0, 4).map((bullet, idx) => (
-                <div key={idx} className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-700 leading-relaxed">{bullet}</p>
+            
+            {/* Strength Signal Section */}
+            {profile.strength_signatures && Array.isArray(profile.strength_signatures) && profile.strength_signatures.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-xs text-[#8F8F8F] uppercase tracking-wider font-medium mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Strength Signal</h3>
+                <div className="bg-[#F5F7F4] rounded-lg p-5 border border-[#E5E5E5]">
+                  <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    <span className="font-semibold text-[#232323]">{profile.strength_signatures[0].trait}:</span> {profile.strength_signatures[0].evidence}
+                  </p>
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
+            
+            {/* Watch-out Section */}
+            {profile.latent_risks_and_blind_spots && Array.isArray(profile.latent_risks_and_blind_spots) && profile.latent_risks_and_blind_spots.length > 0 && (
+              <div>
+                <h3 className="text-xs text-[#8F8F8F] uppercase tracking-wider font-medium mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Watch-out</h3>
+                <div className="bg-[#FFF9F0] rounded-lg p-5 border border-[#F5E6D3]">
+                  <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    <span className="font-semibold text-[#232323]">{profile.latent_risks_and_blind_spots[0].pattern}:</span> {profile.latent_risks_and_blind_spots[0].risk}
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {/* Fallback to old format if new fields don't exist */}
+            {(!profile.strength_signatures || !profile.latent_risks_and_blind_spots) && (
+              <div className="grid md:grid-cols-2 gap-4">
+                {getProfileBullets().slice(0, 4).map((bullet, idx) => (
+                  <div key={idx} className="bg-[#F5F7F4] rounded-lg p-5 border border-[#E5E5E5]">
+                    <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>{bullet}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
         {/* Feature Tiles Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {features.map((feature) => (
             <FeatureTile key={feature.title} {...feature} />
           ))}
@@ -338,19 +368,20 @@ export default function DashboardPage() {
 
         {/* Onboarding Prompt if no profile */}
         {!hasProfile && (
-          <div className="mt-8 bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-6 max-w-3xl mx-auto">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+          <div className="bg-white border border-[#E5E5E5] rounded-xl p-8 max-w-2xl mx-auto shadow-sm">
+            <div className="flex items-start gap-5">
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#7A8E50] to-[#55613b] flex items-center justify-center flex-shrink-0">
                 <span className="text-2xl">✨</span>
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Complete Your Profile for Full Access</h3>
-                <p className="text-gray-600 mb-4">
+                <h3 className="text-xl font-semibold text-[#232323] mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Complete Your Profile for Full Access</h3>
+                <p className="text-[#6F6F6F] mb-5 leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
                   Generate your psychographic profile to unlock all career intelligence features.
                 </p>
                 <button
                   onClick={() => router.push('/preview-onboarding')}
-                  className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium shadow-sm"
+                  className="px-6 py-2.5 bg-[#7A8E50] text-white rounded-lg hover:bg-[#55613b] transition-colors font-medium shadow-sm"
+                  style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
                 >
                   Complete Onboarding
                 </button>
@@ -362,16 +393,17 @@ export default function DashboardPage() {
 
       {/* Update Info Confirmation Modal */}
       {showUpdateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">Update your profile?</h3>
-            <p className="text-gray-600 mb-6">
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-8">
+            <h3 className="text-xl font-semibold text-[#232323] mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Update your profile?</h3>
+            <p className="text-[#6F6F6F] mb-8 leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
               This will let you upload a new resume or LinkedIn profile and regenerate your psychographic profile.
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowUpdateModal(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-5 py-2.5 text-sm font-medium text-[#4A4A4A] bg-white border border-[#D4D4D4] rounded-lg hover:bg-gray-50 transition-colors"
+                style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
               >
                 Cancel
               </button>
@@ -380,7 +412,8 @@ export default function DashboardPage() {
                   setShowUpdateModal(false);
                   router.push('/preview-onboarding?mode=edit');
                 }}
-                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
+                className="px-5 py-2.5 text-sm font-medium text-white bg-[#7A8E50] rounded-lg hover:bg-[#55613b] transition-colors shadow-sm"
+                style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
               >
                 Continue
               </button>

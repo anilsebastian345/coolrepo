@@ -36,48 +36,26 @@ export default function Home() {
     window.location.href = '/onboarding/questions';
   };
 
-  // If user is already signed in, show welcome screen
+  // If user is already signed in, redirect to dashboard
+  useEffect(() => {
+    if (session) {
+      router.push('/dashboard');
+    }
+  }, [session, router]);
+
+  // Show loading while redirecting
   if (session) {
     return (
       <div className="min-h-screen bg-[#FAFAF6] flex flex-col items-center justify-center px-4">
-        <div className="flex flex-col items-center space-y-6">
-          <div className="relative w-20 h-20 flex items-center justify-center rounded-full bg-gradient-to-br from-[#e0e7ef] to-[#c8e6c9] shadow-lg">
-            {session.user?.image ? (
-              <Image 
-                src={session.user.image} 
-                alt="Profile" 
-                width={64} 
-                height={64}
-                className="rounded-full object-cover" 
-                unoptimized
-              />
-            ) : (
-              <span className="text-3xl font-semibold text-green-900">
-                {getInitials(session.user?.name ?? undefined)}
-              </span>
-            )}
+        <div className="flex flex-col items-center space-y-4">
+          <div className="relative w-16 h-16 flex items-center justify-center rounded-full bg-gradient-to-br from-[#f3f4f6] to-[#e8e8e8] shadow-md animate-pulse">
+            <div className="absolute w-11 h-11 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#8a9a5b] to-[#55613b] flex items-center justify-center">
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/>
+              </svg>
+            </div>
           </div>
-          <h1 className="text-2xl font-medium text-gray-900">Welcome back, {session.user?.name?.split(' ')[0]}!</h1>
-          <div className="flex gap-4 mt-8">
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="px-6 py-3 rounded-lg bg-gradient-to-br from-[#8a9a5b] to-[#55613b] text-white font-medium shadow-md hover:shadow-lg transition-all"
-            >
-              Dashboard
-            </button>
-            <button
-              onClick={() => router.push('/chat')}
-              className="px-6 py-3 rounded-lg bg-white border border-gray-200 text-gray-700 font-medium shadow-sm hover:shadow-md transition-all"
-            >
-              Chat
-            </button>
-          </div>
-          <button
-            onClick={() => signOut()}
-            className="mt-8 text-sm text-gray-500 hover:text-gray-700 underline"
-          >
-            Sign out
-          </button>
+          <p className="text-sm text-gray-500">Loading...</p>
         </div>
       </div>
     );
