@@ -57,18 +57,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Cache cleared successfully' });
     }
 
-    // Use questions from request, fallback to file if not provided
+    // Use questions from request
     let questions: any = requestQuestions || {};
-    
-    // If no questions in request, try to read from file (for backwards compatibility)
-    if (!questions || Object.keys(questions).length === 0) {
-      try {
-        const questionsPath = join(process.cwd(), 'onboarding_questions.json');
-        questions = JSON.parse(await readFile(questionsPath, 'utf-8'));
-      } catch (e) {
-        console.log('No questions file found, using empty questions object');
-      }
-    }
 
     // Extract career signals from resume if available
     let resumeSignals: ResumeSignals = createEmptyResumeSignals();
