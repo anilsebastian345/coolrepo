@@ -9,6 +9,8 @@ import { ResumeReview } from '@/app/types/resumeReview';
 import { CareerDirectionRecommendation } from '@/app/types/careerDirections';
 import { getCareerDirectionRecommendations } from '@/lib/careerDirections';
 import AnalysisLoader from '@/app/components/AnalysisLoader';
+import ExportPDFModal from '@/app/components/ExportPDFModal';
+import { ExportSections } from '@/app/types/pdfExport';
 
 function TopNav({ activeTab }: { activeTab: string }) {
   const router = useRouter();
@@ -109,10 +111,13 @@ export default function ResumeIntelPage() {
   const router = useRouter();
   const { userProfile, isLoading: profileLoading } = useUserProfile();
   const [review, setReview] = useState<ResumeReview | null>(null);
+  const [careerDirections, setCareerDirections] = useState<CareerDirectionRecommendation[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [copiedSummary, setCopiedSummary] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     if (profileLoading) return;
@@ -130,15 +135,16 @@ export default function ResumeIntelPage() {
       setError(null);
 
       try {
-        let careerDirections: CareerDirectionRecommendation[] = [];
+        let directions: CareerDirectionRecommendation[] = [];
         if (userProfile.careerStage && userProfile.careerPreferences) {
-          careerDirections = await getCareerDirectionRecommendations({
+          directions = await getCareerDirectionRecommendations({
             careerStage: userProfile.careerStage,
             careerPreferences: userProfile.careerPreferences,
             psychographicProfile: userProfile.psychographicProfile,
             resumeText: userProfile.resumeText,
             linkedInSummary: userProfile.linkedInSummary
           });
+          setCareerDirections(directions);
         }
 
         console.log('Calling /api/resume-review with resume length:', userProfile.resumeText?.length || 0);
@@ -150,7 +156,7 @@ export default function ResumeIntelPage() {
             resumeText: userProfile.resumeText,
             careerStage: userProfile.careerStage,
             careerPreferences: userProfile.careerPreferences,
-            careerDirections: careerDirections.slice(0, 3),
+            careerDirections: directions.slice(0, 3),
             psychographicProfile: userProfile.psychographicProfile
           })
         });
@@ -189,7 +195,73 @@ export default function ResumeIntelPage() {
     }
   };
 
-  if (profileLoading || loading) {
+  const handleExportPDF = async (sections: ExportSections) => {
+    setShowExportModal(false);
+    setIsExporting(true);
+
+    try {
+      // Get first name from userProfile
+      const firstName = userProfile?.name?.split(' ')[0] || 'User';
+
+      // Map career directions to the expected format
+      const mappedCareerDirections = careerDirections.slice(0, 2).map(dir => ({
+        name: dir.name,
+        summary: dir.summary,
+        fitScore: dir.fitScore
+      }));
+
+      const response = await fetch('/api/export-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sections,
+          data: {
+            firstName,
+            firstImpression: review?.firstImpression,
+            improvedSummary: review?.improvedSummary,
+            strengths: review?.strengths,
+            weaknesses: review?.weaknesses,
+            extractedSkills: review?.extractedSkills,
+            bulletAnalysis: review?.bulletAnalysis,
+            careerDirections: mappedCareerDirections
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sage-report-${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error('Error exporting PDF:', err);
+      alert('Failed to generate PDF. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  if (profileLoading || loading || isExporting) {
+    if (isExporting) {
+      return (
+        <AnalysisLoader
+          title="Preparing your report…"
+          messages={[
+            "Formatting content for executive review.",
+            "Building professional layout.",
+            "Generating PDF document."
+          ]}
+        />
+      );
+    }
     return (
       <AnalysisLoader
         title="Analyzing your resume…"
@@ -467,6 +539,16 @@ export default function ResumeIntelPage() {
             Back to Dashboard
           </button>
           <button
+            onClick={() => setShowExportModal(true)}
+            className="px-6 py-3 bg-[#7F915F] text-white rounded-lg hover:bg-[#6A7F4F] transition-colors shadow-sm flex items-center gap-2"
+            style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Download Report (PDF)
+          </button>
+          <button
             onClick={() => router.push('/career-map')}
             className="px-6 py-3 bg-[#7F915F] text-white rounded-lg hover:bg-[#6A7F4F] transition-colors shadow-sm"
             style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
@@ -475,6 +557,12 @@ export default function ResumeIntelPage() {
           </button>
         </div>
       </div>
+
+      <ExportPDFModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        onExport={handleExportPDF}
+      />
     </div>
   );
 }
