@@ -198,24 +198,48 @@ YOUR TASK:
 2. Compare the candidate to this specific job and produce:
 
    A) overallMatchScore (0–100):
-      - Higher = stronger match for THIS job.
+      - Be honest and conservative. This should reflect realistic fit for THIS job.
+      - Consider: Does the candidate have the core skills? Appropriate experience level? Relevant domain knowledge?
+      - 90–100: Exceptional candidate, exceeds requirements
+      - 80–89: Strong candidate, clearly qualified
+      - 70–79: Good candidate, meets most requirements
+      - 60–69: Moderate candidate, could work but has gaps
+      - 50–59: Stretch candidate, significant development needed
+      - Below 50: Not a strong match for this specific role
 
-   B) dimensionScores (array) with 4 dimensions:
-      - "skills"
-      - "experience"
-      - "responsibilities"
-      - "culture_environment"
-      For each:
+   B) dimensionScores (array) with 3–4 dimensions:
+      - "skills" (always include)
+      - "experience" (always include)
+      - "responsibilities" (always include)
+      - "culture_environment" (ONLY include if BOTH the job description AND candidate profile contain meaningful culture/environment signals)
+      
+      For each dimension:
         - score: 0–100
-        - comment: 1–2 sentences explaining the score in plain language.
+        - comment: 1–2 sentences explaining the score in plain, honest language.
+      
+      **CRITICAL**: Be honest and conservative with scores:
+        - 90–100: Exceptional match, candidate exceeds requirements
+        - 80–89: Strong match, candidate clearly meets requirements
+        - 70–79: Good match, candidate mostly meets requirements with minor gaps
+        - 60–69: Moderate match, candidate meets some requirements but has notable gaps
+        - 50–59: Partial match, candidate has relevant background but significant gaps
+        - Below 50: Weak match, candidate lacks most key requirements
+      
+      Do NOT inflate scores. If a candidate is missing key skills or experience, reflect that honestly.
+      For culture_environment: Only score if you have concrete signals (e.g., job mentions "startup pace" and resume shows startup experience, 
+      or job says "large enterprise" and candidate worked at Fortune 500s). If signals are vague or missing, OMIT this dimension entirely.
 
    C) strengths:
-      - 4–8 bullet points that describe where this candidate is strong for THIS job,
+      - 3–6 bullet points that describe where this candidate is genuinely strong for THIS job,
         grounded in their actual resume and profile.
+      - Be specific and honest. Don't manufacture strengths that aren't there.
+      - If the candidate has limited relevant experience, say so and focus on transferable skills.
 
    D) gaps:
-      - 4–8 bullet points that describe important gaps or missing pieces for THIS job.
+      - 3–6 bullet points that describe important gaps or missing pieces for THIS job.
       - Include both skill gaps and experience gaps.
+      - Be direct and helpful, not harsh. Frame gaps as development areas.
+      - If there are no significant gaps, you can have fewer items here.
 
    E) recommendedSkills:
       - 5–10 specific skills or capabilities the candidate could build to be a stronger match,
@@ -242,6 +266,10 @@ YOUR TASK:
    - Use simple, clear language.
    - Respect the job's domain (healthcare vs trades vs corporate vs creative, etc.).
    - Do NOT suggest changing to a different field; focus ONLY on fit for THIS job description.
+   - **BE HONEST**. Do not inflate scores or manufacture strengths. If there are gaps, acknowledge them clearly.
+   - If the candidate is underqualified, reflect that in the scores and feedback.
+   - If the candidate is overqualified, that's fine to note too.
+   - For culture_environment dimension: ONLY include if you have concrete evidence from both the job description and candidate profile.
 
 4. Output STRICT JSON with this exact shape:
 
@@ -264,15 +292,16 @@ YOUR TASK:
         "dimension": "responsibilities",
         "score": number,
         "comment": string
-      },
-      {
-        "dimension": "culture_environment",
-        "score": number,
-        "comment": string
       }
+      // Optionally include this 4th dimension ONLY if you have concrete culture/environment signals:
+      // {
+      //   "dimension": "culture_environment",
+      //   "score": number,
+      //   "comment": string
+      // }
     ],
-    "strengths": [string],
-    "gaps": [string],
+    "strengths": [string],  // 3-6 items, honest assessment
+    "gaps": [string],       // 3-6 items, honest assessment
     "recommendedSkills": [string],
     "tailoringSuggestions": {
       "summary": string,
@@ -284,7 +313,7 @@ YOUR TASK:
         }
       ]
     },
-    "riskFlags": [string]
+    "riskFlags": [string]  // 0-5 items
   }
 }`;
 }

@@ -361,6 +361,41 @@ export default function RoleFitAnalysisPage() {
               </div>
             </div>
 
+            {/* Match Breakdown */}
+            {analysis.dimensionScores && analysis.dimensionScores.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-sm p-8">
+                <h2 className="text-xl font-semibold text-[#232323] mb-6" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                  Match Breakdown
+                </h2>
+                <div className="space-y-6">
+                  {analysis.dimensionScores.map((dim, idx) => (
+                    <div key={idx}>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-base font-medium text-[#232323]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                          {dim.dimension === 'skills' ? 'Skills' : 
+                           dim.dimension === 'experience' ? 'Experience' : 
+                           dim.dimension === 'responsibilities' ? 'Responsibilities' : 
+                           'Culture & Environment'}
+                        </span>
+                        <span className="text-base font-semibold text-[#232323]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                          {dim.score}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-[#E5E5E5] rounded-full h-2 mb-3">
+                        <div
+                          className="bg-[#232323] h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${dim.score}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-sm text-[#6F6F6F] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                        {dim.comment}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Strengths vs Role */}
             {analysis.strengths && analysis.strengths.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm p-8">
