@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
     const docBuffer = await generateWordDocument(tailoredResume);
 
     // Return the .docx file
-    return new NextResponse(docBuffer, {
+    return new NextResponse(new Uint8Array(docBuffer), {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'Content-Disposition': 'attachment; filename="sage-tailored-resume.docx"',
@@ -325,8 +325,12 @@ async function generateWordDocument(resume: TailoredResumeData): Promise<Buffer>
                 if (item.dates) {
                   sectionParagraphs.push(
                     new Paragraph({
-                      text: item.dates,
-                      italics: true,
+                      children: [
+                        new TextRun({
+                          text: item.dates,
+                          italics: true,
+                        }),
+                      ],
                       spacing: {
                         after: 120,
                       },
