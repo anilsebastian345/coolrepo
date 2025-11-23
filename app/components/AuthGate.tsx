@@ -96,8 +96,8 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Show redirecting message if unauthenticated
-  if (sessionStatus === 'unauthenticated') {
+  // Show redirecting message if unauthenticated and not in guest mode
+  if (sessionStatus === 'unauthenticated' && !isGuestMode) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
         <div className="text-center">
@@ -107,8 +107,13 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // For authenticated users on auth-only routes, render immediately
+  // For authenticated users OR guest mode on auth-only routes, render immediately
   if (pathname && AUTH_ONLY_ROUTES.includes(pathname)) {
+    return <>{children}</>;
+  }
+
+  // If in guest mode, allow access to all pages
+  if (isGuestMode) {
     return <>{children}</>;
   }
 
