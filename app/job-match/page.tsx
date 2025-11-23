@@ -116,6 +116,8 @@ export default function RoleFitAnalysisPage() {
   const [analysis, setAnalysis] = useState<JobMatchAnalysis | null>(null);
   const [careerDirections, setCareerDirections] = useState<CareerDirectionRecommendation[]>([]);
   const [copiedBulletIndex, setCopiedBulletIndex] = useState<number | null>(null);
+  const [generatingResume, setGeneratingResume] = useState(false);
+  const [resumeError, setResumeError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!profileLoading && userProfile?.careerStage && userProfile?.careerPreferences) {
@@ -207,7 +209,65 @@ export default function RoleFitAnalysisPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  if (profileLoading || loading) {
+  const handleGenerateTailoredResume = async () => {
+    if (!userProfile?.resumeText || !jobDescription.trim()) {
+      setResumeError('Resume text and job description are required');
+      return;
+    }
+
+    setGeneratingResume(true);
+    setResumeError(null);
+
+    try {
+      const response = await fetch('/api/tailored-resume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jobDescription: jobDescription.trim(),
+          resumeText: userProfile.resumeText,
+          downloadDocx: true,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || 'Failed to generate tailored resume');
+      }
+
+      // Download the .docx file
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'sage-tailored-resume.docx';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      // Show success (simple alert for now, could be a toast)
+      alert('Tailored resume downloaded successfully!');
+    } catch (err) {
+      console.error('Error generating tailored resume:', err);
+      setResumeError(err instanceof Error ? err.message : 'Failed to generate tailored resume');
+    } finally {
+      setGeneratingResume(false);
+    }
+  };
+
+  if (profileLoading || loading || generatingResume) {
+    if (generatingResume) {
+      return (
+        <AnalysisLoader
+          title="Creating a tailored resume…"
+          messages={[
+            "Rewriting your bullets to match this role.",
+            "Reordering sections based on relevance.",
+            "Preparing a Word document you can edit."
+          ]}
+        />
+      );
+    }
     if (loading) {
       return (
         <AnalysisLoader
@@ -567,6 +627,33 @@ export default function RoleFitAnalysisPage() {
                 </div>
               </div>
             )}
+
+            {/* Tailored Resume Generation */}
+            <div className="bg-white rounded-2xl shadow-sm p-8">
+              <h2 className="text-xl font-semibold text-[#232323] mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                Tailored resume for this role
+              </h2>
+              <p className="text-sm text-[#6F6F6F] mb-6" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                Sage will reorganize and rewrite your existing resume to better match this job description — without adding anything that isn't true.
+              </p>
+              
+              {resumeError && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-700" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    {resumeError}
+                  </p>
+                </div>
+              )}
+
+              <button
+                onClick={handleGenerateTailoredResume}
+                disabled={generatingResume || !userProfile?.resumeText}
+                className="w-full px-6 py-3 bg-[#7F915F] text-white font-medium rounded-lg hover:bg-[#6A7F4F] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors shadow-sm"
+                style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+              >
+                {generatingResume ? 'Generating tailored resume...' : 'Generate tailored resume'}
+              </button>
+            </div>
 
             {/* Action Buttons */}
             <div className="flex gap-4 pt-4">
