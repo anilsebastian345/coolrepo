@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useUserProfile } from '../hooks/useUserProfile';
@@ -16,6 +16,15 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   const { userProfile, isLoading: profileLoading, error } = useUserProfile();
   const router = useRouter();
   const pathname = usePathname();
+  const [isGuestMode, setIsGuestMode] = useState(false);
+
+  // Check for guest mode on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const guestMode = localStorage.getItem('guestMode');
+      setIsGuestMode(guestMode === 'true');
+    }
+  }, []);
 
   useEffect(() => {
     // Allow public routes without any checks
@@ -28,8 +37,13 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // If not authenticated and trying to access protected route, redirect to home
-    if (sessionStatus === 'unauthenticated') {
+    // If guest mode is active, allow access to onboarding pages
+    if (isGuestMode && pathname && AUTH_ONLY_ROUTES.includes(pathname)) {
+      return;
+    }
+
+    // If not authenticated and not in guest mode, redirect to home
+    if (sessionStatus === 'unauthenticated' && !isGuestMode) {
       router.push('/');
       return;
     }
@@ -63,7 +77,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
         // to allow users to see the welcome page and choose where to go
       }
     }
-  }, [sessionStatus, profileLoading, userProfile, error, router, pathname]);
+  }, [sessionStatus, profileLoading, userProfile, error, router, pathname, isGuestMode]);
 
   // Allow public routes to render immediately
   if (pathname && PUBLIC_ROUTES.includes(pathname)) {
