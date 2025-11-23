@@ -24,7 +24,7 @@ function TopNav({ activeTab }: { activeTab: string }) {
     { id: 'profile', label: 'Profile', href: '/profile' },
     { id: 'career', label: 'Career Map', href: '/career-map' },
     { id: 'resume', label: 'Resume Intel', href: '/resume-intel' },
-    { id: 'jobmatch', label: 'Job Match', href: '/job-match' },
+    { id: 'rolefit', label: 'Role Fit', href: '/job-match' },
   ];
 
   useEffect(() => {

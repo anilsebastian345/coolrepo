@@ -45,7 +45,7 @@ function TopNav({ activeTab, firstName }: { activeTab: string; firstName?: strin
     { id: 'profile', label: 'Profile', href: '/profile' },
     { id: 'career', label: 'Career Map', href: '/career-map' },
     { id: 'resume', label: 'Resume Intel', href: '/resume-intel' },
-    { id: 'jobmatch', label: 'Job Match', href: '/job-match' },
+    { id: 'rolefit', label: 'Role Fit', href: '/job-match' },
   ];
 
   // Close dropdown when clicking outside
