@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signOut, useSession } from 'next-auth/react';
 import { useUserProfile } from '@/app/hooks/useUserProfile';
@@ -9,6 +9,8 @@ import { JobMatchAnalysis } from '@/app/types/jobMatch';
 import { CareerDirectionRecommendation } from '@/app/types/careerDirections';
 import { getCareerDirectionRecommendations } from '@/lib/careerDirections';
 import AnalysisLoader from '@/app/components/AnalysisLoader';
+import RoleFitHistoryTab from '@/app/components/RoleFitHistoryTab';
+import { saveRoleFitAnalysis } from '@/lib/roleFitHistory';
 
 function TopNav({ activeTab }: { activeTab: string }) {
   const router = useRouter();
@@ -107,7 +109,10 @@ function TopNav({ activeTab }: { activeTab: string }) {
 
 export default function RoleFitAnalysisPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { data: session } = useSession();
   const { userProfile, isLoading: profileLoading } = useUserProfile();
+  const [activeTab, setActiveTab] = useState<'analysis' | 'history'>('analysis');
   const [jobTitle, setJobTitle] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [useProfileData, setUseProfileData] = useState(true);
@@ -116,6 +121,14 @@ export default function RoleFitAnalysisPage() {
   const [analysis, setAnalysis] = useState<JobMatchAnalysis | null>(null);
   const [careerDirections, setCareerDirections] = useState<CareerDirectionRecommendation[]>([]);
   const [copiedBulletIndex, setCopiedBulletIndex] = useState<number | null>(null);
+
+  // Check URL params for tab selection
+  useEffect(() => {
+    const tab = searchParams?.get('tab');
+    if (tab === 'history') {
+      setActiveTab('history');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!profileLoading && userProfile?.careerStage && userProfile?.careerPreferences) {
@@ -173,6 +186,21 @@ export default function RoleFitAnalysisPage() {
 
       const data = await response.json();
       setAnalysis(data.analysis);
+      
+      // Save to history if user is authenticated
+      if (session?.user?.email && data.analysis) {
+        try {
+          await saveRoleFitAnalysis(
+            session.user.email,
+            jobTitle.trim() || null,
+            jobDescription.trim(),
+            data.analysis
+          );
+        } catch (historyErr) {
+          console.error('Failed to save to history:', historyErr);
+          // Don't fail the whole analysis if history save fails
+        }
+      }
     } catch (err) {
       console.error('Error analyzing role fit:', err);
       setError(err instanceof Error ? err.message : 'Failed to analyze role fit');
@@ -207,6 +235,18 @@ export default function RoleFitAnalysisPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleLoadFromHistory = (
+    historyAnalysis: JobMatchAnalysis,
+    title: string,
+    description: string
+  ) => {
+    setAnalysis(historyAnalysis);
+    setJobTitle(title);
+    setJobDescription(description);
+    setActiveTab('analysis');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   if (profileLoading || loading) {
     if (loading) {
       return (
@@ -236,18 +276,47 @@ export default function RoleFitAnalysisPage() {
 
       <div className="max-w-[880px] mx-auto px-6 py-12">
         {/* Header */}
-        <div className="mb-12 text-center">
+        <div className="mb-8 text-center">
           <h1 className="text-3xl font-semibold text-[#232323] mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-            Role Fit Analysis
+            Role Fit
           </h1>
           <p className="text-base text-[#6F6F6F]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-            See how you align with any role and where to focus before applying.
+            Analyze how you align with specific roles and see patterns across all the jobs you've explored.
           </p>
         </div>
 
-        {/* Input Form (shown when no analysis) */}
-        {!analysis && (
-          <div className="bg-white rounded-2xl shadow-sm p-8 mb-8 animate-fade-in-up">
+        {/* Tab Switcher */}
+        <div className="flex justify-center gap-1 mb-8 bg-white rounded-xl p-1 shadow-sm max-w-md mx-auto">
+          <button
+            onClick={() => setActiveTab('analysis')}
+            className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all ${
+              activeTab === 'analysis'
+                ? 'bg-[#7F915F] text-white shadow-sm'
+                : 'text-[#6F6F6F] hover:bg-[#FAFAF6]'
+            }`}
+            style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+          >
+            New Analysis
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all ${
+              activeTab === 'history'
+                ? 'bg-[#7F915F] text-white shadow-sm'
+                : 'text-[#6F6F6F] hover:bg-[#FAFAF6]'
+            }`}
+            style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+          >
+            History & Insights
+          </button>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'analysis' ? (
+          <>
+            {/* Input Form (shown when no analysis) */}
+            {!analysis && (
+              <div className="bg-white rounded-2xl shadow-sm p-8 mb-8 animate-fade-in-up">
             <h2 className="text-xl font-semibold text-[#232323] mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
               Paste a job description to analyze your fit
             </h2>
@@ -587,6 +656,14 @@ export default function RoleFitAnalysisPage() {
             </div>
           </div>
         )}
+      </>
+      ) : (
+        /* History & Insights Tab */
+        <RoleFitHistoryTab 
+          userId={session?.user?.email || 'guest'} 
+          onLoadAnalysis={handleLoadFromHistory}
+        />
+      )}
       </div>
     </div>
   );

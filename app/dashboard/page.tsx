@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signOut, useSession } from 'next-auth/react';
 import { useUserProfile } from "../hooks/useUserProfile";
+import RecentRolesWidget from "../components/RecentRolesWidget";
 
 interface ProfileData {
   title?: string;
@@ -647,6 +648,13 @@ export default function DashboardPage() {
             <FeatureTile key={feature.title} {...feature} />
           ))}
         </div>
+
+        {/* Recent Roles Widget */}
+        {hasProfile && (hasResume || hasLinkedIn) && (
+          <div className="mb-12">
+            <RecentRolesWidget />
+          </div>
+        )}
 
         {/* Onboarding Prompt if no profile */}
         {!hasProfile && (
