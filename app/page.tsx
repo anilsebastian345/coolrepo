@@ -33,8 +33,8 @@ export default function Home() {
     setIsLoading(true);
     localStorage.setItem('userName', 'Guest User');
     localStorage.setItem('guestMode', 'true');
-    // Use window.location for a hard navigation to ensure clean state
-    window.location.href = '/onboarding/questions';
+    // Use router.push instead of window.location for better navigation
+    router.push('/preview-onboarding');
   };
 
   // If user is already signed in, redirect based on profile existence
