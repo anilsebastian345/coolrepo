@@ -10,7 +10,6 @@ import { CareerDirectionRecommendation } from '@/app/types/careerDirections';
 import { getCareerDirectionRecommendations } from '@/lib/careerDirections';
 import AnalysisLoader from '@/app/components/AnalysisLoader';
 import RoleFitHistoryTab from '@/app/components/RoleFitHistoryTab';
-import { saveRoleFitAnalysis } from '@/lib/roleFitHistory';
 
 function TopNav({ activeTab }: { activeTab: string }) {
   const router = useRouter();
@@ -187,19 +186,20 @@ export default function RoleFitAnalysisPage() {
       const data = await response.json();
       setAnalysis(data.analysis);
       
-      // Save to history if user is authenticated
-      if (session?.user?.email && data.analysis) {
-        try {
-          await saveRoleFitAnalysis(
-            session.user.email,
-            jobTitle.trim() || null,
-            jobDescription.trim(),
-            data.analysis
-          );
-        } catch (historyErr) {
-          console.error('Failed to save to history:', historyErr);
-          // Don't fail the whole analysis if history save fails
-        }
+      // Save to history via API
+      try {
+        await fetch('/api/save-role-fit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jobTitle: jobTitle.trim() || null,
+            jobDescription: jobDescription.trim(),
+            analysis: data.analysis,
+          }),
+        });
+      } catch (historyErr) {
+        console.error('Failed to save to history:', historyErr);
+        // Don't fail the whole analysis if history save fails
       }
     } catch (err) {
       console.error('Error analyzing role fit:', err);
