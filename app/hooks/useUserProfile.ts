@@ -49,10 +49,32 @@ export function useUserProfile(): UseUserProfileReturn {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isGuestMode, setIsGuestMode] = useState(false);
+
+  // Check for guest mode on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsGuestMode(localStorage.getItem('guestMode') === 'true');
+    }
+  }, []);
 
   const fetchProfile = async () => {
-    // Don't fetch if not authenticated
-    if (sessionStatus !== 'authenticated') {
+    // If authenticated, clear any guest mode flags (fixes bug where guest flags persist after Google sign-in)
+    if (sessionStatus === 'authenticated' && typeof window !== 'undefined') {
+      const hadGuestMode = localStorage.getItem('guestMode') === 'true';
+      if (hadGuestMode) {
+        console.log('Clearing guest mode flags - user is now authenticated');
+        localStorage.removeItem('guestMode');
+        localStorage.removeItem('userName');
+        setIsGuestMode(false);
+      }
+    }
+    
+    // Check if user is in guest mode (only if not authenticated)
+    const guestMode = sessionStatus !== 'authenticated' && typeof window !== 'undefined' && localStorage.getItem('guestMode') === 'true';
+    
+    // Don't fetch if not authenticated AND not in guest mode
+    if (sessionStatus !== 'authenticated' && !guestMode) {
       setIsLoading(false);
       return;
     }
@@ -87,7 +109,7 @@ export function useUserProfile(): UseUserProfileReturn {
     }
     
     fetchProfile();
-  }, [sessionStatus]);
+  }, [sessionStatus, isGuestMode]);
 
   return {
     userProfile,

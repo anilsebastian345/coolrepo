@@ -26,6 +26,19 @@ export default function Home() {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
+    // Clear any guest mode flags and onboarding data before signing in
+    localStorage.removeItem('guestMode');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('onboarding_psych_profile');
+    localStorage.removeItem('onboarding_questions');
+    localStorage.removeItem('onboarding_questions_completed');
+    localStorage.removeItem('onboarding_resume_text');
+    localStorage.removeItem('onboarding_resume_uploaded');
+    localStorage.removeItem('onboarding_resume_data');
+    localStorage.removeItem('onboarding_linkedin_complete');
+    localStorage.removeItem('onboarding_linkedin_text');
+    localStorage.removeItem('onboarding_linkedin_data');
+    localStorage.removeItem('onboarding_career_stage');
     await signIn('google');
   };
 
@@ -37,19 +50,26 @@ export default function Home() {
     router.push('/preview-onboarding');
   };
 
-  // If user is already signed in, redirect based on profile existence
+  // If user is already signed in, check server-side profile
   useEffect(() => {
     if (session) {
-      // Check if user has a psychographic profile
-      const hasProfile = typeof window !== 'undefined' && localStorage.getItem('onboarding_psych_profile');
-      
-      if (hasProfile) {
-        // Returning user with profile - go to dashboard
-        router.push('/dashboard');
-      } else {
-        // New user without profile - go to onboarding
-        router.push('/preview-onboarding');
-      }
+      // Fetch user profile from server to check if onboarding is complete
+      fetch('/api/me')
+        .then(res => res.json())
+        .then(data => {
+          if (data.onboardingComplete) {
+            // Returning user with profile - go to dashboard
+            router.push('/dashboard');
+          } else {
+            // New user without profile - go to onboarding
+            router.push('/preview-onboarding');
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching profile:', err);
+          // On error, default to onboarding
+          router.push('/preview-onboarding');
+        });
     }
   }, [session, router]);
 

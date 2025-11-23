@@ -18,13 +18,21 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isGuestMode, setIsGuestMode] = useState(false);
 
-  // Check for guest mode on mount
+  // Check for guest mode on mount and clear if authenticated
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const guestMode = localStorage.getItem('guestMode');
-      setIsGuestMode(guestMode === 'true');
+      // If user is authenticated, clear any guest mode flags
+      if (sessionStatus === 'authenticated' && guestMode === 'true') {
+        console.log('Clearing guest mode - user is authenticated');
+        localStorage.removeItem('guestMode');
+        localStorage.removeItem('userName');
+        setIsGuestMode(false);
+      } else if (sessionStatus === 'unauthenticated') {
+        setIsGuestMode(guestMode === 'true');
+      }
     }
-  }, []);
+  }, [sessionStatus]);
 
   useEffect(() => {
     // Allow public routes without any checks
