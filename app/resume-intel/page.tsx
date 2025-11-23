@@ -119,6 +119,18 @@ export default function ResumeIntelPage() {
   const [copiedSummary, setCopiedSummary] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [lastResumeHash, setLastResumeHash] = useState<string | null>(null);
+
+  // Simple hash function for resume text
+  const hashResume = (text: string) => {
+    let hash = 0;
+    for (let i = 0; i < text.length; i++) {
+      const char = text.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return hash.toString();
+  };
 
   useEffect(() => {
     if (profileLoading) return;
@@ -128,6 +140,13 @@ export default function ResumeIntelPage() {
 
     if (!userProfile?.resumeText) {
       setError('No resume found. Please upload your resume first.');
+      return;
+    }
+
+    // Check if resume has changed
+    const currentHash = hashResume(userProfile.resumeText);
+    if (lastResumeHash === currentHash && review) {
+      console.log('Resume unchanged, using existing review');
       return;
     }
 
@@ -170,6 +189,7 @@ export default function ResumeIntelPage() {
         const data = await response.json();
         console.log('Received review data:', data);
         setReview(data.review);
+        setLastResumeHash(currentHash);
       } catch (err) {
         console.error('Error fetching review:', err);
         setError(err instanceof Error ? err.message : 'Failed to load resume review');
@@ -179,7 +199,7 @@ export default function ResumeIntelPage() {
     };
 
     fetchReview();
-  }, [userProfile, profileLoading]);
+  }, [userProfile?.resumeText, profileLoading]);
 
   const copyToClipboard = async (text: string, index?: number) => {
     try {
