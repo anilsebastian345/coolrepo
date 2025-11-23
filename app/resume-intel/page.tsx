@@ -119,7 +119,6 @@ export default function ResumeIntelPage() {
   const [copiedSummary, setCopiedSummary] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [lastResumeHash, setLastResumeHash] = useState<string | null>(null);
 
   // Simple hash function for resume text
   const hashResume = (text: string) => {
@@ -132,6 +131,21 @@ export default function ResumeIntelPage() {
     return hash.toString();
   };
 
+  // Load cached review from sessionStorage on mount
+  useEffect(() => {
+    try {
+      const cached = sessionStorage.getItem('resume-intel-cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        setReview(parsed.review);
+        setCareerDirections(parsed.directions || []);
+        console.log('Loaded review from sessionStorage');
+      }
+    } catch (err) {
+      console.warn('Failed to load cached review:', err);
+    }
+  }, []);
+
   useEffect(() => {
     if (profileLoading) return;
 
@@ -143,11 +157,24 @@ export default function ResumeIntelPage() {
       return;
     }
 
-    // Check if resume has changed
+    // Check if we already have a cached review and resume hasn't changed
     const currentHash = hashResume(userProfile.resumeText);
-    if (lastResumeHash === currentHash && review) {
-      console.log('Resume unchanged, using existing review');
-      return;
+    const cachedData = sessionStorage.getItem('resume-intel-cache');
+    
+    if (cachedData) {
+      try {
+        const parsed = JSON.parse(cachedData);
+        if (parsed.hash === currentHash && parsed.review) {
+          console.log('Using cached review, resume unchanged');
+          if (!review) {
+            setReview(parsed.review);
+            setCareerDirections(parsed.directions || []);
+          }
+          return;
+        }
+      } catch (err) {
+        console.warn('Cache validation failed:', err);
+      }
     }
 
     const fetchReview = async () => {
@@ -189,7 +216,20 @@ export default function ResumeIntelPage() {
         const data = await response.json();
         console.log('Received review data:', data);
         setReview(data.review);
-        setLastResumeHash(currentHash);
+        setCareerDirections(directions);
+        
+        // Cache in sessionStorage
+        try {
+          sessionStorage.setItem('resume-intel-cache', JSON.stringify({
+            hash: currentHash,
+            review: data.review,
+            directions: directions,
+            timestamp: Date.now()
+          }));
+          console.log('Cached review in sessionStorage');
+        } catch (cacheErr) {
+          console.warn('Failed to cache review:', cacheErr);
+        }
       } catch (err) {
         console.error('Error fetching review:', err);
         setError(err instanceof Error ? err.message : 'Failed to load resume review');
