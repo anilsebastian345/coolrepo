@@ -333,61 +333,6 @@ export default function PreviewOnboarding() {
       setResumeUploaded(true);
       setResumeInfo({ fileName: result.fileName, uploadedAt: new Date().toISOString() });
       setResumeModalOpen(false);
-      
-      // Automatically generate profile after resume upload
-      console.log('Resume uploaded successfully, triggering profile generation...');
-      
-      // Get userId from /api/me
-      let userId = 'temp-user-id';
-      try {
-        const meResponse = await fetch('/api/me');
-        if (meResponse.ok) {
-          const meData = await meResponse.json();
-          if (meData.userId) {
-            userId = meData.userId;
-          }
-        }
-      } catch (e) {
-        console.log('Could not fetch user, using temp-user-id');
-      }
-      
-      // Call generate-profile API
-      try {
-        console.log('[PROFILE GEN] Calling /api/generate-profile with userId:', userId);
-        console.log('[PROFILE GEN] Resume text length:', result.fullText?.length);
-        
-        const genResponse = await fetch('/api/generate-profile', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: userId,
-            questions: {},
-            linkedin: null,
-            resume: result.fullText,
-            careerStageUserSelected: undefined
-          }),
-        });
-        
-        console.log('[PROFILE GEN] Response status:', genResponse.status);
-        
-        if (genResponse.ok) {
-          const genData = await genResponse.json();
-          console.log('[PROFILE GEN] Profile generated successfully', genData);
-          
-          // Small delay to ensure cache is written
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          // Redirect to dashboard after successful generation
-          router.push('/dashboard');
-        } else {
-          const errorData = await genResponse.json();
-          console.error('[PROFILE GEN] Failed:', errorData);
-          alert('Profile generation failed. Please try again.');
-        }
-      } catch (e) {
-        console.error('[PROFILE GEN] Error:', e);
-        console.log('Profile generation failed, but resume is uploaded');
-      }
     } catch (error) {
       console.error('=== FRONTEND UPLOAD ERROR ===');
       console.error('Upload error:', error);
