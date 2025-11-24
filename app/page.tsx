@@ -47,7 +47,13 @@ export default function Home() {
   };
 
   // If user is already signed in, check server-side profile
+  // But ONLY redirect from the landing page itself
   useEffect(() => {
+    // Only run redirect logic if we're actually on the landing page
+    // (not if this component accidentally renders elsewhere)
+    if (typeof window === 'undefined') return;
+    if (window.location.pathname !== '/') return;
+    
     if (session) {
       // Fetch user profile from server to check if onboarding is complete
       fetch('/api/me')
