@@ -28,47 +28,53 @@ export default async function Image() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: 40,
+            marginBottom: 60,
           }}
         >
           <div
             style={{
-              width: 200,
-              height: 200,
+              width: 280,
+              height: 280,
               borderRadius: '50%',
               background: 'white',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
             }}
           >
-            <svg
-              width="120"
-              height="120"
-              viewBox="0 0 64 64"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
-              <path d="M32 18 L32 46 M18 32 L46 32" stroke="#55613b" strokeWidth="6" strokeLinecap="round" />
-            </svg>
+              <div style={{ width: 160, height: 20, background: '#55613b', borderRadius: 10 }} />
+              <div style={{ width: 20, height: 160, background: '#55613b', borderRadius: 10, marginTop: -90 }} />
+            </div>
           </div>
         </div>
         <div
           style={{
-            fontSize: 72,
-            fontWeight: 'bold',
+            fontSize: 96,
+            fontWeight: 900,
             color: 'white',
             textAlign: 'center',
+            letterSpacing: '-0.02em',
           }}
         >
           Sage AI Coach
         </div>
         <div
           style={{
-            fontSize: 32,
-            color: 'rgba(255, 255, 255, 0.9)',
+            fontSize: 42,
+            fontWeight: 500,
+            color: 'rgba(255, 255, 255, 0.95)',
             textAlign: 'center',
             marginTop: 20,
+            letterSpacing: '-0.01em',
           }}
         >
           Your personalized AI career coaching assistant
