@@ -322,11 +322,6 @@ export default function DashboardPage() {
       console.log('Loading dashboard from server profile');
       setProfile(userProfile.psychographicProfile);
       setHasProfile(true);
-      
-      const extractedName = extractFirstNameFromTitle(userProfile.psychographicProfile.title);
-      if (extractedName) {
-        setFirstName(extractedName);
-      }
       return;
     }
     
@@ -339,11 +334,6 @@ export default function DashboardPage() {
           const parsed = JSON.parse(profileJson);
           setProfile(parsed);
           setHasProfile(true);
-          
-          const extractedName = extractFirstNameFromTitle(parsed.title);
-          if (extractedName) {
-            setFirstName(extractedName);
-          }
         } catch (e) {
           console.error('Error parsing profile:', e);
         }

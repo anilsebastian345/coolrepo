@@ -75,12 +75,6 @@ export default function ProfileInsightsPage() {
         try {
           const parsed = JSON.parse(profileJson);
           setProfile(parsed);
-          
-          // Extract name from title with validation
-          const extractedName = extractFirstNameFromTitle(parsed.title);
-          if (extractedName) {
-            setUserName(extractedName);
-          }
         } catch (e) {
           console.error('Error parsing profile:', e);
           router.push('/dashboard');
