@@ -35,6 +35,7 @@ export interface UserProfile {
   psychographicProfile?: any;
   resumeText?: string;
   linkedInSummary?: string;
+  questions?: any;
 }
 
 interface UseUserProfileReturn {
