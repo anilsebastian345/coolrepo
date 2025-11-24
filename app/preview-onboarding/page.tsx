@@ -209,10 +209,11 @@ export default function PreviewOnboarding() {
       
       // Check if user has questions data
       if (userProfile.questions) {
-        const questionCount = Object.keys(userProfile.questions).filter(key => 
-          userProfile.questions[key] !== null && 
-          userProfile.questions[key] !== undefined &&
-          userProfile.questions[key] !== ''
+        const questions = userProfile.questions as Record<string, any>;
+        const questionCount = Object.keys(questions).filter(key => 
+          questions[key] !== null && 
+          questions[key] !== undefined &&
+          questions[key] !== ''
         ).length;
         setQuestionsProgress(questionCount);
         if (questionCount >= 5) {
