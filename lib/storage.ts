@@ -15,6 +15,7 @@ export interface UserProfileData {
   careerPreferences?: any;
   careerPreferencesCompleted?: boolean;
   last_updated?: string;
+  extractedName?: string;
 }
 
 const PROFILE_PREFIX = 'profile:';

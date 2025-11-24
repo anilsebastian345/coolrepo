@@ -97,7 +97,7 @@ export async function GET(req: NextRequest) {
       profileData = {
         userId,
         email: userEmail,
-        name: userName,
+        name: cachedProfile.extractedName || userName,
         onboardingComplete: cachedProfile.onboardingComplete || false,
         summary: cachedProfile.profile || undefined,
         last_updated: cachedProfile.timestamp 

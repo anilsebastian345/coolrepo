@@ -4,6 +4,7 @@ const RESUME_PARSING_PROMPT = `You are an expert resume parser. Analyze the foll
 
 Extract the following information in JSON format:
 {
+  "name": "<full name of the person, extracted from the resume header or contact section>",
   "yearsExperience": <number of years of professional experience, calculated from work history>,
   "roleCount": <number of distinct jobs/roles held>,
   "titles": [<array of job titles found in the resume>],
@@ -12,6 +13,7 @@ Extract the following information in JSON format:
 }
 
 Important guidelines:
+- For name: Extract the full name from the resume header or contact information section. Return null if not found.
 - For yearsExperience: Calculate based on work history dates. If dates are unclear, estimate conservatively.
 - For roleCount: Count distinct positions/roles, not employers.
 - For titles: Extract exact job titles as written.
@@ -87,6 +89,7 @@ export async function extractCareerSignalsFromResume(resumeText: string): Promis
 
     // Validate and sanitize the response
     const signals: ResumeSignals = {
+      name: typeof parsed.name === 'string' ? parsed.name : null,
       yearsExperience: typeof parsed.yearsExperience === 'number' ? parsed.yearsExperience : null,
       roleCount: typeof parsed.roleCount === 'number' ? parsed.roleCount : null,
       titles: Array.isArray(parsed.titles) ? parsed.titles.filter((t: any) => typeof t === 'string') : [],

@@ -270,7 +270,8 @@ ${resumeSignals.titles.length > 0 ? `Job titles: ${resumeSignals.titles.join(', 
               careerStage: careerStage || existingProfile.careerStage,
               resumeText: resumeData || existingProfile.resumeText,
               linkedInSummary: linkedinData || existingProfile.linkedInSummary,
-              questions: questions || existingProfile.questions
+              questions: questions || existingProfile.questions,
+              extractedName: resumeSignals?.name || existingProfile.extractedName
             };
             await saveUserProfile(userId, updatedProfile);
             
@@ -326,7 +327,8 @@ ${resumeSignals.titles.length > 0 ? `Job titles: ${resumeSignals.titles.join(', 
         careerStage: careerStage || existingProfile.careerStage,
         resumeText: resumeData || existingProfile.resumeText,
         linkedInSummary: linkedinData || existingProfile.linkedInSummary,
-        questions: questions || existingProfile.questions
+        questions: questions || existingProfile.questions,
+        extractedName: resumeSignals?.name || existingProfile.extractedName
       };
       await saveUserProfile(userId, updatedProfile);
       

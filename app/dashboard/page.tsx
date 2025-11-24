@@ -35,6 +35,29 @@ interface ProfileData {
   suggested_focus?: string;
 }
 
+const extractFirstNameFromTitle = (title?: string) => {
+  if (!title) {
+    return null;
+  }
+
+  const nameMatch = title.match(/^🧠\s*(.+?)\s*–/);
+  if (!nameMatch) {
+    return null;
+  }
+
+  const candidate = nameMatch[1].trim();
+  if (!candidate) {
+    return null;
+  }
+
+  const parts = candidate.split(/\s+/);
+  if (parts.length < 2) {
+    return null;
+  }
+
+  return parts[0];
+};
+
 function TopNav({ activeTab, firstName }: { activeTab: string; firstName?: string }) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -236,6 +259,7 @@ function FeatureTile({ title, subtitle, icon, href, available }: FeatureTileProp
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const { userProfile, isLoading } = useUserProfile();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [firstName, setFirstName] = useState('');
@@ -263,6 +287,29 @@ export default function DashboardPage() {
   }, [userProfile]);
 
   useEffect(() => {
+    if (firstName) {
+      return;
+    }
+
+    if (userProfile?.name) {
+      setFirstName(userProfile.name.split(' ')[0]);
+      return;
+    }
+
+    if (session?.user?.name) {
+      setFirstName(session.user.name.split(' ')[0]);
+      return;
+    }
+
+    if (typeof window !== 'undefined') {
+      const storedName = localStorage.getItem('userName');
+      if (storedName) {
+        setFirstName(storedName.split(' ')[0]);
+      }
+    }
+  }, [firstName, session, userProfile?.name]);
+
+  useEffect(() => {
     console.log('Dashboard state:', {
       hasResume,
       hasLinkedIn,
@@ -278,14 +325,9 @@ export default function DashboardPage() {
       setProfile(userProfile.psychographicProfile);
       setHasProfile(true);
       
-      // Extract first name from title (format: "🧠 John Doe – Executive Psychographic Profile")
-      if (userProfile.psychographicProfile.title) {
-        const nameMatch = userProfile.psychographicProfile.title.match(/^🧠\s*(.+?)\s*–/);
-        if (nameMatch) {
-          const fullName = nameMatch[1].trim();
-          const firstNameExtract = fullName.split(' ')[0];
-          setFirstName(firstNameExtract);
-        }
+      const extractedName = extractFirstNameFromTitle(userProfile.psychographicProfile.title);
+      if (extractedName) {
+        setFirstName(extractedName);
       }
       return;
     }
@@ -300,14 +342,9 @@ export default function DashboardPage() {
           setProfile(parsed);
           setHasProfile(true);
           
-          // Extract first name from title (format: "🧠 John Doe – Executive Psychographic Profile")
-          if (parsed.title) {
-            const nameMatch = parsed.title.match(/^🧠\s*(.+?)\s*–/);
-            if (nameMatch) {
-              const fullName = nameMatch[1].trim();
-              const firstNameExtract = fullName.split(' ')[0];
-              setFirstName(firstNameExtract);
-            }
+          const extractedName = extractFirstNameFromTitle(parsed.title);
+          if (extractedName) {
+            setFirstName(extractedName);
           }
         } catch (e) {
           console.error('Error parsing profile:', e);

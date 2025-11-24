@@ -9,6 +9,7 @@ export type CareerStage =
 export type CareerStageUserSelected = CareerStage | 'prefer_not_to_say';
 
 export interface ResumeSignals {
+  name: string | null;
   yearsExperience: number | null;
   roleCount: number | null;
   titles: string[];
@@ -542,6 +543,7 @@ export function getCareerStageLabel(stage: CareerStage): string {
  */
 export function createEmptyResumeSignals(): ResumeSignals {
   return {
+    name: null,
     yearsExperience: null,
     roleCount: null,
     titles: [],
