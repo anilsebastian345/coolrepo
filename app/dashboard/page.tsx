@@ -272,7 +272,25 @@ export default function DashboardPage() {
   }, [hasResume, hasLinkedIn, hasProfile, isLoading]);
 
   useEffect(() => {
-    // Load profile and extract data
+    // Priority 1: Load profile from userProfile (server-side, for authenticated users)
+    if (userProfile?.psychographicProfile) {
+      console.log('Loading dashboard from server profile');
+      setProfile(userProfile.psychographicProfile);
+      setHasProfile(true);
+      
+      // Extract first name from title (format: "🧠 John Doe – Executive Psychographic Profile")
+      if (userProfile.psychographicProfile.title) {
+        const nameMatch = userProfile.psychographicProfile.title.match(/^🧠\s*(.+?)\s*–/);
+        if (nameMatch) {
+          const fullName = nameMatch[1].trim();
+          const firstNameExtract = fullName.split(' ')[0];
+          setFirstName(firstNameExtract);
+        }
+      }
+      return;
+    }
+    
+    // Priority 2: Fallback to localStorage (for guest users)
     if (typeof window !== 'undefined') {
       const profileJson = localStorage.getItem('onboarding_psych_profile');
       
@@ -296,7 +314,7 @@ export default function DashboardPage() {
         }
       }
     }
-  }, []);
+  }, [userProfile]);
 
   // Extract bullet points for profile snapshot
   const getProfileBullets = () => {

@@ -196,7 +196,56 @@ export default function PreviewOnboarding() {
   const [careerStage, setCareerStage] = useState<CareerStageUserSelected | null>(null);
   const [showCareerStageModal, setShowCareerStageModal] = useState(false);
   
+  
   useEffect(() => {
+    // Priority 1: Check server-side userProfile data (for authenticated/returning users)
+    if (userProfile) {
+      console.log('Loading onboarding state from server profile:', userProfile);
+      
+      // Check if user has LinkedIn data
+      if (userProfile.linkedInSummary && userProfile.linkedInSummary.length > 0) {
+        setLinkedinProgress(1);
+      }
+      
+      // Check if user has questions data
+      if (userProfile.questions) {
+        const questionCount = Object.keys(userProfile.questions).filter(key => 
+          userProfile.questions[key] !== null && 
+          userProfile.questions[key] !== undefined &&
+          userProfile.questions[key] !== ''
+        ).length;
+        setQuestionsProgress(questionCount);
+        if (questionCount >= 5) {
+          setQuestionsCompleted(true);
+        }
+      }
+      
+      // Check if user has resume data
+      if (userProfile.resumeText && userProfile.resumeText.length > 0) {
+        setResumeUploaded(true);
+        // Try to get resume info from localStorage, fallback to default
+        try {
+          const resumeInfoData = localStorage.getItem('onboarding_resume_data');
+          if (resumeInfoData) {
+            const parsed = JSON.parse(resumeInfoData);
+            setResumeInfo({ fileName: parsed.fileName, uploadedAt: parsed.uploadedAt });
+          } else {
+            setResumeInfo({ fileName: 'resume.pdf', uploadedAt: new Date().toISOString() });
+          }
+        } catch {
+          setResumeInfo({ fileName: 'resume.pdf', uploadedAt: new Date().toISOString() });
+        }
+      }
+      
+      // Check career stage
+      if (userProfile.careerStageUserSelected) {
+        setCareerStage(userProfile.careerStageUserSelected);
+      }
+      
+      return; // Skip localStorage checks if we have server data
+    }
+    
+    // Priority 2: Fallback to localStorage (for guest users or initial load)
     if (typeof window !== 'undefined') {
       // Check LinkedIn PDF upload
       const linkedinComplete = localStorage.getItem('onboarding_linkedin_complete');
@@ -243,7 +292,7 @@ export default function PreviewOnboarding() {
         setCareerStage(savedCareerStage as CareerStageUserSelected);
       }
     }
-  }, []);
+  }, [userProfile]);
 
   async function handleFileUploadModal(file: File) {
     console.log('=== FRONTEND UPLOAD START ===');
