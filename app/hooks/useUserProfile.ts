@@ -60,13 +60,24 @@ export function useUserProfile(): UseUserProfileReturn {
   }, []);
 
   const fetchProfile = async () => {
-    // If authenticated, clear any guest mode flags (fixes bug where guest flags persist after Google sign-in)
+    // If authenticated, clear ALL guest/onboarding localStorage (fixes bug where guest data persists after sign-in)
     if (sessionStatus === 'authenticated' && typeof window !== 'undefined') {
       const hadGuestMode = localStorage.getItem('guestMode') === 'true';
       if (hadGuestMode) {
-        console.log('Clearing guest mode flags - user is now authenticated');
+        console.log('Clearing all guest mode data - user is now authenticated');
+        // Clear all onboarding and guest-related keys
         localStorage.removeItem('guestMode');
         localStorage.removeItem('userName');
+        localStorage.removeItem('onboarding_psych_profile');
+        localStorage.removeItem('onboarding_questions');
+        localStorage.removeItem('onboarding_questions_completed');
+        localStorage.removeItem('onboarding_resume_text');
+        localStorage.removeItem('onboarding_resume_uploaded');
+        localStorage.removeItem('onboarding_resume_data');
+        localStorage.removeItem('onboarding_linkedin_complete');
+        localStorage.removeItem('onboarding_linkedin_text');
+        localStorage.removeItem('onboarding_linkedin_data');
+        localStorage.removeItem('onboarding_career_stage');
         setIsGuestMode(false);
       }
     }

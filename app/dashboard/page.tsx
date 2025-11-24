@@ -317,7 +317,7 @@ export default function DashboardPage() {
   }, [hasResume, hasLinkedIn, hasProfile, isLoading]);
 
   useEffect(() => {
-    // Priority 1: Load profile from userProfile (server-side, for authenticated users)
+    // Load profile from userProfile (server-side)
     if (userProfile?.psychographicProfile) {
       console.log('Loading dashboard from server profile');
       setProfile(userProfile.psychographicProfile);
@@ -325,8 +325,8 @@ export default function DashboardPage() {
       return;
     }
     
-    // Priority 2: Fallback to localStorage (for guest users)
-    if (typeof window !== 'undefined') {
+    // For guest users only: fallback to localStorage
+    if (typeof window !== 'undefined' && !session) {
       const profileJson = localStorage.getItem('onboarding_psych_profile');
       
       if (profileJson) {
@@ -339,7 +339,7 @@ export default function DashboardPage() {
         }
       }
     }
-  }, [userProfile]);
+  }, [userProfile, session]);
 
   // Extract bullet points for profile snapshot
   const getProfileBullets = () => {

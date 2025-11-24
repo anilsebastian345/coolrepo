@@ -67,8 +67,15 @@ export default function ProfileInsightsPage() {
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
-    // Load profile from localStorage
-    if (typeof window !== 'undefined') {
+    // Load profile from userProfile (server-side)
+    if (userProfile?.psychographicProfile) {
+      console.log('Loading profile from server');
+      setProfile(userProfile.psychographicProfile);
+      return;
+    }
+    
+    // For guest users only: fallback to localStorage
+    if (typeof window !== 'undefined' && !session) {
       const profileJson = localStorage.getItem('onboarding_psych_profile');
       
       if (profileJson) {
@@ -84,7 +91,7 @@ export default function ProfileInsightsPage() {
         router.push('/dashboard');
       }
     }
-  }, [router]);
+  }, [router, userProfile, session]);
 
   useEffect(() => {
     if (userName) {
