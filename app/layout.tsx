@@ -16,6 +16,20 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Sage AI Coach",
   description: "Your personalized AI career coaching assistant",
+  metadataBase: new URL('https://sage-aicoach.vercel.app'),
+  openGraph: {
+    title: "Sage AI Coach",
+    description: "Your personalized AI career coaching assistant",
+    url: 'https://sage-aicoach.vercel.app',
+    siteName: 'Sage AI Coach',
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Sage AI Coach',
+    description: 'Your personalized AI career coaching assistant',
+  },
   icons: {
     icon: [
       {
