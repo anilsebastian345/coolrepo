@@ -80,9 +80,9 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-[#F8F7F1] flex flex-col items-center justify-center px-4">
         <div className="flex flex-col items-center space-y-4">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#A8C686] to-[#7C9151] flex items-center justify-center shadow-md animate-pulse">
-            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#7A8E50] to-[#55613b] flex items-center justify-center shadow-md animate-pulse">
+            <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
+              <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"/>
             </svg>
           </div>
           <p className="text-sm text-[#4A4A4A]">Loading...</p>
@@ -99,9 +99,9 @@ export default function Home() {
         <div className="max-w-[560px] mx-auto text-center space-y-8 animate-fade-in">
           {/* Logo Circle */}
           <div className="flex justify-center mb-6">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#A8C686] to-[#7C9151] flex items-center justify-center shadow-md">
-              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#7A8E50] to-[#55613b] flex items-center justify-center shadow-md">
+              <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
+                <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"/>
               </svg>
             </div>
           </div>
