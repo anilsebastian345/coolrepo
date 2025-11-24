@@ -11,12 +11,12 @@ import { getCareerDirectionRecommendations } from '@/lib/careerDirections';
 import AnalysisLoader from '@/app/components/AnalysisLoader';
 import RoleFitHistoryTab from '@/app/components/RoleFitHistoryTab';
 
-function TopNav({ activeTab }: { activeTab: string }) {
+function TopNav({ activeTab, displayName }: { activeTab: string; displayName: string }) {
   const router = useRouter();
   const { data: session } = useSession();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
+  
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', href: '/dashboard' },
     { id: 'profile', label: 'Profile', href: '/profile' },
@@ -33,11 +33,7 @@ function TopNav({ activeTab }: { activeTab: string }) {
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const displayName = session?.user?.name?.split(' ')[0] || 'User';
-
-  return (
+  }, []);  return (
     <nav className="bg-white border-b border-[#E5E5E5] sticky top-0 z-40 shadow-sm">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
@@ -135,6 +131,9 @@ export default function RoleFitAnalysisPage() {
   const [analysis, setAnalysis] = useState<JobMatchAnalysis | null>(null);
   const [careerDirections, setCareerDirections] = useState<CareerDirectionRecommendation[]>([]);
   const [copiedBulletIndex, setCopiedBulletIndex] = useState<number | null>(null);
+
+  // Derive display name
+  const displayName = session?.user?.name?.split(' ')[0] || userProfile?.name?.split(' ')[0] || 'Guest User';
 
   // Check URL params for tab selection
   useEffect(() => {
@@ -287,7 +286,7 @@ export default function RoleFitAnalysisPage() {
 
   return (
     <div className="min-h-screen bg-[#FAFAF6]">
-      <TopNav activeTab="rolefit" />
+      <TopNav activeTab="rolefit" displayName={displayName} />
 
       <div className="max-w-[880px] mx-auto px-6 py-12">
         {/* Header */}

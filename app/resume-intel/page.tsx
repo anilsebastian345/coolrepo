@@ -13,7 +13,7 @@ import ExportPDFModal from '@/app/components/ExportPDFModal';
 import { ExportSections } from '@/app/types/pdfExport';
 import { generateReportPDF } from '@/lib/pdfGenerator';
 
-function TopNav({ activeTab }: { activeTab: string }) {
+function TopNav({ activeTab, displayName }: { activeTab: string; displayName: string }) {
   const router = useRouter();
   const { data: session } = useSession();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
@@ -36,8 +36,6 @@ function TopNav({ activeTab }: { activeTab: string }) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const displayName = session?.user?.name?.split(' ')[0] || 'User';
 
   return (
     <nav className="bg-white border-b border-[#E5E5E5] sticky top-0 z-40 shadow-sm">
@@ -125,6 +123,7 @@ function TopNav({ activeTab }: { activeTab: string }) {
 
 export default function ResumeIntelPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const { userProfile, isLoading: profileLoading } = useUserProfile();
   const [review, setReview] = useState<ResumeReview | null>(null);
   const [careerDirections, setCareerDirections] = useState<CareerDirectionRecommendation[]>([]);
@@ -134,6 +133,9 @@ export default function ResumeIntelPage() {
   const [copiedSummary, setCopiedSummary] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+
+  // Derive display name
+  const displayName = session?.user?.name?.split(' ')[0] || userProfile?.name?.split(' ')[0] || 'Guest User';
 
   // Simple hash function for resume text
   const hashResume = (text: string) => {
@@ -336,7 +338,7 @@ export default function ResumeIntelPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-[#FAFAF6]">
-        <TopNav activeTab="resume" />
+        <TopNav activeTab="resume" displayName={displayName} />
         <div className="max-w-6xl mx-auto px-6 py-12">
           <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
             <h2 className="text-xl font-semibold text-red-900 mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Error</h2>
@@ -358,7 +360,7 @@ export default function ResumeIntelPage() {
 
   return (
     <div className="min-h-screen bg-[#FAFAF6]">
-      <TopNav activeTab="resume" />
+      <TopNav activeTab="resume" displayName={displayName} />
       
       <div className="max-w-6xl mx-auto px-6 py-12">
         <div className="mb-12 text-center">

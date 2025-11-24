@@ -147,7 +147,7 @@ export default function CareerDirectionMapView({
     );
   }
 
-  const displayName = session?.user?.name?.split(' ')[0] || 'User';
+  const displayName = session?.user?.name?.split(' ')[0] || userProfile?.name?.split(' ')[0] || 'Guest User';
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', href: '/dashboard' },
     { id: 'profile', label: 'Profile', href: '/profile' },

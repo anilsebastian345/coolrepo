@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useSession } from 'next-auth/react';
+import { useUserProfile } from "../hooks/useUserProfile";
 
 interface ProfileData {
   title?: string;
@@ -32,8 +34,33 @@ interface ProfileData {
   suggested_focus?: string;
 }
 
+const extractFirstNameFromTitle = (title?: string) => {
+  if (!title) {
+    return null;
+  }
+
+  const nameMatch = title.match(/^🧠\s*(.+?)\s*–/);
+  if (!nameMatch) {
+    return null;
+  }
+
+  const candidate = nameMatch[1].trim();
+  if (!candidate) {
+    return null;
+  }
+
+  const parts = candidate.split(/\s+/);
+  if (parts.length < 2) {
+    return null;
+  }
+
+  return candidate;
+};
+
 export default function ProfileInsightsPage() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const { userProfile } = useUserProfile();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [userName, setUserName] = useState('');
   const [visibleCards, setVisibleCards] = useState<Set<number>>(new Set());
@@ -49,12 +76,10 @@ export default function ProfileInsightsPage() {
           const parsed = JSON.parse(profileJson);
           setProfile(parsed);
           
-          // Extract name from title
-          if (parsed.title) {
-            const nameMatch = parsed.title.match(/^🧠\s*(.+?)\s*–/);
-            if (nameMatch) {
-              setUserName(nameMatch[1].trim());
-            }
+          // Extract name from title with validation
+          const extractedName = extractFirstNameFromTitle(parsed.title);
+          if (extractedName) {
+            setUserName(extractedName);
           }
         } catch (e) {
           console.error('Error parsing profile:', e);
@@ -66,6 +91,27 @@ export default function ProfileInsightsPage() {
       }
     }
   }, [router]);
+
+  useEffect(() => {
+    if (userName) {
+      return;
+    }
+
+    // Authenticated users: always use session name
+    if (session?.user?.name) {
+      setUserName(session.user.name);
+      return;
+    }
+
+    // Guest users: use extracted name from resume/LinkedIn or 'Guest User'
+    if (userProfile?.name) {
+      setUserName(userProfile.name);
+      return;
+    }
+
+    // Final fallback for guests
+    setUserName('Guest User');
+  }, [userName, session?.user?.name, userProfile?.name]);
 
   // Intersection Observer for scroll animations
   useEffect(() => {

@@ -291,23 +291,21 @@ export default function DashboardPage() {
       return;
     }
 
-    if (userProfile?.name) {
-      setFirstName(userProfile.name.split(' ')[0]);
-      return;
-    }
-
+    // Authenticated users: always use session name
     if (session?.user?.name) {
       setFirstName(session.user.name.split(' ')[0]);
       return;
     }
 
-    if (typeof window !== 'undefined') {
-      const storedName = localStorage.getItem('userName');
-      if (storedName) {
-        setFirstName(storedName.split(' ')[0]);
-      }
+    // Guest users: use extracted name from resume/LinkedIn or 'Guest User'
+    if (userProfile?.name) {
+      setFirstName(userProfile.name.split(' ')[0]);
+      return;
     }
-  }, [firstName, session, userProfile?.name]);
+
+    // Final fallback for guests
+    setFirstName('Guest User');
+  }, [firstName, session?.user?.name, userProfile?.name]);
 
   useEffect(() => {
     console.log('Dashboard state:', {
