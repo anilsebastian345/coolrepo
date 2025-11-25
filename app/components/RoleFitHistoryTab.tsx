@@ -241,49 +241,63 @@ export default function RoleFitHistoryTab({ userId, onLoadAnalysis }: RoleFitHis
             </p>
           </div>
 
-          {/* Right: Gap Focus Panel */}
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-gray-900 mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+          {/* Right: Where to focus next */}
+          <div className="flex-1 space-y-3">
+            <h3
+              className="text-sm font-semibold text-[#232323]"
+              style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+            >
               Where to focus next
-            </p>
-            
+            </h3>
+
             {isGapPanelLoading ? (
-              /* Loading skeleton */
-              <div className="mt-3 space-y-3 animate-pulse">
+              // Skeleton while insights are loading
+              <div className="mt-1 space-y-3 animate-pulse">
                 <div className="h-3 bg-gray-200 rounded w-3/4" />
-                <div className="h-2 bg-gray-100 rounded w-5/6" />
-                <div className="h-2 bg-gray-100 rounded w-2/3" />
-                <div className="h-3 bg-gray-200 rounded w-4/5 mt-4" />
-                <div className="h-2 bg-gray-100 rounded w-3/4" />
-                <div className="h-2 bg-gray-100 rounded w-1/2" />
-                <div className="h-3 bg-gray-200 rounded w-2/3 mt-4" />
-                <div className="h-2 bg-gray-100 rounded w-4/5" />
-                <div className="h-2 bg-gray-100 rounded w-3/5" />
+                <div className="h-3 bg-gray-200 rounded w-5/6" />
+                <div className="h-3 bg-gray-200 rounded w-2/3" />
+                <div className="h-3 bg-gray-200 rounded w-4/5" />
+                <div className="h-3 bg-gray-200 rounded w-1/2" />
               </div>
             ) : (
-              /* Actual gap content */
-              <div className="mt-3 space-y-4">
-                {topGaps.map((gap, idx) => (
-                  <div 
-                    key={idx} 
-                    className="pt-4 border-t border-gray-100 first:pt-0 first:border-t-0"
-                  >
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold text-gray-900" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                        {truncateGapText(gap)}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-0.5" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                        This pattern appears across multiple roles you've analyzed.
-                      </p>
-                      {gapSuggestions[idx] && (
-                        <p className="text-xs text-gray-700 mt-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                          <span className="font-semibold">Next step:</span> {getFirstSentence(gapSuggestions[idx])}
+              insights &&
+              topGaps.length > 0 && (
+                <div className="mt-1 space-y-4">
+                  {topGaps.map((gap, idx) => {
+                    const title = truncateGapText(gap, 80);
+                    const rawSuggestion = gapSuggestions[idx];
+                    const firstSentence = rawSuggestion ? getFirstSentence(rawSuggestion) : '';
+
+                    return (
+                      <div
+                        key={idx}
+                        className="pt-3 border-t border-gray-100 first:pt-0 first:border-t-0 space-y-1"
+                      >
+                        <p
+                          className="text-sm font-semibold text-gray-900"
+                          style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                        >
+                          {title}
                         </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                        <p
+                          className="text-xs text-gray-500"
+                          style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                        >
+                          This pattern appears across multiple roles you've analyzed.
+                        </p>
+                        {firstSentence && (
+                          <p
+                            className="text-xs text-gray-700"
+                            style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                          >
+                            <span className="font-medium">Next step:</span> {firstSentence}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )
             )}
           </div>
         </div>
