@@ -417,10 +417,6 @@ export default function DashboardPage() {
         {/* BAND 1: TODAY AT A GLANCE */}
         {profile && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
-            <h2 className="text-xs uppercase tracking-wider text-gray-500 font-medium mb-4" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-              Today at a glance
-            </h2>
-
             {/* Condensed Profile Snapshot */}
             <div className="pb-6 mb-6 border-b border-gray-100">
               <div className="flex items-start justify-between mb-4">
@@ -439,9 +435,9 @@ export default function DashboardPage() {
                 </button>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-3 gap-6">
                 {/* Left Column: Profile Overview */}
-                <div>
+                <div className="col-span-2">
                   <h3 className="text-xl font-bold text-[#232323] mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
                     {profile.core_theme || profile.archetype || 'Your Career Profile'}
                   </h3>
@@ -473,7 +469,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Right Column: Strengths & Blind Spots */}
-                <div className="space-y-4">
+                <div className="col-span-1 space-y-4">
                   {/* Top Strengths */}
                   {profile.strength_signatures && profile.strength_signatures.length > 0 && (
                     <div className="bg-green-50 rounded-lg p-4 border border-green-200">
