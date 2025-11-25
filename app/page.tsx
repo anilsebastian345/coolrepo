@@ -133,7 +133,7 @@ export default function Home() {
             <button
               onClick={handleGoogleSignIn}
               disabled={isLoading}
-              className="w-full md:w-72 py-3 px-6 bg-white border border-gray-200 rounded-full text-[#222222] font-medium flex items-center justify-center gap-3 shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#7C9151]"
+              className="w-full md:w-72 py-3 px-6 bg-[#7A8E50] text-white rounded-full font-semibold flex items-center justify-center gap-3 shadow-md hover:bg-[#55613b] hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#7A8E50]"
               type="button"
             >
               <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
@@ -148,7 +148,7 @@ export default function Home() {
             <button
               onClick={handleGuestSignIn}
               disabled={isLoading}
-              className="w-full md:w-72 py-3 px-6 bg-transparent border-2 border-[#7C9151] rounded-full text-[#7C9151] font-medium hover:bg-[#7C9151] hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#7C9151]"
+              className="w-full md:w-72 py-3 px-6 bg-white border border-gray-300 rounded-full text-[#4A4A4A] font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-400"
               type="button"
             >
               <span className="text-[15px]">Continue as Guest</span>
