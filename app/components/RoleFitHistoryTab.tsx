@@ -58,6 +58,9 @@ export default function RoleFitHistoryTab({ userId, onLoadAnalysis }: RoleFitHis
   const [showFullPatterns, setShowFullPatterns] = useState(false);
   const [showAllSuggestions, setShowAllSuggestions] = useState(false);
   
+  // Hover state for gap items
+  const [hoveredGapIndex, setHoveredGapIndex] = useState<number | null>(null);
+  
   // Refs for scrolling
   const fullHistoryRef = useRef<HTMLDivElement>(null);
   const fullPatternsRef = useRef<HTMLDivElement>(null);
@@ -282,20 +285,21 @@ export default function RoleFitHistoryTab({ userId, onLoadAnalysis }: RoleFitHis
               topGaps.length > 0 && (
                 <div className="mt-1 space-y-4">
                   {topGaps.map((gap, idx) => {
-                    const title = truncateGapText(gap, 70);
                     const rawSuggestion = gapSuggestions[idx];
-                    const actionSentence = rawSuggestion ? getActionSentence(rawSuggestion, 100) : '';
+                    const isHovered = hoveredGapIndex === idx;
 
                     return (
                       <div
                         key={idx}
-                        className="pt-3 border-t border-gray-100 first:pt-0 first:border-t-0"
+                        className="pt-3 border-t border-gray-100 first:pt-0 first:border-t-0 transition-all duration-200"
+                        onMouseEnter={() => setHoveredGapIndex(idx)}
+                        onMouseLeave={() => setHoveredGapIndex(null)}
                       >
                         <p
                           className="text-sm font-semibold text-gray-900 leading-tight"
                           style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
                         >
-                          {title}
+                          {gap}
                         </p>
                         <p
                           className="text-xs text-gray-500 mt-1 leading-relaxed"
@@ -303,13 +307,20 @@ export default function RoleFitHistoryTab({ userId, onLoadAnalysis }: RoleFitHis
                         >
                           This pattern appears across multiple roles you've analyzed.
                         </p>
-                        {actionSentence && (
-                          <p
-                            className="text-xs text-gray-700 mt-1 leading-relaxed"
-                            style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                        {rawSuggestion && (
+                          <div 
+                            className="overflow-hidden transition-all duration-300"
+                            style={{ 
+                              maxHeight: isHovered ? '500px' : '3rem',
+                            }}
                           >
-                            <span className="font-medium">Next step:</span> {actionSentence}
-                          </p>
+                            <p
+                              className="text-xs text-gray-700 mt-1 leading-relaxed"
+                              style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                            >
+                              <span className="font-medium">Next step:</span> {rawSuggestion}
+                            </p>
+                          </div>
                         )}
                       </div>
                     );
