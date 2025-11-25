@@ -430,20 +430,46 @@ export default function DashboardPage() {
                 <h3 className="text-xl font-bold text-[#232323] mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
                   {profile.core_theme || profile.archetype || 'Your Career Profile'}
                 </h3>
-                <p className="text-sm text-[#4A4A4A] mb-4 leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                <p className="text-sm text-[#4A4A4A] mb-3 leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
                   {profile.summary 
-                    ? (profile.summary.split('.').slice(0, 1).join('.') + '.')
+                    ? (profile.summary.split('.').slice(0, 2).join('.') + '.')
                     : (profile.leadership_style || profile.cognitive_style || '')}
                 </p>
+                
+                {/* Key Traits Grid */}
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  {profile.core_drives_and_values && (
+                    <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                      <p className="text-xs text-gray-500 font-medium mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Core drives</p>
+                      <p className="text-xs text-gray-800 leading-tight" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                        {profile.core_drives_and_values.split('.')[0] + '.'}
+                      </p>
+                    </div>
+                  )}
+                  {profile.cognitive_style && (
+                    <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                      <p className="text-xs text-gray-500 font-medium mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>How you think</p>
+                      <p className="text-xs text-gray-800 leading-tight" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                        {profile.cognitive_style.split('.')[0] + '.'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Strengths & Risks Row */}
                 <div className="flex flex-wrap gap-2">
                   {profile.strength_signatures && profile.strength_signatures.length > 0 && (
-                    <div className="px-3 py-1 bg-green-50 border border-green-200 rounded-full text-xs font-medium text-green-800" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                      ✓ Top strength: {profile.strength_signatures[0].trait}
-                    </div>
+                    <>
+                      {profile.strength_signatures.slice(0, 2).map((strength, idx) => (
+                        <div key={idx} className="px-3 py-1 bg-green-50 border border-green-200 rounded-full text-xs font-medium text-green-800" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                          ✓ {strength.trait}
+                        </div>
+                      ))}
+                    </>
                   )}
                   {profile.latent_risks_and_blind_spots && profile.latent_risks_and_blind_spots.length > 0 && (
                     <div className="px-3 py-1 bg-amber-50 border border-amber-200 rounded-full text-xs font-medium text-amber-800" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                      ⚠ Watch out for: {profile.latent_risks_and_blind_spots[0].pattern}
+                      ⚠ {profile.latent_risks_and_blind_spots[0].pattern}
                     </div>
                   )}
                 </div>
