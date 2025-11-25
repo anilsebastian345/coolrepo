@@ -13,20 +13,12 @@ import { CareerStageUserSelected } from "@/lib/careerStage";
 function SageLogo() {
   return (
     <Link href="/" className="flex flex-col items-center mb-6 hover:scale-105 transition-transform duration-200">
-      <div className="relative w-16 h-16 flex items-center justify-center rounded-full shadow-xl bg-white/30 border border-white/40 backdrop-blur-md animate-profile-pop">
-        {/* Inner gradient circle */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#8a9a5b] to-[#55613b] flex items-center justify-center shadow-md">
-          {/* Plus sign - sharp, no glow */}
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
-            <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"/>
-          </svg>
-        </div>
-        {/* Yellow dot - smaller, between circles */}
-        <div className="absolute" style={{ top: '14%', right: '14%' }}>
-          <div className="w-2 h-2 rounded-full bg-[#ffd700] shadow" />
-        </div>
+      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#7A8E50] to-[#55613b] flex items-center justify-center shadow-md">
+        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+          <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"/>
+        </svg>
       </div>
-      <h1 className="mt-4 text-lg text-[#7a7a7a] font-normal font-sans" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>Sage</h1>
+      <h1 className="mt-4 text-lg text-[#7A8E50] font-semibold" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Sage</h1>
     </Link>
   );
 }
