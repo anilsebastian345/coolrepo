@@ -36,9 +36,16 @@ export default function Home() {
 
   const handleGuestSignIn = () => {
     setIsLoading(true);
-    localStorage.setItem('userName', 'Guest User');
-    localStorage.setItem('guestMode', 'true');
-    router.push('/preview-onboarding');
+    // Set guest mode in localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('userName', 'Guest User');
+      localStorage.setItem('guestMode', 'true');
+      console.log('Guest mode enabled, redirecting to onboarding');
+    }
+    // Small delay to ensure localStorage is written
+    setTimeout(() => {
+      router.push('/preview-onboarding');
+    }, 100);
   };
 
   const scrollToNextSection = () => {
