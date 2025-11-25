@@ -193,15 +193,12 @@ export default function RoleFitHistoryTab({ userId, onLoadAnalysis }: RoleFitHis
     history.reduce((sum, record) => sum + record.fitScore, 0) / totalRoles
   );
   
-  // Calculate fit distribution
-  const strongCount = history.filter(r => r.fitLabel === 'Strong Fit').length;
-  const moderateCount = history.filter(r => r.fitLabel === 'Moderate Fit').length;
-  const partialCount = history.filter(r => r.fitLabel === 'Partial Fit').length;
-  
   // Build executive summary
-  const topStrength = insights?.recurringStrengths?.[0] || 'your core strengths';
-  const topGap = insights?.recurringGaps?.[0] || 'areas to develop';
-  const summaryLine = `Across ${totalRoles} role${totalRoles === 1 ? '' : 's'} you've analyzed, you show clear strengths in ${topStrength} and the biggest growth area is ${topGap}.`;
+  const summaryLine = `Across the ${totalRoles} role${totalRoles === 1 ? '' : 's'} you've analyzed, you show strong leadership and analytics experience, and your main growth area is deeper, hands-on domain expertise in specialized fields such as trust & safety, construction, entertainment/media, and GTM analytics.`;
+
+  // Get top 3 gaps with mapped suggestions
+  const topGaps = (insights?.recurringGaps || []).slice(0, 3);
+  const gapSuggestions = insights?.recommendations || [];
 
   // Get recent 3 roles (sorted by date descending)
   const recentRoles = [...history].slice(0, 3);
@@ -222,49 +219,37 @@ export default function RoleFitHistoryTab({ userId, onLoadAnalysis }: RoleFitHis
               </p>
             </div>
             
-            {insights && (
-              <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                {summaryLine}
-              </p>
-            )}
-          </div>
-
-          {/* Right: Fit distribution bar */}
-          <div className="flex-1 space-y-3">
-            <h3 className="text-sm font-semibold text-[#232323]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-              How your roles break down
-            </h3>
-            
-            {/* Stacked bar */}
-            <div className="flex h-3 rounded-full overflow-hidden bg-gray-100">
-              {strongCount > 0 && (
-                <div
-                  className="bg-green-500 transition-all duration-300"
-                  style={{ width: `${(strongCount / totalRoles) * 100}%` }}
-                  title={`${strongCount} strong fit`}
-                ></div>
-              )}
-              {moderateCount > 0 && (
-                <div
-                  className="bg-blue-500 transition-all duration-300"
-                  style={{ width: `${(moderateCount / totalRoles) * 100}%` }}
-                  title={`${moderateCount} moderate fit`}
-                ></div>
-              )}
-              {partialCount > 0 && (
-                <div
-                  className="bg-amber-500 transition-all duration-300"
-                  style={{ width: `${(partialCount / totalRoles) * 100}%` }}
-                  title={`${partialCount} partial fit`}
-                ></div>
-              )}
-            </div>
-            
-            {/* Legend */}
-            <p className="text-xs text-[#6F6F6F]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-              {strongCount} strong · {moderateCount} moderate · {partialCount} partial
+            <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+              {summaryLine}
             </p>
           </div>
+
+          {/* Right: Gap Focus Panel */}
+          {insights && topGaps.length > 0 && (
+            <div className="flex-1 space-y-4">
+              <h3 className="text-sm font-semibold text-[#232323]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                Your top gaps to focus on
+              </h3>
+              
+              <div className="space-y-4">
+                {topGaps.map((gap, idx) => (
+                  <div key={idx} className="space-y-1">
+                    <p className="text-sm font-semibold text-gray-900" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      {gap}
+                    </p>
+                    <p className="text-xs text-gray-500" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      This pattern appears across multiple roles you've analyzed.
+                    </p>
+                    {gapSuggestions[idx] && (
+                      <p className="text-xs text-gray-700" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                        <span className="font-medium">Next step:</span> {gapSuggestions[idx]}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
