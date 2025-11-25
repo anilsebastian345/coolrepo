@@ -203,18 +203,32 @@ export default function RoleFitHistoryTab({ userId, onLoadAnalysis }: RoleFitHis
   // Loading state for gap panel
   const isGapPanelLoading = insightsLoading || !insights || topGaps.length === 0;
   
-  // Helper to truncate gap text to short label
-  const truncateGapText = (text: string, maxLength = 80) => {
+  // Helper to truncate gap text to short label (one line)
+  const truncateGapText = (text: string, maxLength = 70) => {
+    if (!text) return '';
+    // Take first sentence if it exists and is short enough
+    const firstSentenceMatch = text.match(/^[^.!?]+[.!?]/);
+    if (firstSentenceMatch && firstSentenceMatch[0].length <= maxLength) {
+      return firstSentenceMatch[0];
+    }
+    // Otherwise truncate at word boundary
     if (text.length <= maxLength) return text;
     const truncated = text.substring(0, maxLength);
     const lastSpace = truncated.lastIndexOf(' ');
     return (lastSpace > 0 ? truncated.substring(0, lastSpace) : truncated) + '…';
   };
   
-  // Helper to get first sentence from suggestion
-  const getFirstSentence = (text: string) => {
+  // Helper to get clean action sentence from suggestion
+  const getActionSentence = (text: string, maxLength = 100) => {
+    if (!text) return '';
+    // Get first complete sentence
     const match = text.match(/^[^.!?]+[.!?]/);
-    return match ? match[0] : text;
+    const sentence = match ? match[0] : text;
+    // Truncate if still too long
+    if (sentence.length <= maxLength) return sentence;
+    const truncated = sentence.substring(0, maxLength);
+    const lastSpace = truncated.lastIndexOf(' ');
+    return (lastSpace > 0 ? truncated.substring(0, lastSpace) : truncated) + '…';
   };
 
   // Get recent 3 roles (sorted by date descending)
@@ -254,43 +268,47 @@ export default function RoleFitHistoryTab({ userId, onLoadAnalysis }: RoleFitHis
               // Skeleton while insights are loading
               <div className="mt-1 space-y-3 animate-pulse">
                 <div className="h-3 bg-gray-200 rounded w-3/4" />
-                <div className="h-3 bg-gray-200 rounded w-5/6" />
-                <div className="h-3 bg-gray-200 rounded w-2/3" />
-                <div className="h-3 bg-gray-200 rounded w-4/5" />
-                <div className="h-3 bg-gray-200 rounded w-1/2" />
+                <div className="h-2.5 bg-gray-100 rounded w-5/6" />
+                <div className="h-2.5 bg-gray-100 rounded w-2/3" />
+                <div className="h-3 bg-gray-200 rounded w-4/5 mt-4" />
+                <div className="h-2.5 bg-gray-100 rounded w-3/4" />
+                <div className="h-2.5 bg-gray-100 rounded w-1/2" />
+                <div className="h-3 bg-gray-200 rounded w-2/3 mt-4" />
+                <div className="h-2.5 bg-gray-100 rounded w-4/5" />
+                <div className="h-2.5 bg-gray-100 rounded w-3/5" />
               </div>
             ) : (
               insights &&
               topGaps.length > 0 && (
                 <div className="mt-1 space-y-4">
                   {topGaps.map((gap, idx) => {
-                    const title = truncateGapText(gap, 80);
+                    const title = truncateGapText(gap, 70);
                     const rawSuggestion = gapSuggestions[idx];
-                    const firstSentence = rawSuggestion ? getFirstSentence(rawSuggestion) : '';
+                    const actionSentence = rawSuggestion ? getActionSentence(rawSuggestion, 100) : '';
 
                     return (
                       <div
                         key={idx}
-                        className="pt-3 border-t border-gray-100 first:pt-0 first:border-t-0 space-y-1"
+                        className="pt-3 border-t border-gray-100 first:pt-0 first:border-t-0"
                       >
                         <p
-                          className="text-sm font-semibold text-gray-900"
+                          className="text-sm font-semibold text-gray-900 leading-tight"
                           style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
                         >
                           {title}
                         </p>
                         <p
-                          className="text-xs text-gray-500"
+                          className="text-xs text-gray-500 mt-1 leading-relaxed"
                           style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
                         >
                           This pattern appears across multiple roles you've analyzed.
                         </p>
-                        {firstSentence && (
+                        {actionSentence && (
                           <p
-                            className="text-xs text-gray-700"
+                            className="text-xs text-gray-700 mt-1 leading-relaxed"
                             style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
                           >
-                            <span className="font-medium">Next step:</span> {firstSentence}
+                            <span className="font-medium">Next step:</span> {actionSentence}
                           </p>
                         )}
                       </div>
