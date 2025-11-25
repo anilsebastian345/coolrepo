@@ -122,7 +122,7 @@ export default function RoleFitAnalysisPage() {
   const searchParams = useSearchParams();
   const { data: session } = useSession();
   const { userProfile, isLoading: profileLoading } = useUserProfile();
-  const [activeTab, setActiveTab] = useState<'analysis' | 'history'>('analysis');
+  const [activeTab, setActiveTab] = useState<'analysis' | 'insights'>('analysis');
   const [jobTitle, setJobTitle] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [useProfileData, setUseProfileData] = useState(true);
@@ -138,8 +138,8 @@ export default function RoleFitAnalysisPage() {
   // Check URL params for tab selection
   useEffect(() => {
     const tab = searchParams?.get('tab');
-    if (tab === 'history') {
-      setActiveTab('history');
+    if (tab === 'insights' || tab === 'history') {
+      setActiveTab('insights');
     }
   }, [searchParams]);
 
@@ -300,10 +300,10 @@ export default function RoleFitAnalysisPage() {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex justify-center gap-1 mb-8 bg-white rounded-xl p-1 shadow-sm max-w-md mx-auto">
+        <div className="flex justify-center gap-1 mb-6 bg-white rounded-full p-1 shadow-sm max-w-md mx-auto border border-[#E5E5E5]">
           <button
             onClick={() => setActiveTab('analysis')}
-            className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all ${
+            className={`flex-1 px-6 py-3 rounded-full font-medium transition-all ${
               activeTab === 'analysis'
                 ? 'bg-[#7F915F] text-white shadow-sm'
                 : 'text-[#6F6F6F] hover:bg-[#FAFAF6]'
@@ -313,15 +313,44 @@ export default function RoleFitAnalysisPage() {
             New Analysis
           </button>
           <button
-            onClick={() => setActiveTab('history')}
-            className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all ${
-              activeTab === 'history'
+            onClick={() => setActiveTab('insights')}
+            className={`flex-1 px-6 py-3 rounded-full font-medium transition-all ${
+              activeTab === 'insights'
                 ? 'bg-[#7F915F] text-white shadow-sm'
                 : 'text-[#6F6F6F] hover:bg-[#FAFAF6]'
             }`}
             style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
           >
-            History & Insights
+            Insights & Patterns
+          </button>
+        </div>
+
+        {/* Micro-banner */}
+        <div className="mt-4 mb-8 flex items-center justify-between gap-3 rounded-xl bg-[#f4f5eb] px-5 py-3 border border-[#e5e8dc]">
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#7F915F]/10 flex items-center justify-center">
+              <svg className="w-4 h-4 text-[#7F915F]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-[#7F915F] uppercase tracking-wide mb-0.5" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                Did you know?
+              </p>
+              <p className="text-sm text-[#4A4A4A]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                Sage remembers every role you analyze and reveals trends over time.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setActiveTab('insights')}
+            className="flex-shrink-0 text-sm font-medium text-[#7F915F] hover:text-[#6A7F4F] transition-colors flex items-center gap-1"
+            style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+          >
+            View insights
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
           </button>
         </div>
 
@@ -672,7 +701,7 @@ export default function RoleFitAnalysisPage() {
         )}
       </>
       ) : (
-        /* History & Insights Tab */
+        /* Insights & Patterns Tab */
         <RoleFitHistoryTab 
           userId={session?.user?.email || 'guest'} 
           onLoadAnalysis={handleLoadFromHistory}

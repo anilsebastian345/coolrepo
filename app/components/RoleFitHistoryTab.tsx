@@ -150,8 +150,56 @@ export default function RoleFitHistoryTab({ userId, onLoadAnalysis }: RoleFitHis
     );
   }
 
+  // Calculate metrics from history
+  const totalRoles = history.length;
+  const averageFitScore = Math.round(
+    history.reduce((sum, record) => sum + record.fitScore, 0) / totalRoles
+  );
+  
+  // Build executive summary
+  const strongestTheme = insights?.recurringStrengths?.[0] || 'your core strengths';
+  const weakestTheme = insights?.recurringGaps?.[0] || 'areas to develop';
+  const summaryLine = `Based on ${totalRoles} role${totalRoles === 1 ? '' : 's'} you've analyzed, you're consistently strongest in ${strongestTheme}, and you should focus on improving ${weakestTheme}.`;
+
   return (
     <div className="space-y-8">
+      {/* Executive Summary Card */}
+      {history.length >= 3 && insights && (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#7F915F]/10 flex items-center justify-center">
+              <svg className="w-5 h-5 text-[#7F915F]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-xs font-semibold text-[#7F915F] uppercase tracking-wide mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                INSIGHTS & PATTERNS
+              </p>
+              <p className="text-base text-[#232323] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                {summaryLine}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Metrics Chips Row */}
+      <div className="flex flex-wrap gap-2">
+        <span className="inline-flex items-center px-4 py-2 rounded-full bg-[#f4f5eb] text-sm font-medium text-gray-800 border border-[#e5e8dc]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+          <svg className="w-4 h-4 mr-2 text-[#7F915F]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          {totalRoles} role{totalRoles === 1 ? '' : 's'} analyzed
+        </span>
+        <span className="inline-flex items-center px-4 py-2 rounded-full bg-[#f4f5eb] text-sm font-medium text-gray-800 border border-[#e5e8dc]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+          <svg className="w-4 h-4 mr-2 text-[#7F915F]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          Avg fit: {averageFitScore}%
+        </span>
+      </div>
+
       {/* Recent Roles Table */}
       <div className="bg-white rounded-2xl shadow-sm p-8">
         <h2 className="text-xl font-semibold text-[#232323] mb-6" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
@@ -231,86 +279,72 @@ export default function RoleFitHistoryTab({ userId, onLoadAnalysis }: RoleFitHis
             </div>
           ) : insights ? (
             <>
-              {/* Patterns Card */}
-              <div className="bg-white rounded-2xl shadow-sm p-8">
-                <h2 className="text-xl font-semibold text-[#232323] mb-6" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+              {/* Your Patterns So Far Card - consolidated */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
+                <h2 className="text-xl font-semibold text-[#232323]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
                   Your patterns so far
                 </h2>
                 
-                <div className="space-y-6">
-                  {/* Recurring Strengths */}
-                  {insights.recurringStrengths.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-[#7F915F] mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                        Recurring strengths
-                      </h3>
-                      <ul className="space-y-2">
-                        {insights.recurringStrengths.map((strength, idx) => (
-                          <li key={idx} className="flex gap-2 text-sm text-[#232323]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                            <span className="text-[#7F915F] mt-1">•</span>
-                            <span>{strength}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  
-                  {/* Recurring Gaps */}
-                  {insights.recurringGaps.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-[#E0A878] mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                        Recurring gaps
-                      </h3>
-                      <ul className="space-y-2">
-                        {insights.recurringGaps.map((gap, idx) => (
-                          <li key={idx} className="flex gap-2 text-sm text-[#232323]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                            <span className="text-[#E0A878] mt-1">•</span>
-                            <span>{gap}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  
-                  {/* Best Fit Patterns */}
-                  {insights.bestFitPatterns.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-[#4A4A4A] mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                        You tend to fit best with...
-                      </h3>
-                      <ul className="space-y-2">
-                        {insights.bestFitPatterns.map((pattern, idx) => (
-                          <li key={idx} className="flex gap-2 text-sm text-[#232323]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                            <span className="text-[#7F915F] mt-1">•</span>
-                            <span>{pattern}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  
-                  {/* Weaker Fit Patterns */}
-                  {insights.weakerFitPatterns.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-[#4A4A4A] mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                        You tend to fit less with...
-                      </h3>
-                      <ul className="space-y-2">
-                        {insights.weakerFitPatterns.map((pattern, idx) => (
-                          <li key={idx} className="flex gap-2 text-sm text-[#6F6F6F]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                            <span className="mt-1">•</span>
-                            <span>{pattern}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
+                {/* Recurring Strengths */}
+                {insights.recurringStrengths.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-bold text-[#232323] mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      Recurring strengths
+                    </h3>
+                    <ul className="list-disc list-inside space-y-1 text-sm text-[#4A4A4A]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      {insights.recurringStrengths.map((strength, idx) => (
+                        <li key={idx}>{strength}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {/* Recurring Gaps */}
+                {insights.recurringGaps.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-bold text-[#232323] mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      Recurring gaps
+                    </h3>
+                    <ul className="list-disc list-inside space-y-1 text-sm text-[#4A4A4A]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      {insights.recurringGaps.map((gap, idx) => (
+                        <li key={idx}>{gap}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {/* Best Fit Patterns */}
+                {insights.bestFitPatterns.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-bold text-[#232323] mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      You tend to fit best with...
+                    </h3>
+                    <ul className="list-disc list-inside space-y-1 text-sm text-[#4A4A4A]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      {insights.bestFitPatterns.map((pattern, idx) => (
+                        <li key={idx}>{pattern}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {/* Weaker Fit Patterns */}
+                {insights.weakerFitPatterns.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-bold text-[#232323] mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      You tend to fit less with...
+                    </h3>
+                    <ul className="list-disc list-inside space-y-1 text-sm text-[#4A4A4A]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      {insights.weakerFitPatterns.map((pattern, idx) => (
+                        <li key={idx}>{pattern}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
 
-              {/* Recommendations Card */}
+              {/* What Sage Suggests Next Card */}
               {insights.recommendations.length > 0 && (
-                <div className="bg-white rounded-2xl shadow-sm p-8">
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                   <h2 className="text-xl font-semibold text-[#232323] mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
                     What Sage suggests next
                   </h2>
@@ -318,16 +352,16 @@ export default function RoleFitHistoryTab({ userId, onLoadAnalysis }: RoleFitHis
                     Based on your patterns, here's how to focus your search and strengthen your profile.
                   </p>
                   
-                  <ul className="space-y-4">
+                  <ol className="space-y-4">
                     {insights.recommendations.map((rec, idx) => (
                       <li key={idx} className="flex gap-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
                         <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#7F915F] text-white flex items-center justify-center text-xs font-semibold mt-0.5">
                           {idx + 1}
                         </div>
-                        <p className="text-base text-[#232323] leading-relaxed">{rec}</p>
+                        <p className="text-sm text-[#232323] leading-relaxed">{rec}</p>
                       </li>
                     ))}
-                  </ul>
+                  </ol>
                 </div>
               )}
             </>
