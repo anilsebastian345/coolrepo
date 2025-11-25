@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signOut, useSession } from 'next-auth/react';
 import { useUserProfile } from "../hooks/useUserProfile";
-import RecentRolesWidget from "../components/RecentRolesWidget";
+import { RoleFitAnalysis } from '@/lib/roleFitHistory';
+import { CareerDirectionRecommendation } from '@/app/types/careerDirections';
 
 interface ProfileData {
   title?: string;
@@ -33,6 +34,15 @@ interface ProfileData {
     goal: string;
   }>;
   suggested_focus?: string;
+}
+
+interface RoleFitInsights {
+  recurringStrengths: string[];
+  recurringGaps: string[];
+  bestFitPatterns: string[];
+  weakerFitPatterns: string[];
+  recommendations: string[];
+  message?: string;
 }
 
 const extractFirstNameFromTitle = (title?: string) => {
@@ -202,61 +212,6 @@ function TopNav({ activeTab, firstName }: { activeTab: string; firstName?: strin
   );
 }
 
-interface FeatureTileProps {
-  title: string;
-  subtitle: string;
-  icon: string;
-  href: string;
-  available: boolean;
-}
-
-function FeatureTile({ title, subtitle, icon, href, available }: FeatureTileProps) {
-  const router = useRouter();
-  
-  return (
-    <button
-      onClick={() => available && router.push(href)}
-      disabled={!available}
-      className={`
-        group relative p-6 rounded-xl border text-left transition-all duration-200
-        ${available 
-          ? 'bg-white hover:shadow-md hover:border-[#7A8E50]/30 cursor-pointer border-[#E5E5E5]' 
-          : 'bg-gray-50 cursor-not-allowed border-[#E5E5E5] opacity-60'
-        }
-      `}
-    >
-      {/* Icon */}
-      <div className={`text-3xl mb-4 transition-transform duration-200 ${available ? 'group-hover:scale-105' : ''}`}>
-        {icon}
-      </div>
-      
-      {/* Content */}
-      <h3 className="text-lg font-semibold text-[#232323] mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-        {title}
-      </h3>
-      <p className="text-sm text-[#6F6F6F] mb-4 leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-        {subtitle}
-      </p>
-      
-      {/* CTA */}
-      {available && (
-        <div className="flex items-center text-[#7A8E50] text-sm font-medium group-hover:text-[#55613b]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-          <span>Explore</span>
-          <svg className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </div>
-      )}
-      
-      {!available && (
-        <div className="text-sm text-[#8F8F8F] font-light" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-          Complete onboarding first
-        </div>
-      )}
-    </button>
-  );
-}
-
 export default function DashboardPage() {
   const router = useRouter();
   const { data: session } = useSession();
@@ -264,8 +219,14 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [firstName, setFirstName] = useState('');
   const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [expandedStrengths, setExpandedStrengths] = useState<Set<number>>(new Set());
-  const [expandedRisks, setExpandedRisks] = useState<Set<number>>(new Set());
+  
+  // Cross-feature data states
+  const [recentRoles, setRecentRoles] = useState<RoleFitAnalysis[]>([]);
+  const [roleFitInsights, setRoleFitInsights] = useState<RoleFitInsights | null>(null);
+  const [careerDirections, setCareerDirections] = useState<CareerDirectionRecommendation[]>([]);
+  const [loadingRoles, setLoadingRoles] = useState(true);
+  const [loadingInsights, setLoadingInsights] = useState(true);
+  const [loadingDirections, setLoadingDirections] = useState(true);
 
   // Derive state from userProfile and localStorage
   const hasResume = !!userProfile?.resumeText;
@@ -308,15 +269,6 @@ export default function DashboardPage() {
   }, [firstName, session?.user?.name, userProfile?.name]);
 
   useEffect(() => {
-    console.log('Dashboard state:', {
-      hasResume,
-      hasLinkedIn,
-      hasProfile,
-      isLoading
-    });
-  }, [hasResume, hasLinkedIn, hasProfile, isLoading]);
-
-  useEffect(() => {
     // Load profile from userProfile (server-side)
     if (userProfile?.psychographicProfile) {
       console.log('Loading dashboard from server profile');
@@ -341,52 +293,77 @@ export default function DashboardPage() {
     }
   }, [userProfile, session]);
 
-  // Extract bullet points for profile snapshot
-  const getProfileBullets = () => {
-    if (!profile) return [];
-    
-    const bullets = [];
-    
-    if (profile.core_drives_and_values) {
-      const firstSentence = profile.core_drives_and_values.split('.')[0] + '.';
-      bullets.push(firstSentence);
-    }
-    
-    if (profile.leadership_style) {
-      bullets.push(profile.leadership_style);
-    }
-    
-    if (profile.growth_and_blind_spots) {
-      const firstSentence = profile.growth_and_blind_spots.split('.')[0] + '.';
-      bullets.push(firstSentence);
-    }
-    
-    return bullets.slice(0, 3);
-  };
+  // Fetch cross-feature data
+  useEffect(() => {
+    if (!hasProfile) return;
 
-  const features = [
-    {
-      title: 'Career Direction Map',
-      subtitle: 'Explore roles where your strengths naturally fit.',
-      icon: '🧭',
-      href: '/career-map',
-      available: hasProfile
-    },
-    {
-      title: 'Resume & Profile Analysis',
-      subtitle: 'Refine how your professional story shows up on resume and LinkedIn.',
-      icon: '✨',
-      href: '/resume-intel',
-      available: hasResume || hasLinkedIn
-    },
-    {
-      title: 'Job Match & Skill Gaps',
-      subtitle: 'See how you stack up against a role and what skills to build next.',
-      icon: '🎯',
-      href: '/job-match',
-      available: hasProfile && (hasResume || hasLinkedIn)
-    }
-  ];
+    // Fetch recent roles
+    const fetchRecentRoles = async () => {
+      try {
+        const response = await fetch('/api/role-fit-history');
+        if (response.ok) {
+          const data = await response.json();
+          setRecentRoles((data.analyses || []).slice(0, 3));
+        }
+      } catch (err) {
+        console.error('Error fetching recent roles:', err);
+      } finally {
+        setLoadingRoles(false);
+      }
+    };
+
+    // Fetch role fit insights
+    const fetchInsights = async () => {
+      try {
+        const response = await fetch('/api/role-fit-insights');
+        if (response.ok) {
+          const data = await response.json();
+          setRoleFitInsights(data);
+        }
+      } catch (err) {
+        console.error('Error fetching insights:', err);
+      } finally {
+        setLoadingInsights(false);
+      }
+    };
+
+    // Fetch career directions
+    const fetchCareerDirections = async () => {
+      if (!userProfile) {
+        setLoadingDirections(false);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/career-directions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userProfile: {
+              careerStage: userProfile.careerStage,
+              careerPreferences: userProfile.careerPreferences,
+              psychographicProfile: userProfile.psychographicProfile,
+              resumeText: userProfile.resumeText,
+              linkedInSummary: userProfile.linkedInSummary,
+            }
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setCareerDirections(data.directions || []);
+        }
+      } catch (err) {
+        console.error('Error fetching career directions:', err);
+      } finally {
+        setLoadingDirections(false);
+      }
+    };
+
+    fetchRecentRoles();
+    fetchInsights();
+    fetchCareerDirections();
+  }, [hasProfile, userProfile]);
 
   return (
     <div className="min-h-screen bg-[#FAFAF6]">
@@ -437,278 +414,318 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Profile Snapshot Card */}
+        {/* BAND 1: TODAY AT A GLANCE */}
         {profile && (
-          <div className="bg-white rounded-xl border border-[#E5E5E5] mb-12 shadow-sm overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center justify-between p-8 pb-6">
-              <div>
-                <h2 className="text-2xl font-semibold text-[#232323] mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Your Profile Snapshot</h2>
-                <p className="text-xs text-[#8F8F8F] uppercase tracking-wider font-light" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Based on your profile and past inputs</p>
-              </div>
-              <button
-                onClick={() => router.push('/profile')}
-                className="text-sm text-[#7A8E50] hover:text-[#55613b] font-medium flex items-center gap-1 transition-colors"
-                style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
-              >
-                <span>View details</span>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
-            
-            {/* Core Theme Header - Enhanced */}
-            {(profile.core_theme || profile.archetype || profile.summary) && (
-              <div className="mx-8 mb-6 bg-[#F4F7EF] rounded-xl p-6 border border-[#E5E5E5]">
-                <div className="flex items-start gap-4">
-                  {/* Icon */}
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#7A8E50] to-[#55613b] flex items-center justify-center flex-shrink-0 shadow-sm">
-                    <span className="text-xl">🧩</span>
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="flex-1">
-                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                      <div className="flex-1">
-                        <h3 className="text-xs text-[#6F6F6F] uppercase tracking-wider font-medium mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                          Core theme
-                        </h3>
-                        <p className="text-lg font-bold text-[#232323] mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                          {profile.core_theme || profile.archetype || 'The Strategic Transformer'}
-                        </p>
-                        {/* Enhanced Summary - 1-2 sentences */}
-                        {(profile.summary || profile.leadership_style || profile.cognitive_style) && (
-                          <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                            {profile.summary 
-                              ? (profile.summary.split('.').slice(0, 2).join('.') + (profile.summary.split('.').length > 2 ? '.' : ''))
-                              : (profile.leadership_style || profile.cognitive_style || '')}
-                          </p>
-                        )}
-                      </div>
-                      
-                      {/* Trait Pills */}
-                      <div className="flex flex-wrap gap-2 md:flex-col md:items-end">
-                        {profile.strength_signatures && profile.strength_signatures.length > 0 && (
-                          <>
-                            {profile.strength_signatures.slice(0, 3).map((strength, idx) => (
-                              <span
-                                key={idx}
-                                className="px-3 py-1 bg-white border border-[#D4D4D4] rounded-full text-xs font-medium text-[#4A4A4A] whitespace-nowrap shadow-sm"
-                                style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
-                              >
-                                {strength.trait}
-                              </span>
-                            ))}
-                          </>
-                        )}
-                      </div>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+            <h2 className="text-xs uppercase tracking-wider text-gray-500 font-medium mb-4" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+              Today at a glance
+            </h2>
+
+            {/* Condensed Profile Snapshot */}
+            <div className="grid md:grid-cols-3 gap-6 pb-6 mb-6 border-b border-gray-100">
+              <div className="md:col-span-2">
+                <p className="text-xs uppercase tracking-wider text-gray-500 font-medium mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                  Your profile snapshot
+                </p>
+                <h3 className="text-xl font-bold text-[#232323] mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                  {profile.core_theme || profile.archetype || 'Your Career Profile'}
+                </h3>
+                <p className="text-sm text-[#4A4A4A] mb-4 leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                  {profile.summary 
+                    ? (profile.summary.split('.').slice(0, 1).join('.') + '.')
+                    : (profile.leadership_style || profile.cognitive_style || '')}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {profile.strength_signatures && profile.strength_signatures.length > 0 && (
+                    <div className="px-3 py-1 bg-green-50 border border-green-200 rounded-full text-xs font-medium text-green-800" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      ✓ Top strength: {profile.strength_signatures[0].trait}
                     </div>
-                  </div>
+                  )}
+                  {profile.latent_risks_and_blind_spots && profile.latent_risks_and_blind_spots.length > 0 && (
+                    <div className="px-3 py-1 bg-amber-50 border border-amber-200 rounded-full text-xs font-medium text-amber-800" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      ⚠ Watch out for: {profile.latent_risks_and_blind_spots[0].pattern}
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
-            
-            {/* Two-Column Layout - Strengths vs Risks (Expandable Cards) */}
-            <div className="px-8 mb-8">
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Left Column: Top Strengths */}
-                {profile.strength_signatures && Array.isArray(profile.strength_signatures) && profile.strength_signatures.length > 0 && (
-                  <div className="bg-gradient-to-br from-[#F5F7F4] to-[#FAFAF6] rounded-xl p-5 border border-[#E5E5E5]">
-                    <h3 className="text-xs text-[#6F6F6F] uppercase tracking-wider font-semibold mb-4" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                      Top strengths
-                    </h3>
-                    <div className="space-y-3">
-                      {profile.strength_signatures.slice(0, 3).map((strength, idx) => {
-                        const icons = ['🧩', '⚡', '🤝'];
-                        const isExpanded = expandedStrengths.has(idx);
-                        
-                        return (
-                          <div
-                            key={idx}
-                            onClick={() => {
-                              const newSet = new Set(expandedStrengths);
-                              if (isExpanded) {
-                                newSet.delete(idx);
-                              } else {
-                                newSet.add(idx);
-                              }
-                              setExpandedStrengths(newSet);
-                            }}
-                            className="bg-white rounded-xl p-4 border border-[#E5E5E5] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
-                          >
-                            <div className="flex items-start gap-3">
-                              <span className="text-lg flex-shrink-0">{icons[idx] || '✨'}</span>
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-[#232323] text-sm mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                                  {strength.trait}
-                                </h4>
-                                
-                                {/* Collapsed View */}
-                                {!isExpanded && (
-                                  <>
-                                    <p className="text-xs text-[#6F6F6F] leading-relaxed mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                                      {strength.evidence.length > 80 ? strength.evidence.substring(0, 80) + '...' : strength.evidence}
-                                    </p>
-                                    <p className="text-xs text-[#7A8E50] font-medium" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                                      💡 {strength.why_it_matters.length > 60 ? strength.why_it_matters.substring(0, 60) + '...' : strength.why_it_matters}
-                                    </p>
-                                  </>
-                                )}
-                                
-                                {/* Expanded View */}
-                                {isExpanded && (
-                                  <div className="space-y-3 animate-fadeIn">
-                                    <div className="bg-[#F7F7F2] rounded-lg p-3 border-l-2 border-[#7A8E50]">
-                                      <p className="text-xs text-[#8F8F8F] uppercase tracking-wider font-medium mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                                        Evidence
-                                      </p>
-                                      <p className="text-xs text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                                        {strength.evidence}
-                                      </p>
-                                    </div>
-                                    <div className="bg-[#F4F7EF] rounded-lg p-3 border-l-2 border-[#7A8E50]">
-                                      <p className="text-xs text-[#8F8F8F] uppercase tracking-wider font-medium mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                                        Why it matters
-                                      </p>
-                                      <p className="text-xs text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                                        {strength.why_it_matters}
-                                      </p>
-                                    </div>
-                                  </div>
-                                )}
-                                
-                                {/* Expand/Collapse Indicator */}
-                                <div className="mt-2 flex items-center gap-1 text-xs text-[#8F8F8F]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                                  <span>{isExpanded ? 'Click to collapse' : 'Click to expand'}</span>
-                                  <svg className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                  </svg>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Right Column: Blind Spots & Risks */}
-                {profile.latent_risks_and_blind_spots && Array.isArray(profile.latent_risks_and_blind_spots) && profile.latent_risks_and_blind_spots.length > 0 && (
-                  <div className="bg-gradient-to-br from-[#FFF9F0] to-[#FAFAF6] rounded-xl p-5 border border-[#F5E6D3]">
-                    <h3 className="text-xs text-[#6F6F6F] uppercase tracking-wider font-semibold mb-4" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                      Blind spots & risks
-                    </h3>
-                    <div className="space-y-3">
-                      {profile.latent_risks_and_blind_spots.slice(0, 3).map((risk, idx) => {
-                        const isExpanded = expandedRisks.has(idx);
-                        
-                        return (
-                          <div
-                            key={idx}
-                            onClick={() => {
-                              const newSet = new Set(expandedRisks);
-                              if (isExpanded) {
-                                newSet.delete(idx);
-                              } else {
-                                newSet.add(idx);
-                              }
-                              setExpandedRisks(newSet);
-                            }}
-                            className="bg-white rounded-xl p-4 border border-[#F5E6D3] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
-                          >
-                            <div className="flex items-start gap-3">
-                              <span className="text-lg flex-shrink-0 text-amber-600">⚠️</span>
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-[#232323] text-sm mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                                  {risk.pattern}
-                                </h4>
-                                
-                                {/* Collapsed View */}
-                                {!isExpanded && (
-                                  <>
-                                    <p className="text-xs text-[#6F6F6F] leading-relaxed mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                                      {risk.risk.length > 80 ? risk.risk.substring(0, 80) + '...' : risk.risk}
-                                    </p>
-                                    {risk.coaching_prompt && (
-                                      <p className="text-xs text-[#D97706] italic leading-snug flex items-start gap-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                                        <span className="flex-shrink-0">💬</span>
-                                        <span>{risk.coaching_prompt.length > 60 ? risk.coaching_prompt.substring(0, 60) + '...' : risk.coaching_prompt}</span>
-                                      </p>
-                                    )}
-                                  </>
-                                )}
-                                
-                                {/* Expanded View */}
-                                {isExpanded && (
-                                  <div className="space-y-3 animate-fadeIn">
-                                    <div className="bg-[#FFF9F0] rounded-lg p-3 border-l-2 border-amber-500">
-                                      <p className="text-xs text-[#8F8F8F] uppercase tracking-wider font-medium mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                                        Risk
-                                      </p>
-                                      <p className="text-xs text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                                        {risk.risk}
-                                      </p>
-                                    </div>
-                                    {risk.coaching_prompt && (
-                                      <div className="bg-[#FEF3E7] rounded-lg p-3 border-l-2 border-[#D97706]">
-                                        <p className="text-xs text-[#8F8F8F] uppercase tracking-wider font-medium mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                                          Coaching prompt
-                                        </p>
-                                        <p className="text-xs text-[#4A4A4A] leading-relaxed italic flex items-start gap-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                                          <span className="flex-shrink-0">💬</span>
-                                          <span>{risk.coaching_prompt}</span>
-                                        </p>
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                                
-                                {/* Expand/Collapse Indicator */}
-                                <div className="mt-2 flex items-center gap-1 text-xs text-[#8F8F8F]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                                  <span>{isExpanded ? 'Click to collapse' : 'Click to expand'}</span>
-                                  <svg className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                  </svg>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
+              <div className="flex items-start justify-end">
+                <button
+                  onClick={() => router.push('/profile')}
+                  className="text-sm text-[#7A8E50] hover:text-[#55613b] font-medium flex items-center gap-1 transition-colors"
+                  style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                >
+                  <span>View details</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
               </div>
             </div>
-            
-            {/* Fallback to old format if new fields don't exist */}
-            {(!profile.strength_signatures || !profile.latent_risks_and_blind_spots) && (
-              <div className="px-8 pb-8">
-                <div className="grid md:grid-cols-2 gap-4">
-                  {getProfileBullets().slice(0, 4).map((bullet, idx) => (
-                    <div key={idx} className="bg-[#F5F7F4] rounded-lg p-5 border border-[#E5E5E5]">
-                      <p className="text-sm text-[#4A4A4A] leading-relaxed" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>{bullet}</p>
-                    </div>
-                  ))}
+
+            {/* Three Summary Tiles */}
+            <div className="grid md:grid-cols-3 gap-4">
+              {/* F1: Career Direction Map */}
+              <div className="bg-white rounded-xl border border-gray-100 p-4 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-lg">🧭</span>
+                    <h4 className="text-xs uppercase tracking-wider text-gray-500 font-medium" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      Best-fitting role themes
+                    </h4>
+                  </div>
+                  {loadingDirections ? (
+                    <p className="text-sm text-gray-400" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Loading...</p>
+                  ) : careerDirections.length > 0 ? (
+                    <p className="text-sm text-gray-800 mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      You tend to fit best with: {careerDirections.slice(0, 2).map(d => d.name).join(' · ')}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-600 mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      Run your first direction analysis to see where you naturally fit.
+                    </p>
+                  )}
                 </div>
+                <button
+                  onClick={() => router.push('/career-map')}
+                  className="text-xs text-[#7A8E50] hover:text-[#55613b] font-medium flex items-center gap-1 self-end transition-colors"
+                  style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                >
+                  <span>Explore</span>
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
               </div>
-            )}
+
+              {/* F2: Resume & Profile Analysis */}
+              <div className="bg-white rounded-xl border border-gray-100 p-4 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-lg">✨</span>
+                    <h4 className="text-xs uppercase tracking-wider text-gray-500 font-medium" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      Resume & profile signal
+                    </h4>
+                  </div>
+                  {hasResume || hasLinkedIn ? (
+                    <p className="text-sm text-gray-800 mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      Overall: Solid foundation; refine storytelling for stronger impact.
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-600 mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      Analyze your resume to see how your story shows up on paper.
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={() => router.push('/resume-intel')}
+                  className="text-xs text-[#7A8E50] hover:text-[#55613b] font-medium flex items-center gap-1 self-end transition-colors"
+                  style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                >
+                  <span>Explore</span>
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* F3: Job Match & Skill Gaps */}
+              <div className="bg-white rounded-xl border border-gray-100 p-4 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-lg">🎯</span>
+                    <h4 className="text-xs uppercase tracking-wider text-gray-500 font-medium" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      Job match & search signal
+                    </h4>
+                  </div>
+                  {loadingRoles ? (
+                    <p className="text-sm text-gray-400" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>Loading...</p>
+                  ) : recentRoles.length > 0 ? (
+                    <p className="text-sm text-gray-800 mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      {recentRoles.length} roles analyzed · Avg fit {Math.round(recentRoles.reduce((sum, r) => sum + r.fitScore, 0) / recentRoles.length)}% · Mostly moderate matches.
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-600 mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                      Compare your profile to a role to see how well you match.
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={() => router.push('/job-match')}
+                  className="text-xs text-[#7A8E50] hover:text-[#55613b] font-medium flex items-center gap-1 self-end transition-colors"
+                  style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                >
+                  <span>Explore</span>
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Feature Tiles Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {features.map((feature) => (
-            <FeatureTile key={feature.title} {...feature} />
-          ))}
-        </div>
+        {/* BAND 2: MOST IMPORTANT NEXT STEPS */}
+        {profile && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+            <h2 className="text-lg font-semibold text-[#232323] mb-4" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+              Your most important next steps
+            </h2>
+            <ol className="list-decimal list-inside space-y-3 text-sm text-gray-800" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+              {/* Action 1: Target roles from F1 */}
+              {careerDirections.length > 0 ? (
+                <li className="leading-relaxed">
+                  <strong>Focus your search on:</strong> {careerDirections.slice(0, 3).map(d => d.name).join(' / ')} roles.
+                </li>
+              ) : (
+                <li className="leading-relaxed text-gray-600">
+                  Run your Career Direction Map to identify the best role themes for your strengths.
+                </li>
+              )}
 
-        {/* Recent Roles Widget */}
-        {hasProfile && (hasResume || hasLinkedIn) && (
-          <div className="mb-12">
-            <RecentRolesWidget />
+              {/* Action 2: Upgrade profile/resume from F2 */}
+              {hasResume || hasLinkedIn ? (
+                <li className="leading-relaxed">
+                  <strong>Upgrade your profile/resume:</strong> Add 2 concrete wins with metrics to your resume and LinkedIn headline.
+                </li>
+              ) : (
+                <li className="leading-relaxed text-gray-600">
+                  Analyze your resume to get tailored suggestions on how to strengthen your story.
+                </li>
+              )}
+
+              {/* Action 3: Build specific skill from F3 */}
+              {roleFitInsights && roleFitInsights.recurringGaps && roleFitInsights.recurringGaps.length > 0 ? (
+                <li className="leading-relaxed">
+                  <strong>Build one specific skill/domain:</strong> {roleFitInsights.recurringGaps[0]}
+                </li>
+              ) : recentRoles.length >= 3 ? (
+                <li className="leading-relaxed">
+                  <strong>Build one specific skill/domain:</strong> Deepen hands-on experience in one area with a real project or certification.
+                </li>
+              ) : (
+                <li className="leading-relaxed text-gray-600">
+                  Analyze a few roles to discover patterns in skill gaps you should address.
+                </li>
+              )}
+            </ol>
+          </div>
+        )}
+
+        {/* BAND 3: IN PROGRESS */}
+        {profile && (
+          <div className="space-y-6">
+            {/* Recent Roles (Condensed) */}
+            {recentRoles.length > 0 && (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <h3 className="text-lg font-semibold text-[#232323] mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                  Recent roles you explored
+                </h3>
+                {recentRoles.length >= 3 && (
+                  <p className="text-xs text-gray-500 mb-4" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    You're currently testing: {Array.from(new Set(recentRoles.map(r => r.company || 'Unknown'))).slice(0, 3).join(' · ')} roles.
+                  </p>
+                )}
+                
+                <div className="space-y-2 mb-4">
+                  {recentRoles.slice(0, 3).map((role) => (
+                    <div
+                      key={role.id}
+                      onClick={() => router.push('/job-match?tab=insights')}
+                      className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm flex-shrink-0">
+                          {role.company?.charAt(0) || '?'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-[#232323] truncate" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                            {role.company || 'Unknown'}
+                          </p>
+                          <p className="text-xs text-gray-600 truncate" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                            {role.jobTitle || 'Untitled role'}
+                          </p>
+                        </div>
+                      </div>
+                      <span className={`text-xs font-medium whitespace-nowrap ml-2 ${
+                        role.fitLabel === 'Strong Fit' ? 'text-green-700' :
+                        role.fitLabel === 'Moderate Fit' ? 'text-blue-700' :
+                        role.fitLabel === 'Partial Fit' ? 'text-amber-700' :
+                        'text-gray-700'
+                      }`} style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                        {role.fitLabel.replace(' Fit', '')} ({role.fitScore})
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                
+                <button
+                  onClick={() => router.push('/job-match?tab=insights')}
+                  className="w-full px-4 py-2 text-sm font-medium text-[#7A8E50] hover:text-[#55613b] hover:bg-gray-50 rounded-lg transition-colors flex items-center justify-center gap-1"
+                  style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                >
+                  <span>View all roles & patterns</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            )}
+
+            {/* Quick Access Tool Cards */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                Quick access
+              </h3>
+              <div className="grid md:grid-cols-3 gap-4">
+                <button
+                  onClick={() => router.push('/career-map')}
+                  className="bg-white rounded-xl border border-gray-100 p-4 text-left hover:shadow-md hover:border-[#7A8E50]/30 transition-all"
+                >
+                  <div className="text-2xl mb-2">🧭</div>
+                  <h4 className="text-sm font-semibold text-[#232323] mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    Career Direction Map
+                  </h4>
+                  <p className="text-xs text-gray-600 mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    Explore roles where your strengths fit
+                  </p>
+                  <span className="text-xs text-[#7A8E50] font-medium flex items-center gap-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    Open tool →
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => router.push('/resume-intel')}
+                  className="bg-white rounded-xl border border-gray-100 p-4 text-left hover:shadow-md hover:border-[#7A8E50]/30 transition-all"
+                >
+                  <div className="text-2xl mb-2">✨</div>
+                  <h4 className="text-sm font-semibold text-[#232323] mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    Resume & Profile Analysis
+                  </h4>
+                  <p className="text-xs text-gray-600 mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    Refine your professional story
+                  </p>
+                  <span className="text-xs text-[#7A8E50] font-medium flex items-center gap-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    Open tool →
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => router.push('/job-match')}
+                  className="bg-white rounded-xl border border-gray-100 p-4 text-left hover:shadow-md hover:border-[#7A8E50]/30 transition-all"
+                >
+                  <div className="text-2xl mb-2">🎯</div>
+                  <h4 className="text-sm font-semibold text-[#232323] mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    Job Match & Skill Gaps
+                  </h4>
+                  <p className="text-xs text-gray-600 mb-3" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    See how you stack up against roles
+                  </p>
+                  <span className="text-xs text-[#7A8E50] font-medium flex items-center gap-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                    Open tool →
+                  </span>
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
