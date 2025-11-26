@@ -125,6 +125,8 @@ export default function RoleFitAnalysisPage() {
   const [activeTab, setActiveTab] = useState<'analysis' | 'insights'>('analysis');
   const [jobTitle, setJobTitle] = useState('');
   const [jobDescription, setJobDescription] = useState('');
+  const [jobUrl, setJobUrl] = useState('');
+  const [fetchingFromUrl, setFetchingFromUrl] = useState(false);
   const [useProfileData, setUseProfileData] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -158,6 +160,43 @@ export default function RoleFitAnalysisPage() {
       fetchDirections();
     }
   }, [userProfile, profileLoading]);
+
+  const fetchJobFromUrl = async () => {
+    if (!jobUrl.trim()) {
+      setError('Please enter a job URL');
+      return;
+    }
+
+    setFetchingFromUrl(true);
+    setError(null);
+    
+    // Clear existing fields when fetching new URL
+    setJobTitle('');
+    setJobDescription('');
+
+    try {
+      const response = await fetch('/api/job-from-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: jobUrl }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch job posting');
+      }
+
+      const data = await response.json();
+      
+      setJobTitle(data.jobTitle || '');
+      setJobDescription(data.jobDescription || '');
+    } catch (err) {
+      console.error('Error fetching job from URL:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch job posting from URL');
+    } finally {
+      setFetchingFromUrl(false);
+    }
+  };
 
   const handleAnalyze = async () => {
     if (!jobDescription.trim()) {
@@ -361,17 +400,55 @@ export default function RoleFitAnalysisPage() {
             {!analysis && (
               <div className="bg-white rounded-2xl shadow-sm p-8 mb-8 animate-fade-in-up">
             <h2 className="text-xl font-semibold text-[#232323] mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-              Paste a job description to analyze your fit
+              Analyze a job posting
             </h2>
-            <p className="text-sm text-[#6F6F6F] mb-8" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+            <p className="text-sm text-[#6F6F6F] mb-6" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
               Sage will compare this role against your profile and resume to highlight strengths, gaps, and how to position yourself.
             </p>
 
             <div className="space-y-6">
+              {/* URL Input - Optional */}
+              <div>
+                <label className="block text-sm font-medium text-[#232323] mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                  Job posting URL <span className="text-[#9F9F9F] font-normal">(optional)</span>
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={jobUrl}
+                    onChange={(e) => {
+                      setJobUrl(e.target.value);
+                      setError(null);
+                    }}
+                    placeholder="https://company.com/careers/job-posting"
+                    className="flex-1 px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7F915F] focus:border-transparent"
+                    style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                  />
+                  <button
+                    onClick={fetchJobFromUrl}
+                    disabled={!jobUrl.trim() || fetchingFromUrl}
+                    className="px-6 py-3 bg-[#7F915F] text-white rounded-lg font-medium hover:bg-[#6F8050] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 whitespace-nowrap"
+                    style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                  >
+                    {fetchingFromUrl ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Fetching...
+                      </>
+                    ) : (
+                      'Fetch Details'
+                    )}
+                  </button>
+                </div>
+                <p className="text-xs text-[#9F9F9F] mt-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                  Works with company career pages (Google, Microsoft, Indeed). <span className="font-medium text-[#6F6F6F]">LinkedIn requires login—copy/paste instead.</span>
+                </p>
+              </div>
+
               {/* Job Title */}
               <div>
                 <label className="block text-sm font-medium text-[#232323] mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                  Job title (optional)
+                  Job title <span className="text-[#9F9F9F] font-normal">(optional)</span>
                 </label>
                 <input
                   type="text"
@@ -394,7 +471,7 @@ export default function RoleFitAnalysisPage() {
                     setJobDescription(e.target.value);
                     setError(null);
                   }}
-                  placeholder="Paste the full job description here…"
+                  placeholder="Paste the full job description here, or use the URL field above to auto-fetch..."
                   rows={12}
                   className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7F915F] focus:border-transparent resize-none"
                   style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
