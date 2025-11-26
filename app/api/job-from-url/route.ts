@@ -190,7 +190,7 @@ async function fetchWithBrowser(url: string): Promise<string | null> {
 /**
  * Extract job posting data from JSON-LD schema.org markup
  */
-function extractFromJobPostingSchema($: cheerio.Root): {
+function extractFromJobPostingSchema($: cheerio.CheerioAPI): {
   jobTitle: string;
   companyName: string;
   jobDescription: string;
@@ -243,7 +243,7 @@ function extractFromJobPostingSchema($: cheerio.Root): {
  * Extract the main text content from the page
  * Prefers <main> element, otherwise finds the div with the most text
  */
-function extractMainText($: cheerio.Root): string {
+function extractMainText($: cheerio.CheerioAPI): string {
   // Remove unwanted elements
   $('script, style, nav, header, footer, [role="navigation"]').remove();
 
