@@ -134,10 +134,11 @@ async function fetchHtml(url: string): Promise<string | null> {
         textContent.toLowerCase().includes('please enable javascript')) {
       
       console.log('Page appears JavaScript-rendered, using Playwright...');
-      html = await fetchWithBrowser(url);
-      if (!html) {
+      const browserHtml = await fetchWithBrowser(url);
+      if (!browserHtml) {
         return null;
       }
+      html = browserHtml;
     }
 
     return html;
