@@ -19,7 +19,7 @@ const features: FeatureCard[] = [
     title: 'Your Personalized Dashboard',
     description: 'A unified snapshot of your strengths, blind spots, career signals, and next steps.',
     image: '/sage-dashboard-preview.png',
-    href: '/dashboard',
+    href: '/about/dashboard',
     alt: 'Sage dashboard preview UI showing personalized career insights',
     label: 'Overview'
   },
@@ -28,7 +28,7 @@ const features: FeatureCard[] = [
     title: 'Career Fit & Direction',
     description: 'See which roles you naturally align with — and how your career path maps out.',
     image: '/sage-career-fit.png',
-    href: '/career-map',
+    href: '/about/career-map',
     alt: 'Sage career fit analysis showing role alignment and career direction map',
     label: 'Career Map'
   },
@@ -37,7 +37,7 @@ const features: FeatureCard[] = [
     title: 'Resume & Profile Intelligence',
     description: 'Smart, actionable insights that strengthen your resume and LinkedIn instantly.',
     image: '/sage-resume-analysis.png',
-    href: '/resume-intel',
+    href: '/about/resume-intel',
     alt: 'Sage resume analysis interface with smart recommendations',
     label: 'Resume'
   },
@@ -46,7 +46,7 @@ const features: FeatureCard[] = [
     title: 'Job Match & Skill Gaps',
     description: 'Understand how you match to any job and what skills to build to stand out.',
     image: '/sage-role-fit.png',
-    href: '/job-match',
+    href: '/about/job-match',
     alt: 'Sage job match analysis showing fit score and skill gap recommendations',
     label: 'Role Fit'
   }
