@@ -30,23 +30,7 @@ export const metadata: Metadata = {
     title: 'Sage AI Coach',
     description: 'Your personalized AI career coaching assistant',
   },
-  icons: {
-    icon: [
-      {
-        url: '/sage-favicon.svg',
-        type: 'image/svg+xml',
-      },
-      {
-        url: '/favicon.ico',
-        sizes: '16x16',
-        type: 'image/x-icon',
-      },
-    ],
-    apple: {
-      url: '/sage-favicon.svg',
-      type: 'image/svg+xml',
-    },
-  },
+  // Icons are automatically handled by app/icon.svg
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
