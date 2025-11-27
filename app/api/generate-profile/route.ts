@@ -29,20 +29,8 @@ async function invalidateResumeReviewCache(userId: string) {
 function getInputHash(questions: any, resume?: string, linkedin?: string): string {
   // Create a comprehensive hash that includes all input sources
   const inputData = {
-    // Questions data
-    questions: questions.sociability !== undefined || questions.conscientiousness !== undefined || 
-      questions.emotional_stability !== undefined || questions.empathy !== undefined || 
-      questions.leadership !== undefined ? {
-        sociability: questions.sociability || null,
-        conscientiousness: questions.conscientiousness || null,
-        emotional_stability: questions.emotional_stability || null,
-        empathy: questions.empathy || null,
-        leadership: questions.leadership || null
-      } : {
-        roleModel: questions.roleModel || '',
-        friendsSay: questions.friendsSay || '',
-        challenges: questions.challenges || ''
-      },
+    // Questions data - handle new numeric format (15 questions) or old named format (5 questions)
+    questions: questions,
     
     // Resume data (first 1000 chars to avoid huge hashes)
     resume: resume ? resume.substring(0, 1000) : null,
@@ -99,9 +87,32 @@ export async function POST(req: NextRequest) {
     );
     console.log('Career stage determined:', careerStage, 'from user selection:', careerStageUserSelected);
 
-    // Compose user message with leadership assessment scores
+    // Compose user message with personality assessment scores
     let userMessage = '';
-    if (questions.sociability !== undefined || questions.conscientiousness !== undefined || 
+    
+    // Check if this is the new 15-question format (numeric IDs 1-15)
+    const hasNumericQuestions = Object.keys(questions).some(key => !isNaN(Number(key)));
+    
+    if (hasNumericQuestions) {
+      // New format: 15 questions mapped to Big Five traits
+      // Calculate average scores per trait (3 questions each)
+      const extraversion = [questions[1], questions[2], questions[3]].filter(v => v !== undefined);
+      const conscientiousness = [questions[4], questions[5], questions[6]].filter(v => v !== undefined);
+      const emotionalStability = [questions[7], questions[8], questions[9]].filter(v => v !== undefined);
+      const agreeableness = [questions[10], questions[11], questions[12]].filter(v => v !== undefined);
+      const openness = [questions[13], questions[14], questions[15]].filter(v => v !== undefined);
+      
+      const avgScore = (arr: number[]) => arr.length > 0 ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1) : 'Not answered';
+      
+      userMessage += `Big Five Personality Assessment Results (Mini-IPIP/BFI-2-S validated):\n`;
+      userMessage += `Extraversion: ${avgScore(extraversion)}/5 (social energy, assertiveness)\n`;
+      userMessage += `Conscientiousness: ${avgScore(conscientiousness)}/5 (organization, reliability)\n`;
+      userMessage += `Emotional Stability: ${avgScore(emotionalStability)}/5 (stress resilience, composure)\n`;
+      userMessage += `Agreeableness: ${avgScore(agreeableness)}/5 (empathy, cooperation)\n`;
+      userMessage += `Openness: ${avgScore(openness)}/5 (curiosity, creativity)\n`;
+    }
+    // Check for old 5-question format with named properties
+    else if (questions.sociability !== undefined || questions.conscientiousness !== undefined || 
         questions.emotional_stability !== undefined || questions.empathy !== undefined || 
         questions.leadership !== undefined) {
       userMessage += `Leadership Assessment Results:\n`;
@@ -111,9 +122,8 @@ export async function POST(req: NextRequest) {
       userMessage += `Empathy: ${questions.empathy || 'Not answered'}/5\n`;
       userMessage += `Leadership Assertiveness: ${questions.leadership || 'Not answered'}/5\n`;
     }
-    
-    // Fallback to old format if new format is not available
-    if (!userMessage && (questions.roleModel || questions.friendsSay || questions.challenges)) {
+    // Fallback to very old format if available
+    else if (questions.roleModel || questions.friendsSay || questions.challenges) {
       userMessage += `Role model: ${questions.roleModel || ''}\n`;
       userMessage += `Friends would say: ${questions.friendsSay || ''}\n`;
       userMessage += `Challenges: ${questions.challenges || ''}\n`;

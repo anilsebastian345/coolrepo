@@ -6,47 +6,114 @@ import { useRef } from "react";
 function SageLogo() {
   return (
     <div className="flex flex-col items-center mb-6">
-      <div className="relative w-16 h-16 flex items-center justify-center rounded-full shadow-xl bg-gradient-to-br from-[#f3f4f6] to-[#ececec]">
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#8a9a5b] to-[#55613b] flex items-center justify-center">
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
-            <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"/>
-          </svg>
-        </div>
-        <div className="absolute" style={{ top: '18%', right: '18%' }}>
-          <div className="w-2.5 h-2.5 rounded-full bg-[#ffe082] shadow" />
-        </div>
+      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#7A8E50] to-[#55613b] flex items-center justify-center shadow-lg">
+        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+          <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"/>
+        </svg>
       </div>
       <h1 className="mt-4 text-xl text-text font-normal font-sans" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>Sage</h1>
     </div>
   );
 }
 
-const questions = [
+type Question = {
+  id: number;
+  text: string;
+  description: string;
+  trait: "Extraversion" | "Conscientiousness" | "Emotional Stability" | "Agreeableness" | "Openness";
+};
+
+const QUESTIONS: Question[] = [
   {
-    id: "sociability",
-    text: "I enjoy meeting new people and starting conversations.",
-    description: "This measures your comfort with social interactions and networking."
+    id: 1,
+    text: "I am the life of the party.",
+    description: "This measures your comfort with visibility and social energy as a leader.",
+    trait: "Extraversion",
   },
   {
-    id: "conscientiousness", 
-    text: "I set personal goals and work hard to achieve them.",
-    description: "This reflects your ability to set and pursue objectives effectively."
+    id: 2,
+    text: "I feel comfortable around people.",
+    description: "This reflects how at ease you are in group settings and new environments.",
+    trait: "Extraversion",
   },
   {
-    id: "emotional_stability",
-    text: "I remain calm and collected even under pressure.", 
-    description: "This measures your emotional resilience during challenging situations."
+    id: 3,
+    text: "I start conversations easily.",
+    description: "This captures how naturally you initiate interactions and build relationships.",
+    trait: "Extraversion",
   },
   {
-    id: "empathy",
-    text: "I find it easy to empathize with others.",
-    description: "This gauges your ability to understand and share others' feelings."
+    id: 4,
+    text: "I get chores done right away.",
+    description: "This reflects your tendency to act quickly and follow through on tasks.",
+    trait: "Conscientiousness",
   },
   {
-    id: "leadership",
-    text: "I enjoy taking the lead in group situations.",
-    description: "This assesses your comfort with leadership and taking charge."
-  }
+    id: 5,
+    text: "I like order and structure in my work.",
+    description: "This measures how much you value planning, organization, and structure.",
+    trait: "Conscientiousness",
+  },
+  {
+    id: 6,
+    text: "I follow through on commitments.",
+    description: "This reflects your reliability and dependability to others.",
+    trait: "Conscientiousness",
+  },
+  {
+    id: 7,
+    text: "I remain calm under pressure.",
+    description: "This measures your emotional resilience in demanding situations.",
+    trait: "Emotional Stability",
+  },
+  {
+    id: 8,
+    text: "I seldom feel blue.",
+    description: "This reflects how often you experience negative mood or low energy.",
+    trait: "Emotional Stability",
+  },
+  {
+    id: 9,
+    text: "I handle stressful situations well.",
+    description: "This captures how effectively you cope with stress and uncertainty.",
+    trait: "Emotional Stability",
+  },
+  {
+    id: 10,
+    text: "I sympathize with others' feelings.",
+    description: "This measures your capacity for empathy and emotional attunement.",
+    trait: "Agreeableness",
+  },
+  {
+    id: 11,
+    text: "I take time for others.",
+    description: "This reflects how willing you are to support and invest in people around you.",
+    trait: "Agreeableness",
+  },
+  {
+    id: 12,
+    text: "I make people feel at ease.",
+    description: "This captures how approachable and relationally safe you feel to others.",
+    trait: "Agreeableness",
+  },
+  {
+    id: 13,
+    text: "I have a vivid imagination.",
+    description: "This measures your tendency to think creatively and envision possibilities.",
+    trait: "Openness",
+  },
+  {
+    id: 14,
+    text: "I am curious about many different things.",
+    description: "This reflects your appetite for learning and exploring new ideas.",
+    trait: "Openness",
+  },
+  {
+    id: 15,
+    text: "I enjoy reflecting on abstract ideas.",
+    description: "This captures your comfort with complex, conceptual thinking.",
+    trait: "Openness",
+  },
 ];
 
 const likertOptions = [
@@ -57,22 +124,33 @@ const likertOptions = [
   { value: 5, label: "Strongly Agree" }
 ];
 
-type AnswersType = {
-  sociability: number | null;
-  conscientiousness: number | null;
-  emotional_stability: number | null;
-  empathy: number | null;
-  leadership: number | null;
-};
+const QUESTION_GROUPS = [
+  {
+    title: "Your Energy & Social Style (Extraversion)",
+    questions: [1, 2, 3],
+  },
+  {
+    title: "Your Follow-Through & Work Discipline (Conscientiousness)",
+    questions: [4, 5, 6],
+  },
+  {
+    title: "How You Handle Challenges (Emotional Stability)",
+    questions: [7, 8, 9],
+  },
+  {
+    title: "How You Relate to Others (Agreeableness)",
+    questions: [10, 11, 12],
+  },
+  {
+    title: "Your Thinking & Curiosity (Openness)",
+    questions: [13, 14, 15],
+  },
+];
+
+type AnswersType = { [questionId: number]: number };
 
 export default function OnboardingQuestions() {
-  const [answers, setAnswers] = useState<AnswersType>({
-    sociability: null,
-    conscientiousness: null,
-    emotional_stability: null,
-    empathy: null,
-    leadership: null
-  });
+  const [answers, setAnswers] = useState<AnswersType>({});
   const [showModal, setShowModal] = useState(false);
   const [profile, setProfile] = useState('');
   const [loading, setLoading] = useState(false);
@@ -86,18 +164,10 @@ export default function OnboardingQuestions() {
       if (saved) {
         try {
           const parsedData = JSON.parse(saved);
-          // Check if this is old format data (has roleModel, friendsSay, challenges)
-          if (parsedData.roleModel !== undefined || parsedData.friendsSay !== undefined || parsedData.challenges !== undefined) {
-            // Clear old format data and start fresh
-            localStorage.removeItem('onboarding_questions');
-            console.log('Cleared old question format data');
-          } else {
-            // This is new format data, use it
-            setAnswers(parsedData);
-          }
+          setAnswers(parsedData);
         } catch (e) {
           console.error('Failed to parse saved answers:', e);
-          localStorage.removeItem('onboarding_questions'); // Clear corrupted data
+          localStorage.removeItem('onboarding_questions');
         }
       }
       const savedProfile = localStorage.getItem('onboarding_psych_profile');
@@ -105,13 +175,13 @@ export default function OnboardingQuestions() {
     }
   }, []);
 
-  function handleChange(questionId: keyof AnswersType, value: number) {
+  function handleChange(questionId: number, value: number) {
     const updated = { ...answers, [questionId]: value };
     setAnswers(updated);
     if (typeof window !== 'undefined') {
       localStorage.setItem('onboarding_questions', JSON.stringify(updated));
     }
-    // Save to onboarding_questions.json for backend
+    // Save to backend
     fetch('/api/save-questions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -119,8 +189,8 @@ export default function OnboardingQuestions() {
     });
   }
 
-  const allAnswered = Object.values(answers).every(answer => answer !== null);
-  const answeredCount = questions.filter(q => answers[q.id as keyof AnswersType] !== null).length;
+  const allAnswered = QUESTIONS.every(q => answers[q.id] !== undefined);
+  const answeredCount = QUESTIONS.filter(q => answers[q.id] !== undefined).length;
 
   function handleNext() {
     if (typeof window !== 'undefined') {
@@ -174,89 +244,128 @@ export default function OnboardingQuestions() {
   }
 
   return (
-    <div className="min-h-screen bg-primary flex flex-col items-center py-8 px-2 font-sans" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>
+    <div className="min-h-screen bg-gradient-to-br from-[#F5F7F0] to-[#E8EEE0] flex flex-col items-center py-6 px-4 font-sans" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>
       {/* Stepper */}
-      <div className="flex items-center w-full max-w-2xl mb-2">
-        <button className="mr-4 text-[#8a9a5b] text-2xl" onClick={() => router.back()}>&larr;</button>
+      <div className="flex items-center w-full max-w-7xl mb-4">
+        <button className="mr-4 text-[#7F915F] text-2xl hover:text-[#6d7a4a] transition" onClick={() => router.back()}>&larr;</button>
         <div className="flex-1 flex flex-col items-center">
-          <div className="text-xs text-[#8a9a5b] font-semibold mb-1 tracking-widest">STEP 2 OF 4</div>
+          <div className="text-xs text-[#7F915F] font-semibold mb-1 tracking-widest">STEP 2 OF 4</div>
           <div className="flex gap-1 w-32 h-2 mb-2">
-            <div className="flex-1 rounded bg-[#8a9a5b]" />
-            <div className="flex-1 rounded bg-[#8a9a5b]" />
-            <div className="flex-1 rounded bg-[#e5e7eb]" />
-            <div className="flex-1 rounded bg-[#e5e7eb]" />
+            <div className="flex-1 rounded bg-[#7F915F]" />
+            <div className="flex-1 rounded bg-[#7F915F]" />
+            <div className="flex-1 rounded bg-white/40" />
+            <div className="flex-1 rounded bg-white/40" />
           </div>
         </div>
       </div>
       
       <SageLogo />
       <h2 className="text-2xl font-bold text-text mt-2 mb-2 text-center">Help me get to know you</h2>
-      <p className="text-text/80 text-center text-base mb-8 max-w-2xl">Rate how much you agree with each statement. This helps me understand your work style and leadership preferences.</p>
+      <div className="text-text/70 text-center text-sm mb-1 max-w-3xl px-4">
+        <p>Rate how much you agree with each statement. These 15 research-validated items (Mini-IPIP + BFI-2-S) help Sage build your personalized leadership profile.</p>
+      </div>
       
-      <div className="flex flex-col gap-8 w-full max-w-2xl mb-8">
-        {questions.map((question, idx) => (
-          <div key={question.id} className="bg-white border border-[#ececec] rounded-xl p-6 shadow-sm">
-            <div className="flex items-start mb-4">
-              <span className="w-8 h-8 rounded-full flex items-center justify-center font-bold mr-3 text-sm" style={{ background: '#8a9a5b', color: 'white' }}>{idx+1}</span>
-              <div className="flex-1">
-                <h3 className="text-text font-medium text-lg mb-2">{question.text}</h3>
-                <p className="text-text/70 text-sm">{question.description}</p>
-              </div>
-            </div>
+      {/* Likert scale helper */}
+      <div className="text-xs text-text/60 text-center mb-6 max-w-3xl">
+        Scale: <span className="font-semibold">1 = Strongly Disagree</span>, <span className="font-semibold">5 = Strongly Agree</span>
+      </div>
+      
+      {/* Question groups */}
+      <div className="w-full max-w-7xl mb-24 space-y-10">
+        {QUESTION_GROUPS.map((group, groupIdx) => (
+          <div key={groupIdx} className="space-y-4">
+            {/* Section header */}
+            <h3 className="text-lg font-semibold text-[#7F915F] mb-4 px-2">
+              {group.title}
+            </h3>
             
-            <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 mt-4">
-              {likertOptions.map((option) => (
-                <label 
-                  key={option.value} 
-                  className={`cursor-pointer p-3 rounded-lg border-2 transition-all duration-200 text-center ${
-                    answers[question.id as keyof AnswersType] === option.value
-                      ? 'border-[#8a9a5b] bg-[#8a9a5b]/10 text-[#8a9a5b]'
-                      : 'border-[#ececec] bg-white hover:border-[#8a9a5b]/50 hover:bg-[#8a9a5b]/5'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name={question.id}
-                    value={option.value}
-                    checked={answers[question.id as keyof AnswersType] === option.value}
-                    onChange={() => handleChange(question.id as keyof AnswersType, option.value)}
-                    className="sr-only"
-                  />
-                  <div className="text-sm font-medium mb-1">{option.label}</div>
-                  <div className="text-xs text-text/60">{option.value}</div>
-                </label>
-              ))}
+            {/* 3-column grid for questions in this group - all 3 in one row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch">
+              {group.questions.map((questionId) => {
+                const question = QUESTIONS.find(q => q.id === questionId);
+                if (!question) return null;
+                
+                return (
+                  <div 
+                    key={question.id} 
+                    className="bg-white/30 backdrop-blur-md border border-white/50 rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-white/40 flex flex-col"
+                  >
+                    <div className="flex items-start mb-3 flex-1">
+                      <span 
+                        className="w-6 h-6 rounded-full flex items-center justify-center font-bold mr-2 text-xs flex-shrink-0" 
+                        style={{ background: '#7F915F', color: 'white' }}
+                      >
+                        {question.id}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-text font-semibold text-sm mb-1 leading-tight">{question.text}</h4>
+                        <p className="text-text/60 text-xs leading-snug">{question.description}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-1 mt-auto">
+                      {likertOptions.map((option) => (
+                        <label 
+                          key={option.value} 
+                          className={`flex-1 cursor-pointer py-2 px-1 rounded-lg border transition-all duration-200 text-center ${
+                            answers[question.id] === option.value
+                              ? 'border-[#7F915F] bg-[#7F915F]/20 shadow-md'
+                              : 'border-white/60 bg-white/40 hover:border-[#7F915F]/60 hover:bg-white/60'
+                          }`}
+                          title={option.label}
+                        >
+                          <input
+                            type="radio"
+                            name={`question-${question.id}`}
+                            value={option.value}
+                            checked={answers[question.id] === option.value}
+                            onChange={() => handleChange(question.id, option.value)}
+                            className="sr-only"
+                          />
+                          <div className={`text-sm font-bold ${answers[question.id] === option.value ? 'text-[#7F915F]' : 'text-text/70'}`}>
+                            {option.value}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Progress indicator */}
-      <div className="text-center mb-6">
-        <p className="text-sm text-text/70">
-          {answeredCount} of {questions.length} questions answered
-        </p>
-      </div>
-
-      {error && <div className="text-red-500 text-center mb-2">{error}</div>}
-      
-      <button
-        onClick={handleNext}
-        className={`w-full max-w-md py-3 rounded-xl text-lg font-semibold transition mt-2 ${
-          allAnswered 
-            ? 'bg-[#8a9a5b] text-white hover:bg-[#6d7a4a]' 
-            : 'bg-[#ececec] text-[#bdbdbd] cursor-not-allowed'
-        }`}
-        disabled={!allAnswered}
-      >
-        Continue
-      </button>
-      
-      {!allAnswered && (
-        <div className="text-center text-xs text-[#bdbdbd] mt-2">
-          Please answer all questions to continue
+      {/* Fixed bottom bar with progress and continue button */}
+      <div className="fixed bottom-0 left-0 right-0 w-full bg-white/90 backdrop-blur-lg border-t border-white/60 shadow-lg py-4 px-4 z-50">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="text-sm font-semibold text-text">
+              {answeredCount} of {QUESTIONS.length}
+            </div>
+            <div className="h-2 bg-white/60 rounded-full overflow-hidden w-48">
+              <div 
+                className="h-full bg-gradient-to-r from-[#7F915F] to-[#6d7a4a] transition-all duration-500"
+                style={{ width: `${(answeredCount / QUESTIONS.length) * 100}%` }}
+              />
+            </div>
+          </div>
+          
+          {error && <div className="text-red-500 text-sm">{error}</div>}
+          
+          <button
+            onClick={handleNext}
+            className={`px-8 py-2.5 rounded-xl text-base font-semibold transition-all ${
+              allAnswered 
+                ? 'bg-[#7F915F] text-white hover:bg-[#6d7a4a] shadow-lg hover:shadow-xl' 
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+            }`}
+            disabled={!allAnswered}
+          >
+            Continue
+          </button>
         </div>
-      )}
+      </div>
 
       {/* Modal */}
       {showModal && (
