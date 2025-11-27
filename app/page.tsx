@@ -27,6 +27,48 @@ export default function Home() {
     featureSection?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Handle redirect after sign-in
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.location.pathname !== '/') return;
+    
+    if (session) {
+      // Fetch user profile from server to check if onboarding is complete
+      fetch('/api/me')
+        .then(res => res.json())
+        .then(data => {
+          if (data.onboardingComplete) {
+            // Returning user with profile - go to dashboard
+            router.push('/dashboard');
+          } else {
+            // New user without profile - go to onboarding
+            router.push('/preview-onboarding');
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching profile:', err);
+          // On error, default to onboarding
+          router.push('/preview-onboarding');
+        });
+    }
+  }, [session, router]);
+
+  // Show loading while redirecting
+  if (session) {
+    return (
+      <div className="min-h-screen bg-[#F8F7F1] flex flex-col items-center justify-center px-4">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#7A8E50] to-[#55613b] flex items-center justify-center shadow-md animate-pulse">
+            <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
+              <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"/>
+            </svg>
+          </div>
+          <p className="text-sm text-[#4A4A4A]">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Full marketing landing page
   return (
     <main className="bg-[#F8F7F1]">
