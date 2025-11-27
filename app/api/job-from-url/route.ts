@@ -38,10 +38,12 @@ export async function POST(req: NextRequest) {
     const html = await fetchHtml(url);
     if (!html) {
       return NextResponse.json(
-        { error: 'Could not load this URL. Try another job link.' },
+        { error: 'Could not load this URL. The page may require login or block automated access.' },
         { status: 400 }
       );
     }
+
+    console.log('HTML fetched, length:', html.length);
 
     // Parse HTML with cheerio
     const $ = cheerio.load(html);
@@ -49,6 +51,7 @@ export async function POST(req: NextRequest) {
     // Try JSON-LD JobPosting extraction first
     const schemaData = extractFromJobPostingSchema($);
     if (schemaData) {
+      console.log('Extracted from JSON-LD schema');
       return NextResponse.json({
         jobTitle: schemaData.jobTitle,
         companyName: schemaData.companyName,
@@ -58,10 +61,11 @@ export async function POST(req: NextRequest) {
 
     // Fall back to heuristic + LLM
     const mainText = extractMainText($);
+    console.log('Main text length:', mainText.length);
     
     if (mainText.length < 200) {
       return NextResponse.json(
-        { error: 'This page does not look like a job posting.' },
+        { error: 'This page does not contain enough text. It may require login or use heavy JavaScript rendering.' },
         { status: 400 }
       );
     }
@@ -129,11 +133,15 @@ async function fetchHtml(url: string): Promise<string | null> {
     console.log('Initial text length:', textContent.length);
     
     // If content is suspiciously short or has loading indicators, use browser
-    if (textContent.length < 500 || 
+    // Workday sites are heavily JavaScript-rendered and need Playwright
+    const isWorkday = url.includes('myworkdayjobs.com');
+    
+    if (isWorkday || 
+        textContent.length < 500 || 
         textContent.toLowerCase().includes('loading...') ||
         textContent.toLowerCase().includes('please enable javascript')) {
       
-      console.log('Page appears JavaScript-rendered, using Playwright...');
+      console.log('Page appears JavaScript-rendered (or Workday site), using Playwright...');
       const browserHtml = await fetchWithBrowser(url);
       if (!browserHtml) {
         return null;
@@ -154,6 +162,7 @@ async function fetchHtml(url: string): Promise<string | null> {
 async function fetchWithBrowser(url: string): Promise<string | null> {
   let browser;
   try {
+    console.log('Launching Playwright browser for:', url);
     browser = await chromium.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -161,22 +170,34 @@ async function fetchWithBrowser(url: string): Promise<string | null> {
     
     const page = await browser.newPage();
     
+    // Set longer timeout for Workday sites
+    const timeout = url.includes('myworkdayjobs.com') ? 45000 : 30000;
+    
     // Try to load the page with a more lenient wait condition
     try {
-      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
+      console.log('Page loaded with domcontentloaded');
     } catch (gotoError) {
       // If even domcontentloaded times out, try with 'load'
       console.log('domcontentloaded timed out, trying with load...');
-      await page.goto(url, { waitUntil: 'load', timeout: 30000 });
+      try {
+        await page.goto(url, { waitUntil: 'load', timeout });
+        console.log('Page loaded with load');
+      } catch (loadError) {
+        console.log('Both wait conditions failed, proceeding with networkidle...');
+        await page.goto(url, { waitUntil: 'networkidle', timeout });
+      }
     }
     
-    // Wait for content to load
-    await page.waitForTimeout(5000);
+    // Wait for content to load - longer for Workday
+    const waitTime = url.includes('myworkdayjobs.com') ? 8000 : 5000;
+    console.log(`Waiting ${waitTime}ms for content to render...`);
+    await page.waitForTimeout(waitTime);
     
     const html = await page.content();
     await browser.close();
     
-    console.log('Successfully fetched with Playwright');
+    console.log('Successfully fetched with Playwright, HTML length:', html.length);
     return html;
   } catch (error) {
     if (browser) {
