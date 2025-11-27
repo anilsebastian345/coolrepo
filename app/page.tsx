@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from 'next-auth/react';
+import FeatureShowcase from './components/landing/FeatureShowcase';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
@@ -22,8 +23,8 @@ export default function Home() {
   };
 
   const scrollToNextSection = () => {
-    const howWeHelpSection = document.getElementById('how-we-help');
-    howWeHelpSection?.scrollIntoView({ behavior: 'smooth' });
+    const featureSection = document.getElementById('feature-showcase');
+    featureSection?.scrollIntoView({ behavior: 'smooth' });
   };
 
   // If user is already signed in, check server-side profile
@@ -138,108 +139,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* HOW WE HELP YOU GROW */}
-      <section id="how-we-help" className="pt-20 pb-16 px-4">
-        <div className="max-w-5xl mx-auto">
-          {/* Heading */}
-          <div className="text-center mb-12 max-w-3xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#222222] mb-4">
-              How we help you grow
-            </h2>
-            <p className="text-base md:text-lg text-[#4A4A4A]">
-              Professional coaching tailored to your unique journey and aspirations
-            </p>
-          </div>
-
-          {/* Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Card 1 */}
-            <div
-              className={`bg-white rounded-2xl p-6 shadow-sm transition-all duration-300 cursor-default ${
-                hoveredCard === 1 ? '-translate-y-1 shadow-lg' : ''
-              }`}
-              onMouseEnter={() => setHoveredCard(1)}
-              onMouseLeave={() => setHoveredCard(null)}
-            >
-              <div className="w-12 h-12 rounded-lg bg-[#E8F0DC] flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-[#7C9151]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="10" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-[#222222] mb-2">
-                Career Direction
-              </h3>
-              <p className="text-[#4A4A4A] leading-relaxed">
-                Find clarity on your career path with personalized assessments and strategic planning.
-              </p>
-            </div>
-
-            {/* Card 2 */}
-            <div
-              className={`bg-white rounded-2xl p-6 shadow-sm transition-all duration-300 cursor-default ${
-                hoveredCard === 2 ? '-translate-y-1 shadow-lg' : ''
-              }`}
-              onMouseEnter={() => setHoveredCard(2)}
-              onMouseLeave={() => setHoveredCard(null)}
-            >
-              <div className="w-12 h-12 rounded-lg bg-[#E8F0DC] flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-[#7C9151]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-[#222222] mb-2">
-                Skills Development
-              </h3>
-              <p className="text-[#4A4A4A] leading-relaxed">
-                Identify and develop the skills needed to achieve your professional goals.
-              </p>
-            </div>
-
-            {/* Card 3 */}
-            <div
-              className={`bg-white rounded-2xl p-6 shadow-sm transition-all duration-300 cursor-default ${
-                hoveredCard === 3 ? '-translate-y-1 shadow-lg' : ''
-              }`}
-              onMouseEnter={() => setHoveredCard(3)}
-              onMouseLeave={() => setHoveredCard(null)}
-            >
-              <div className="w-12 h-12 rounded-lg bg-[#E8F0DC] flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-[#7C9151]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-[#222222] mb-2">
-                Growth Strategy
-              </h3>
-              <p className="text-[#4A4A4A] leading-relaxed">
-                Create actionable plans to accelerate your career progression and reach new milestones.
-              </p>
-            </div>
-
-            {/* Card 4 */}
-            <div
-              className={`bg-white rounded-2xl p-6 shadow-sm transition-all duration-300 cursor-default ${
-                hoveredCard === 4 ? '-translate-y-1 shadow-lg' : ''
-              }`}
-              onMouseEnter={() => setHoveredCard(4)}
-              onMouseLeave={() => setHoveredCard(null)}
-            >
-              <div className="w-12 h-12 rounded-lg bg-[#E8F0DC] flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-[#7C9151]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-[#222222] mb-2">
-                Leadership Coaching
-              </h3>
-              <p className="text-[#4A4A4A] leading-relaxed">
-                Build confidence and capabilities to lead teams and drive meaningful impact.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* FEATURE SHOWCASE - New visual section with screenshots */}
+      <FeatureShowcase />
 
       {/* SOCIAL PROOF */}
       <section className="bg-[#F2F3EA] py-20 px-4">
