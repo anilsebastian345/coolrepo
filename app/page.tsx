@@ -142,60 +142,6 @@ export default function Home() {
       {/* FEATURE SHOWCASE - New visual section with screenshots */}
       <FeatureShowcase />
 
-      {/* SOCIAL PROOF */}
-      <section className="bg-[#F2F3EA] py-20 px-4">
-        <div className="max-w-5xl mx-auto">
-          {/* Heading */}
-          <div className="text-center mb-12 max-w-3xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#222222] mb-4">
-              Trusted by professionals
-            </h2>
-            <p className="text-base md:text-lg text-[#4A4A4A]">
-              Hear from those who've transformed their careers with Sage
-            </p>
-          </div>
-
-          {/* Testimonials Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Testimonial 1 */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm space-y-4">
-              <div className="text-[#7C9151] text-3xl font-serif">"</div>
-              <p className="text-[#4A4A4A] leading-relaxed">
-                Sage helped me navigate a career transition with confidence. The personalized guidance made all the difference.
-              </p>
-              <div className="pt-4 border-t border-gray-100">
-                <p className="font-semibold text-[#222222]">Sarah Chen</p>
-                <p className="text-sm text-[#4A4A4A]">Marketing Manager</p>
-              </div>
-            </div>
-
-            {/* Testimonial 2 */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm space-y-4">
-              <div className="text-[#7C9151] text-3xl font-serif">"</div>
-              <p className="text-[#4A4A4A] leading-relaxed">
-                The clarity I gained from coaching sessions transformed my approach to career development. Highly recommend.
-              </p>
-              <div className="pt-4 border-t border-gray-100">
-                <p className="font-semibold text-[#222222]">Michael Rodriguez</p>
-                <p className="text-sm text-[#4A4A4A]">Software Engineer</p>
-              </div>
-            </div>
-
-            {/* Testimonial 3 */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm space-y-4">
-              <div className="text-[#7C9151] text-3xl font-serif">"</div>
-              <p className="text-[#4A4A4A] leading-relaxed">
-                Working with Sage gave me the tools and confidence to pursue leadership opportunities I never thought possible.
-              </p>
-              <div className="pt-4 border-t border-gray-100">
-                <p className="font-semibold text-[#222222]">Emily Johnson</p>
-                <p className="text-sm text-[#4A4A4A]">Product Designer</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CTA SECTION */}
       <section className="py-20 px-4">
         <div className="max-w-[640px] mx-auto text-center space-y-8">

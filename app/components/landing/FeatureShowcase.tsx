@@ -30,7 +30,7 @@ const features: FeatureCard[] = [
     image: '/sage-career-fit.png',
     href: '/career-map',
     alt: 'Sage career fit analysis showing role alignment and career direction map',
-    label: 'F1 · Career Map'
+    label: 'Career Map'
   },
   {
     id: 'resume',
@@ -39,7 +39,7 @@ const features: FeatureCard[] = [
     image: '/sage-resume-analysis.png',
     href: '/resume-intel',
     alt: 'Sage resume analysis interface with smart recommendations',
-    label: 'F2 · Resume'
+    label: 'Resume'
   },
   {
     id: 'job-match',
@@ -48,14 +48,14 @@ const features: FeatureCard[] = [
     image: '/sage-role-fit.png',
     href: '/job-match',
     alt: 'Sage job match analysis showing fit score and skill gap recommendations',
-    label: 'F3 · Role Fit'
+    label: 'Role Fit'
   }
 ];
 
 export default function FeatureShowcase() {
   return (
-    <section id="feature-showcase" className="bg-[#FAFAF6] py-16">
-      <div className="max-w-5xl mx-auto px-4">
+    <section id="feature-showcase" className="bg-gradient-to-b from-[#F5F7F0] to-[#E8EEE0] py-16">
+      <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="text-center">
           <h2 className="text-3xl font-semibold text-[#232323]">
@@ -67,26 +67,27 @@ export default function FeatureShowcase() {
         </div>
 
         {/* Features Grid */}
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-8">
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((feature) => (
             <Link
               key={feature.id}
               href={feature.href}
               className="h-full"
             >
-              <div className="h-full rounded-2xl bg-white shadow-sm p-5 flex flex-col hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer border border-[#E4E7D8]">
+              <div className="h-full rounded-2xl bg-white/18 border border-white/40 shadow-lg backdrop-blur-md p-5 flex flex-col hover:bg-white/26 hover:shadow-xl hover:-translate-y-0.5 transition-all cursor-pointer">
                 {/* Image */}
-                <div className="flex-1">
-                  <Image
-                    src={feature.image}
-                    alt={feature.alt}
-                    width={600}
-                    height={400}
-                    className="w-full rounded-xl shadow-sm object-cover mb-4"
-                  />
+                <Image
+                  src={feature.image}
+                  alt={feature.alt}
+                  width={600}
+                  height={400}
+                  className="w-full rounded-xl shadow-sm object-cover mb-4"
+                />
 
+                {/* Content */}
+                <div className="flex-1">
                   {/* Label Pill */}
-                  <span className="inline-flex items-center px-2 py-0.5 mb-2 rounded-full bg-[#F3F4EE] text-[11px] font-medium text-[#6F6F6F]">
+                  <span className="inline-flex items-center px-2 py-0.5 mb-2 rounded-full bg-white/40 text-[11px] font-medium text-[#4F5A37]">
                     {feature.label}
                   </span>
 
@@ -96,7 +97,7 @@ export default function FeatureShowcase() {
                   </h3>
 
                   {/* Description */}
-                  <p className="mt-1 text-sm text-[#6F6F6F] leading-relaxed line-clamp-2">
+                  <p className="mt-1 text-sm text-[#3F3F3F] leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
@@ -104,19 +105,7 @@ export default function FeatureShowcase() {
                 {/* Explore Link */}
                 <div className="mt-4 text-sm text-[#7F915F] font-medium flex items-center gap-1">
                   <span>Explore</span>
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
+                  <span>↗</span>
                 </div>
               </div>
             </Link>
