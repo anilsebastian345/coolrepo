@@ -50,43 +50,10 @@ export function useUserProfile(): UseUserProfileReturn {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isGuestMode, setIsGuestMode] = useState(false);
-
-  // Check for guest mode on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setIsGuestMode(localStorage.getItem('guestMode') === 'true');
-    }
-  }, []);
 
   const fetchProfile = async () => {
-    // If authenticated, clear ALL guest/onboarding localStorage (fixes bug where guest data persists after sign-in)
-    if (sessionStatus === 'authenticated' && typeof window !== 'undefined') {
-      const hadGuestMode = localStorage.getItem('guestMode') === 'true';
-      if (hadGuestMode) {
-        console.log('Clearing all guest mode data - user is now authenticated');
-        // Clear all onboarding and guest-related keys
-        localStorage.removeItem('guestMode');
-        localStorage.removeItem('userName');
-        localStorage.removeItem('onboarding_psych_profile');
-        localStorage.removeItem('onboarding_questions');
-        localStorage.removeItem('onboarding_questions_completed');
-        localStorage.removeItem('onboarding_resume_text');
-        localStorage.removeItem('onboarding_resume_uploaded');
-        localStorage.removeItem('onboarding_resume_data');
-        localStorage.removeItem('onboarding_linkedin_complete');
-        localStorage.removeItem('onboarding_linkedin_text');
-        localStorage.removeItem('onboarding_linkedin_data');
-        localStorage.removeItem('onboarding_career_stage');
-        setIsGuestMode(false);
-      }
-    }
-    
-    // Check if user is in guest mode (only if not authenticated)
-    const guestMode = sessionStatus !== 'authenticated' && typeof window !== 'undefined' && localStorage.getItem('guestMode') === 'true';
-    
-    // Don't fetch if not authenticated AND not in guest mode
-    if (sessionStatus !== 'authenticated' && !guestMode) {
+    // Don't fetch if not authenticated
+    if (sessionStatus !== 'authenticated') {
       setIsLoading(false);
       return;
     }
@@ -121,7 +88,7 @@ export function useUserProfile(): UseUserProfileReturn {
     }
     
     fetchProfile();
-  }, [sessionStatus, isGuestMode]);
+  }, [sessionStatus]);
 
   return {
     userProfile,

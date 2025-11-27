@@ -16,30 +16,9 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   const { userProfile, isLoading: profileLoading, error } = useUserProfile();
   const router = useRouter();
   const pathname = usePathname();
-  const [isGuestMode, setIsGuestMode] = useState(false);
-
-  // Check for guest mode on mount and clear if authenticated
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const guestMode = localStorage.getItem('guestMode');
-      console.log('AuthGate - checking guest mode:', { guestMode, sessionStatus });
-      
-      // If user is authenticated, clear any guest mode flags
-      if (sessionStatus === 'authenticated' && guestMode === 'true') {
-        console.log('Clearing guest mode - user is authenticated');
-        localStorage.removeItem('guestMode');
-        localStorage.removeItem('userName');
-        setIsGuestMode(false);
-      } else if (sessionStatus === 'unauthenticated') {
-        const isGuest = guestMode === 'true';
-        console.log('Setting guest mode:', isGuest);
-        setIsGuestMode(isGuest);
-      }
-    }
-  }, [sessionStatus]);
 
   useEffect(() => {
-    console.log('AuthGate navigation check:', { pathname, sessionStatus, isGuestMode, profileLoading });
+    console.log('AuthGate navigation check:', { pathname, sessionStatus, profileLoading });
     
     // Allow public routes without any checks
     if (pathname && PUBLIC_ROUTES.includes(pathname)) {
@@ -51,15 +30,9 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // If guest mode is active, allow access to onboarding pages
-    if (isGuestMode && pathname && AUTH_ONLY_ROUTES.includes(pathname)) {
-      console.log('Allowing guest access to:', pathname);
-      return;
-    }
-
-    // If not authenticated and not in guest mode, redirect to home
-    if (sessionStatus === 'unauthenticated' && !isGuestMode) {
-      console.log('Not authenticated and not guest mode, redirecting to home');
+    // If not authenticated, redirect to home
+    if (sessionStatus === 'unauthenticated') {
+      console.log('Not authenticated, redirecting to home');
       router.push('/');
       return;
     }
@@ -93,7 +66,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
         // to allow users to see the welcome page and choose where to go
       }
     }
-  }, [sessionStatus, profileLoading, userProfile, error, router, pathname, isGuestMode]);
+  }, [sessionStatus, profileLoading, userProfile, error, router, pathname]);
 
   // Allow public routes to render immediately
   if (pathname && PUBLIC_ROUTES.includes(pathname)) {
@@ -112,8 +85,8 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Show redirecting message if unauthenticated and not in guest mode
-  if (sessionStatus === 'unauthenticated' && !isGuestMode) {
+  // Show redirecting message if unauthenticated
+  if (sessionStatus === 'unauthenticated') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
         <div className="text-center">
@@ -123,13 +96,8 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // For authenticated users OR guest mode on auth-only routes, render immediately
+  // For authenticated users on auth-only routes, render immediately
   if (pathname && AUTH_ONLY_ROUTES.includes(pathname)) {
-    return <>{children}</>;
-  }
-
-  // If in guest mode, allow access to all pages
-  if (isGuestMode) {
     return <>{children}</>;
   }
 

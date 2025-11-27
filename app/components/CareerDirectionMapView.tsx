@@ -147,7 +147,7 @@ export default function CareerDirectionMapView({
     );
   }
 
-  const displayName = session?.user?.name?.split(' ')[0] || userProfile?.name?.split(' ')[0] || 'Guest User';
+  const displayName = session?.user?.name?.split(' ')[0] || userProfile?.name?.split(' ')[0] || 'User';
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', href: '/dashboard' },
     { id: 'profile', label: 'Profile', href: '/profile' },
@@ -216,19 +216,6 @@ export default function CareerDirectionMapView({
                     </button>
                     <button
                       onClick={() => {
-                        // Clear all user-specific data
-                        localStorage.removeItem('guestMode');
-                        localStorage.removeItem('userName');
-                        localStorage.removeItem('onboarding_psych_profile');
-                        localStorage.removeItem('onboarding_questions');
-                        localStorage.removeItem('onboarding_questions_completed');
-                        localStorage.removeItem('onboarding_resume_text');
-                        localStorage.removeItem('onboarding_resume_uploaded');
-                        localStorage.removeItem('onboarding_resume_data');
-                        localStorage.removeItem('onboarding_linkedin_complete');
-                        localStorage.removeItem('onboarding_linkedin_text');
-                        localStorage.removeItem('onboarding_linkedin_data');
-                        localStorage.removeItem('onboarding_career_stage');
                         signOut({ callbackUrl: '/' });
                       }}
                       className="w-full px-4 py-2 text-left text-sm text-[#4A4A4A] hover:bg-gray-50 transition-colors"

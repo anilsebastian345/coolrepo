@@ -43,19 +43,17 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession();
     
-    // For guest users, use temp-user-id
-    let userId = 'temp-user-id';
-    let userEmail: string | undefined;
-    let userName: string | undefined;
-    
-    if (session?.user?.email) {
-      userId = session.user.email;
-      userEmail = session.user.email;
-      userName = session.user.name || undefined;
-    } else {
-      // Guest mode - use temp-user-id
-      console.log('No session found, using temp-user-id for guest mode');
+    // Require authentication
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: 'Not authenticated' },
+        { status: 401 }
+      );
     }
+    
+    const userId = session.user.email;
+    const userEmail = session.user.email;
+    const userName = session.user.name || undefined;
     
     // Get profile from KV storage
     let profileData: UserProfile | null = null;
@@ -97,7 +95,7 @@ export async function GET(req: NextRequest) {
       profileData = {
         userId,
         email: userEmail,
-        name: userName || cachedProfile.extractedName || 'Guest User',
+        name: userName || cachedProfile.extractedName || undefined,
         onboardingComplete: cachedProfile.onboardingComplete || false,
         summary: cachedProfile.profile || undefined,
         last_updated: cachedProfile.timestamp 

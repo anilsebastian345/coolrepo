@@ -173,19 +173,6 @@ function TopNav({ activeTab, firstName }: { activeTab: string; firstName?: strin
                   <button
                     onClick={() => {
                       setShowUserDropdown(false);
-                      // Clear all user-specific data
-                      localStorage.removeItem('guestMode');
-                      localStorage.removeItem('userName');
-                      localStorage.removeItem('onboarding_psych_profile');
-                      localStorage.removeItem('onboarding_questions');
-                      localStorage.removeItem('onboarding_questions_completed');
-                      localStorage.removeItem('onboarding_resume_text');
-                      localStorage.removeItem('onboarding_resume_uploaded');
-                      localStorage.removeItem('onboarding_resume_data');
-                      localStorage.removeItem('onboarding_linkedin_complete');
-                      localStorage.removeItem('onboarding_linkedin_text');
-                      localStorage.removeItem('onboarding_linkedin_data');
-                      localStorage.removeItem('onboarding_career_stage');
                       signOut({ callbackUrl: '/' });
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-[#4A4A4A] hover:bg-gray-50 transition-colors"
@@ -258,14 +245,14 @@ export default function DashboardPage() {
       return;
     }
 
-    // Guest users: use extracted name from resume/LinkedIn or 'Guest User'
+    // Use extracted name from resume/LinkedIn
     if (userProfile?.name) {
       setFirstName(userProfile.name.split(' ')[0]);
       return;
     }
 
-    // Final fallback for guests
-    setFirstName('Guest User');
+    // Final fallback
+    setFirstName('User');
   }, [firstName, session?.user?.name, userProfile?.name]);
 
   useEffect(() => {
@@ -276,22 +263,7 @@ export default function DashboardPage() {
       setHasProfile(true);
       return;
     }
-    
-    // For guest users only: fallback to localStorage
-    if (typeof window !== 'undefined' && !session) {
-      const profileJson = localStorage.getItem('onboarding_psych_profile');
-      
-      if (profileJson) {
-        try {
-          const parsed = JSON.parse(profileJson);
-          setProfile(parsed);
-          setHasProfile(true);
-        } catch (e) {
-          console.error('Error parsing profile:', e);
-        }
-      }
-    }
-  }, [userProfile, session]);
+  }, [userProfile]);
 
   // Fetch cross-feature data
   useEffect(() => {

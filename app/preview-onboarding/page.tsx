@@ -237,54 +237,6 @@ export default function PreviewOnboarding() {
       
       return; // Skip localStorage checks if we have server data
     }
-    
-    // Priority 2: Fallback to localStorage (for guest users or initial load)
-    if (typeof window !== 'undefined') {
-      // Check LinkedIn PDF upload
-      const linkedinComplete = localStorage.getItem('onboarding_linkedin_complete');
-      if (linkedinComplete === 'true') {
-        setLinkedinProgress(1); // Mark as completed
-      } else {
-        setLinkedinProgress(0);
-      }
-      
-      // Check questions progress (5 questions total)
-      const questionsData = localStorage.getItem('onboarding_questions');
-      if (questionsData) {
-        try {
-          const parsed = JSON.parse(questionsData);
-          const answered = Object.values(parsed).filter(v => v !== null && v !== undefined).length;
-          setQuestionsProgress(answered);
-          if (answered === 5) {
-            setQuestionsCompleted(true);
-          }
-        } catch {}
-      } else {
-        setQuestionsProgress(0);
-      }
-      
-      // Check if resume was uploaded
-      const resumeData = localStorage.getItem('onboarding_resume_uploaded');
-      const resumeInfoData = localStorage.getItem('onboarding_resume_data');
-      if (resumeData && resumeInfoData) {
-        setResumeUploaded(true);
-        try {
-          const parsed = JSON.parse(resumeInfoData);
-          setResumeInfo({ fileName: parsed.fileName, uploadedAt: parsed.uploadedAt });
-        } catch {}
-        if (resumeData === 'true') setSelected('resume');
-      }
-
-      // Check if questions were completed (legacy check)
-      const questionsDone = localStorage.getItem('onboarding_questions_completed');
-      if (questionsDone === 'true') setQuestionsCompleted(true);
-      
-      // Check career stage selection
-      const savedCareerStage = localStorage.getItem('onboarding_career_stage');
-      if (savedCareerStage) {
-        setCareerStage(savedCareerStage as CareerStageUserSelected);
-      }
-    }
   }, [userProfile]);
 
   async function handleFileUploadModal(file: File) {

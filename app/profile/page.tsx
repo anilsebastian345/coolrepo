@@ -73,25 +73,7 @@ export default function ProfileInsightsPage() {
       setProfile(userProfile.psychographicProfile);
       return;
     }
-    
-    // For guest users only: fallback to localStorage
-    if (typeof window !== 'undefined' && !session) {
-      const profileJson = localStorage.getItem('onboarding_psych_profile');
-      
-      if (profileJson) {
-        try {
-          const parsed = JSON.parse(profileJson);
-          setProfile(parsed);
-        } catch (e) {
-          console.error('Error parsing profile:', e);
-          router.push('/dashboard');
-        }
-      } else {
-        // No profile found, redirect to dashboard
-        router.push('/dashboard');
-      }
-    }
-  }, [router, userProfile, session]);
+  }, [router, userProfile]);
 
   useEffect(() => {
     if (userName) {
@@ -104,14 +86,14 @@ export default function ProfileInsightsPage() {
       return;
     }
 
-    // Guest users: use extracted name from resume/LinkedIn or 'Guest User'
+    // Use extracted name from resume/LinkedIn
     if (userProfile?.name) {
       setUserName(userProfile.name);
       return;
     }
 
-    // Final fallback for guests
-    setUserName('Guest User');
+    // Final fallback
+    setUserName('User');
   }, [userName, session?.user?.name, userProfile?.name]);
 
   // Intersection Observer for scroll animations

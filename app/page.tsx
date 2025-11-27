@@ -18,34 +18,7 @@ export default function Home() {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
-    // Clear any guest mode flags and onboarding data before signing in
-    localStorage.removeItem('guestMode');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('onboarding_psych_profile');
-    localStorage.removeItem('onboarding_questions');
-    localStorage.removeItem('onboarding_questions_completed');
-    localStorage.removeItem('onboarding_resume_text');
-    localStorage.removeItem('onboarding_resume_uploaded');
-    localStorage.removeItem('onboarding_resume_data');
-    localStorage.removeItem('onboarding_linkedin_complete');
-    localStorage.removeItem('onboarding_linkedin_text');
-    localStorage.removeItem('onboarding_linkedin_data');
-    localStorage.removeItem('onboarding_career_stage');
     await signIn('google');
-  };
-
-  const handleGuestSignIn = () => {
-    setIsLoading(true);
-    // Set guest mode in localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('userName', 'Guest User');
-      localStorage.setItem('guestMode', 'true');
-      console.log('Guest mode enabled, redirecting to onboarding');
-    }
-    // Small delay to ensure localStorage is written
-    setTimeout(() => {
-      router.push('/preview-onboarding');
-    }, 100);
   };
 
   const scrollToNextSection = () => {
@@ -143,15 +116,6 @@ export default function Home() {
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
               <span className="text-[14px]">Continue with Google</span>
-            </button>
-
-            <button
-              onClick={handleGuestSignIn}
-              disabled={isLoading}
-              className="w-full md:w-56 py-2.5 px-5 bg-white border border-gray-300 rounded-full text-[#4A4A4A] font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-400"
-              type="button"
-            >
-              <span className="text-[14px]">Continue as Guest</span>
             </button>
           </div>
 
@@ -372,7 +336,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             {/* Logo and Name */}
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#A8C686] to-[#7C9151] flex items-center justify-center shadow-sm">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#d4dbc8] via-[#7A8E50] to-[#55613b] flex items-center justify-center shadow-sm">
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
