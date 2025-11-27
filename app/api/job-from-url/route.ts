@@ -132,16 +132,31 @@ async function fetchHtml(url: string): Promise<string | null> {
     
     console.log('Initial text length:', textContent.length);
     
-    // If content is suspiciously short or has loading indicators, use browser
-    // Workday sites are heavily JavaScript-rendered and need Playwright
-    const isWorkday = url.includes('myworkdayjobs.com');
+    // Detect if page needs JavaScript rendering
+    const needsBrowser = (
+      textContent.length < 500 || // Very little content
+      textContent.toLowerCase().includes('loading...') ||
+      textContent.toLowerCase().includes('please enable javascript') ||
+      textContent.toLowerCase().includes('javascript is required') ||
+      textContent.toLowerCase().includes('enable js') ||
+      // Check for common SPA frameworks/patterns
+      html.includes('data-reactroot') ||
+      html.includes('ng-app') ||
+      html.includes('id="app"') ||
+      html.includes('id="root"') ||
+      html.includes('__NEXT_DATA__') ||
+      // Check for placeholder/skeleton content
+      (html.includes('skeleton') && html.includes('loading')) ||
+      // Workday and similar enterprise platforms
+      url.includes('myworkdayjobs.com') ||
+      url.includes('greenhouse.io') ||
+      url.includes('lever.co') ||
+      url.includes('ashbyhq.com') ||
+      url.includes('workable.com')
+    );
     
-    if (isWorkday || 
-        textContent.length < 500 || 
-        textContent.toLowerCase().includes('loading...') ||
-        textContent.toLowerCase().includes('please enable javascript')) {
-      
-      console.log('Page appears JavaScript-rendered (or Workday site), using Playwright...');
+    if (needsBrowser) {
+      console.log('Page needs JavaScript rendering, using Playwright...');
       const browserHtml = await fetchWithBrowser(url);
       if (!browserHtml) {
         return null;
@@ -170,28 +185,35 @@ async function fetchWithBrowser(url: string): Promise<string | null> {
     
     const page = await browser.newPage();
     
-    // Set longer timeout for Workday sites
-    const timeout = url.includes('myworkdayjobs.com') ? 45000 : 30000;
+    // Longer timeout for enterprise job boards
+    const isEnterprise = (
+      url.includes('myworkdayjobs.com') ||
+      url.includes('greenhouse.io') ||
+      url.includes('lever.co') ||
+      url.includes('ashbyhq.com') ||
+      url.includes('workable.com')
+    );
+    const timeout = isEnterprise ? 45000 : 30000;
     
-    // Try to load the page with a more lenient wait condition
+    // Try progressive wait strategies
     try {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
       console.log('Page loaded with domcontentloaded');
     } catch (gotoError) {
-      // If even domcontentloaded times out, try with 'load'
       console.log('domcontentloaded timed out, trying with load...');
       try {
         await page.goto(url, { waitUntil: 'load', timeout });
         console.log('Page loaded with load');
       } catch (loadError) {
-        console.log('Both wait conditions failed, proceeding with networkidle...');
+        console.log('load timed out, trying with networkidle...');
         await page.goto(url, { waitUntil: 'networkidle', timeout });
+        console.log('Page loaded with networkidle');
       }
     }
     
-    // Wait for content to load - longer for Workday
-    const waitTime = url.includes('myworkdayjobs.com') ? 8000 : 5000;
-    console.log(`Waiting ${waitTime}ms for content to render...`);
+    // Wait for dynamic content to render - longer for enterprise platforms
+    const waitTime = isEnterprise ? 8000 : 5000;
+    console.log(`Waiting ${waitTime}ms for dynamic content to render...`);
     await page.waitForTimeout(waitTime);
     
     const html = await page.content();
