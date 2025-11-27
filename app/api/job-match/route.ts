@@ -198,14 +198,15 @@ YOUR TASK:
 2. Compare the candidate to this specific job and produce:
 
    A) overallMatchScore (0–100):
-      - Be honest and conservative. This should reflect realistic fit for THIS job.
+      - Be honest and use the FULL 0-100 range. This should reflect realistic fit for THIS job.
       - Consider: Does the candidate have the core skills? Appropriate experience level? Relevant domain knowledge?
-      - 90–100: Exceptional candidate, exceeds requirements
-      - 80–89: Strong candidate, clearly qualified
-      - 70–79: Good candidate, meets most requirements
-      - 60–69: Moderate candidate, could work but has gaps
-      - 50–59: Stretch candidate, significant development needed
-      - Below 50: Not a strong match for this specific role
+      - 95–100: Perfect match, exceeds all requirements significantly
+      - 85–94: Excellent match, meets all key requirements with strong evidence
+      - 70–84: Good match, meets most requirements with minor gaps
+      - 55–69: Moderate match, meets some requirements but has notable gaps
+      - 40–54: Weak match, significant gaps in core requirements
+      - 25–39: Poor match, missing most key requirements
+      - 0–24: Very poor match, wrong field or level entirely
 
    B) dimensionScores (array) with 3–4 dimensions:
       - "skills" (always include)
@@ -217,15 +218,16 @@ YOUR TASK:
         - score: 0–100
         - comment: 1–2 sentences explaining the score in plain, honest language.
       
-      **CRITICAL**: Be honest and conservative with scores:
-        - 90–100: Exceptional match, candidate exceeds requirements
-        - 80–89: Strong match, candidate clearly meets requirements
-        - 70–79: Good match, candidate mostly meets requirements with minor gaps
-        - 60–69: Moderate match, candidate meets some requirements but has notable gaps
-        - 50–59: Partial match, candidate has relevant background but significant gaps
-        - Below 50: Weak match, candidate lacks most key requirements
+      **CRITICAL**: Be honest and use the FULL 0-100 range:
+        - 95–100: Perfect match, exceeds requirements significantly
+        - 85–94: Excellent match, clearly meets all requirements
+        - 70–84: Good match, meets most requirements with minor gaps
+        - 55–69: Moderate match, meets some requirements with notable gaps
+        - 40–54: Weak match, significant gaps in core areas
+        - 25–39: Poor match, missing most key requirements
+        - 0–24: Very poor match, wrong domain or level
       
-      Do NOT inflate scores. If a candidate is missing key skills or experience, reflect that honestly.
+      Use the full range. Don't cluster everything in 60-80. If someone is truly excellent, score them 90+. If they're weak, score them under 50.
       For culture_environment: Only score if you have concrete signals (e.g., job mentions "startup pace" and resume shows startup experience, 
       or job says "large enterprise" and candidate worked at Fortune 500s). If signals are vague or missing, OMIT this dimension entirely.
 
@@ -266,9 +268,10 @@ YOUR TASK:
    - Use simple, clear language.
    - Respect the job's domain (healthcare vs trades vs corporate vs creative, etc.).
    - Do NOT suggest changing to a different field; focus ONLY on fit for THIS job description.
-   - **BE HONEST**. Do not inflate scores or manufacture strengths. If there are gaps, acknowledge them clearly.
-   - If the candidate is underqualified, reflect that in the scores and feedback.
-   - If the candidate is overqualified, that's fine to note too.
+   - **BE HONEST and use the FULL 0-100 range**. Don't cluster scores in 60-80.
+   - If the candidate is truly excellent for this role, score them 90+.
+   - If they're weak or underqualified, score them under 50.
+   - If they're overqualified, that's fine to note and should result in high scores (85-95).
    - For culture_environment dimension: ONLY include if you have concrete evidence from both the job description and candidate profile.
 
 4. Output STRICT JSON with this exact shape:

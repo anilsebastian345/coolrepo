@@ -262,9 +262,11 @@ export default function RoleFitAnalysisPage() {
   };
 
   const getFitInfo = (score: number) => {
-    if (score >= 80) return { label: 'Strong Fit', color: '#7F915F', bgColor: '#EEF2E8' };
-    if (score >= 60) return { label: 'Moderate Fit', color: '#D4A574', bgColor: '#FEF3E8' };
-    return { label: 'Partial Fit', color: '#E07856', bgColor: '#FEF0EC' };
+    if (score >= 85) return { label: 'Excellent Fit', color: '#5F7F4F', bgColor: '#E8F2E2' };
+    if (score >= 70) return { label: 'Good Fit', color: '#7F915F', bgColor: '#EEF2E8' };
+    if (score >= 55) return { label: 'Moderate Fit', color: '#D4A574', bgColor: '#FEF3E8' };
+    if (score >= 40) return { label: 'Weak Fit', color: '#E07856', bgColor: '#FEF0EC' };
+    return { label: 'Poor Fit', color: '#C85A4A', bgColor: '#FCECE9' };
   };
 
   const runAnotherAnalysis = () => {
