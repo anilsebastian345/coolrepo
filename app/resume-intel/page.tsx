@@ -120,9 +120,19 @@ export default function ResumeIntelPage() {
   const [copiedSummary, setCopiedSummary] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [forceRefresh, setForceRefresh] = useState(0);
 
   // Derive display name
   const displayName = session?.user?.name?.split(' ')[0] || userProfile?.name?.split(' ')[0] || 'User';
+
+  // Force clear all caches and reload
+  const handleRefresh = () => {
+    console.log('Forcing refresh - clearing all caches');
+    sessionStorage.clear();
+    setReview(null);
+    setCareerDirections([]);
+    setForceRefresh(prev => prev + 1);
+  };
 
   // Simple hash function for resume text
   const hashResume = (text: string) => {
@@ -135,19 +145,9 @@ export default function ResumeIntelPage() {
     return hash.toString();
   };
 
-  // Load cached review from sessionStorage on mount
+  // Load cached review from sessionStorage on mount - DISABLED to always fetch fresh
   useEffect(() => {
-    try {
-      const cached = sessionStorage.getItem('resume-intel-cache');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        setReview(parsed.review);
-        setCareerDirections(parsed.directions || []);
-        console.log('Loaded review from sessionStorage');
-      }
-    } catch (err) {
-      console.warn('Failed to load cached review:', err);
-    }
+    console.log('Cache loading disabled - will fetch fresh data from API');
   }, []);
 
   useEffect(() => {
@@ -181,25 +181,8 @@ export default function ResumeIntelPage() {
     // Update userProfile reference to include resume text
     const profileWithResume = { ...userProfile, resumeText };
 
-    // Check if we already have a cached review and resume hasn't changed
-    const currentHash = hashResume(resumeText);
-    const cachedData = sessionStorage.getItem('resume-intel-cache');
-    
-    if (cachedData) {
-      try {
-        const parsed = JSON.parse(cachedData);
-        if (parsed.hash === currentHash && parsed.review) {
-          console.log('Using cached review, resume unchanged');
-          if (!review) {
-            setReview(parsed.review);
-            setCareerDirections(parsed.directions || []);
-          }
-          return;
-        }
-      } catch (err) {
-        console.warn('Cache validation failed:', err);
-      }
-    }
+    // ALWAYS fetch fresh review - no caching to ensure we use latest resume
+    console.log('Fetching fresh review from API (caching disabled)');
 
     const fetchReview = async () => {
       setLoading(true);
@@ -245,18 +228,8 @@ export default function ResumeIntelPage() {
         setReview(data.review);
         setCareerDirections(directions);
         
-        // Cache in sessionStorage
-        try {
-          sessionStorage.setItem('resume-intel-cache', JSON.stringify({
-            hash: currentHash,
-            review: data.review,
-            directions: directions,
-            timestamp: Date.now()
-          }));
-          console.log('Cached review in sessionStorage');
-        } catch (cacheErr) {
-          console.warn('Failed to cache review:', cacheErr);
-        }
+        // Don't cache - always fetch fresh to ensure latest resume is used
+        console.log('Review loaded successfully (no caching)');
       } catch (err) {
         console.error('Error fetching review:', err);
         setError(err instanceof Error ? err.message : 'Failed to load resume review');
@@ -266,7 +239,7 @@ export default function ResumeIntelPage() {
     };
 
     fetchReview();
-  }, [userProfile?.resumeText, profileLoading]);
+  }, [userProfile?.resumeText, profileLoading, forceRefresh]);
 
   const copyToClipboard = async (text: string, index?: number) => {
     try {
@@ -373,19 +346,31 @@ export default function ResumeIntelPage() {
       <TopNav activeTab="resume" displayName={displayName} />
       
       <div className="max-w-6xl mx-auto px-6 py-12">
-        <div className="mb-12 text-center">
-          <h1 
-            className="text-3xl font-semibold text-[#232323] mb-3"
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 
+              className="text-3xl font-semibold text-[#232323] mb-2"
+              style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+            >
+              Resume Intel
+            </h1>
+            <p 
+              className="text-base text-[#6F6F6F]"
+              style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+            >
+              AI-powered insights from your actual resume
+            </p>
+          </div>
+          <button
+            onClick={handleRefresh}
+            className="px-4 py-2 bg-white border border-[#7F915F] text-[#7F915F] rounded-xl hover:bg-[#F4F7EF] transition-colors flex items-center gap-2"
             style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
           >
-            Resume Intel
-          </h1>
-          <p 
-            className="text-base text-[#6F6F6F]"
-            style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
-          >
-            AI-powered insights from your actual resume
-          </p>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh Analysis
+          </button>
         </div>
 
         {/* First Impression */}
