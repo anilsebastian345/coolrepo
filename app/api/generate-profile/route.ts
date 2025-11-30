@@ -57,6 +57,12 @@ export async function POST(req: NextRequest) {
       careerStageUserSelected 
     } = await req.json();
 
+    console.log('=== GENERATE PROFILE INPUT ===');
+    console.log('Resume input length:', resumeInput?.length || 0);
+    console.log('Resume input first 300 chars:', resumeInput?.substring(0, 300));
+    console.log('LinkedIn input length:', linkedinInput?.length || 0);
+    console.log('==============================');
+
     // Clear cache if requested
     if (clearCache) {
       console.log('Clearing profile cache for user:', userId);
@@ -283,6 +289,13 @@ ${resumeSignals.titles.length > 0 ? `Job titles: ${resumeSignals.titles.join(', 
               questions: questions || existingProfile.questions,
               extractedName: resumeSignals?.name || existingProfile.extractedName
             };
+            
+            console.log('=== SAVING PROFILE ===');
+            console.log('resumeData length:', resumeData?.length || 0);
+            console.log('resumeData first 300:', resumeData?.substring(0, 300));
+            console.log('Saving resumeText length:', updatedProfile.resumeText?.length || 0);
+            console.log('=====================');
+            
             await saveUserProfile(userId, updatedProfile);
             
             // Invalidate resume review cache if resume changed
