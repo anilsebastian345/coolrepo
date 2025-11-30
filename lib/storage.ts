@@ -16,6 +16,10 @@ export interface UserProfileData {
   careerPreferencesCompleted?: boolean;
   last_updated?: string;
   extractedName?: string;
+  resume?: {
+    filename: string;
+    uploadedAt: string;
+  };
 }
 
 const PROFILE_PREFIX = 'profile:';
