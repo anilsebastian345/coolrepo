@@ -153,18 +153,25 @@ export default function ResumeIntelPage() {
   useEffect(() => {
     if (profileLoading) return;
 
+    console.log('=== RESUME INTEL DEBUG ===');
     console.log('User Profile:', userProfile);
-    console.log('Resume Text:', userProfile?.resumeText ? `Found (${userProfile.resumeText.length} chars)` : 'NOT FOUND');
+    console.log('Profile has resumeText?', !!userProfile?.resumeText);
+    console.log('Resume Text from profile:', userProfile?.resumeText ? `Found (${userProfile.resumeText.length} chars) - First 200 chars: ${userProfile.resumeText.substring(0, 200)}` : 'NOT FOUND');
 
     // Try to get resume from profile or fallback to localStorage
     let resumeText = userProfile?.resumeText;
     if (!resumeText && typeof window !== 'undefined') {
       const localResume = localStorage.getItem('onboarding_resume_text');
+      console.log('Checking localStorage for resume...');
+      console.log('localStorage has resume?', !!localResume);
       if (localResume) {
-        console.log('Using resume from localStorage fallback');
+        console.log('Using resume from localStorage fallback - Length:', localResume.length, 'First 200 chars:', localResume.substring(0, 200));
         resumeText = localResume;
       }
     }
+
+    console.log('Final resumeText to use:', resumeText ? `${resumeText.length} chars - First 200: ${resumeText.substring(0, 200)}` : 'NONE');
+    console.log('=========================');
 
     if (!resumeText) {
       setError('No resume found. Please upload your resume in the onboarding flow first.');
@@ -211,7 +218,10 @@ export default function ResumeIntelPage() {
           setCareerDirections(directions);
         }
 
-        console.log('Calling /api/resume-review with resume length:', resumeText?.length || 0);
+        console.log('=== CALLING API ===');
+        console.log('Resume text being sent - Length:', resumeText?.length || 0);
+        console.log('First 300 chars of resume being sent:', resumeText?.substring(0, 300));
+        console.log('==================');
         
         const response = await fetch('/api/resume-review', {
           method: 'POST',

@@ -28,6 +28,11 @@ export async function POST(req: NextRequest) {
       psychographicProfile
     } = body;
 
+    console.log('=== RESUME REVIEW API ===');
+    console.log('Received resumeText length:', resumeText?.length || 0);
+    console.log('First 300 chars of resumeText:', resumeText?.substring(0, 300));
+    console.log('========================');
+
     if (!resumeText) {
       return NextResponse.json(
         { error: 'resumeText is required' },
