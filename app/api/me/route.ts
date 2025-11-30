@@ -72,7 +72,8 @@ export async function GET(req: NextRequest) {
       let psychographicProfile: any;
         
       // Debug logging
-      console.log('[RESUME DEBUG] cachedProfile.resumeText:', !!cachedProfile.resumeText, cachedProfile.resumeText?.substring(0, 100));
+      console.log('[RESUME DEBUG] cachedProfile.resumeText:', !!cachedProfile.resumeText, 'Length:', cachedProfile.resumeText?.length || 0);
+      console.log('[RESUME DEBUG] First 200 chars:', cachedProfile.resumeText?.substring(0, 200) || 'NONE');
       console.log('[RESUME DEBUG] All cachedProfile keys:', Object.keys(cachedProfile));
         
       // Get resume/LinkedIn from cache

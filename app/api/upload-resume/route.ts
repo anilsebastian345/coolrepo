@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { getUserProfile, saveUserProfile } from '@/lib/storage';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -90,6 +92,34 @@ export async function POST(request: NextRequest) {
     
     // Simulate successful file storage
     console.log('Upload completed successfully!');
+    console.log('Extracted text length:', extractedText.length);
+    console.log('First 300 chars:', extractedText.substring(0, 300));
+    
+    // Save resume text to user profile immediately if user is authenticated
+    try {
+      const session = await getServerSession();
+      if (session?.user?.email) {
+        const userId = session.user.email;
+        console.log('Saving resume to profile for user:', userId);
+        
+        const existingProfile = await getUserProfile(userId) || {};
+        await saveUserProfile(userId, {
+          ...existingProfile,
+          resumeText: extractedText,
+          resume: {
+            filename: file.name,
+            uploadedAt: new Date().toISOString()
+          }
+        });
+        console.log('Resume saved to profile successfully');
+      } else {
+        console.log('No authenticated user - resume will be saved to localStorage only');
+      }
+    } catch (profileError) {
+      console.error('Error saving resume to profile:', profileError);
+      // Don't fail the upload if profile save fails
+    }
+    
     return NextResponse.json({
       success: true,
       fileId: timestamp,

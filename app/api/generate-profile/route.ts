@@ -144,6 +144,15 @@ export async function POST(req: NextRequest) {
       resumeData = typeof resumeInput === 'string' ? resumeInput : JSON.stringify(resumeInput);
     }
     
+    // Fallback: If no resume in request, try to get from existing profile
+    if (!resumeData) {
+      const existingProfile = await getUserProfile(userId);
+      if (existingProfile?.resumeText) {
+        console.log('Using resume from existing profile (length:', existingProfile.resumeText.length, ')');
+        resumeData = existingProfile.resumeText;
+      }
+    }
+    
     // Check for LinkedIn data from request body (sent from client localStorage)
     if (linkedinInput) {
       // Check if it's the full text (from PDF upload)
