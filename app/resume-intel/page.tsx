@@ -156,13 +156,26 @@ export default function ResumeIntelPage() {
     console.log('User Profile:', userProfile);
     console.log('Resume Text:', userProfile?.resumeText ? `Found (${userProfile.resumeText.length} chars)` : 'NOT FOUND');
 
-    if (!userProfile?.resumeText) {
-      setError('No resume found. Please upload your resume first.');
+    // Try to get resume from profile or fallback to localStorage
+    let resumeText = userProfile?.resumeText;
+    if (!resumeText && typeof window !== 'undefined') {
+      const localResume = localStorage.getItem('onboarding_resume_text');
+      if (localResume) {
+        console.log('Using resume from localStorage fallback');
+        resumeText = localResume;
+      }
+    }
+
+    if (!resumeText) {
+      setError('No resume found. Please upload your resume in the onboarding flow first.');
       return;
     }
 
+    // Update userProfile reference to include resume text
+    const profileWithResume = { ...userProfile, resumeText };
+
     // Check if we already have a cached review and resume hasn't changed
-    const currentHash = hashResume(userProfile.resumeText);
+    const currentHash = hashResume(resumeText);
     const cachedData = sessionStorage.getItem('resume-intel-cache');
     
     if (cachedData) {
@@ -187,28 +200,28 @@ export default function ResumeIntelPage() {
 
       try {
         let directions: CareerDirectionRecommendation[] = [];
-        if (userProfile.careerStage && userProfile.careerPreferences) {
+        if (profileWithResume.careerStage && profileWithResume.careerPreferences) {
           directions = await getCareerDirectionRecommendations({
-            careerStage: userProfile.careerStage,
-            careerPreferences: userProfile.careerPreferences,
-            psychographicProfile: userProfile.psychographicProfile,
-            resumeText: userProfile.resumeText,
-            linkedInSummary: userProfile.linkedInSummary
+            careerStage: profileWithResume.careerStage,
+            careerPreferences: profileWithResume.careerPreferences,
+            psychographicProfile: profileWithResume.psychographicProfile,
+            resumeText: resumeText,
+            linkedInSummary: profileWithResume.linkedInSummary
           });
           setCareerDirections(directions);
         }
 
-        console.log('Calling /api/resume-review with resume length:', userProfile.resumeText?.length || 0);
+        console.log('Calling /api/resume-review with resume length:', resumeText?.length || 0);
         
         const response = await fetch('/api/resume-review', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            resumeText: userProfile.resumeText,
-            careerStage: userProfile.careerStage,
-            careerPreferences: userProfile.careerPreferences,
+            resumeText: resumeText,
+            careerStage: profileWithResume.careerStage,
+            careerPreferences: profileWithResume.careerPreferences,
             careerDirections: directions.slice(0, 3),
-            psychographicProfile: userProfile.psychographicProfile
+            psychographicProfile: profileWithResume.psychographicProfile
           })
         });
 
