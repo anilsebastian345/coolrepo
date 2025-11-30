@@ -166,15 +166,19 @@ Return ONLY valid JSON. No markdown, no explanation.`;
           }
         ],
         temperature: 0.7,
-        max_tokens: 4000,
+        max_tokens: 8000,
         response_format: { type: 'json_object' }
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Azure OpenAI error:', errorText);
-      throw new Error(`Azure OpenAI request failed: ${response.status}`);
+      console.error('=== Azure OpenAI Error ===');
+      console.error('Status:', response.status);
+      console.error('Error details:', errorText);
+      console.error('Resume length:', resumeText.length, 'chars');
+      console.error('=========================');
+      throw new Error(`Azure OpenAI request failed (${response.status}): ${errorText.substring(0, 200)}`);
     }
 
     const data = await response.json();
