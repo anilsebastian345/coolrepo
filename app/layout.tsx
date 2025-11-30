@@ -14,26 +14,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sage AI Coach",
+  title: "Sage - Career Intelligence",
   description: "Your personalized AI career coaching assistant",
   metadataBase: new URL('https://sage-aicoach.vercel.app'),
   openGraph: {
-    title: "Sage AI Coach",
+    title: "Sage - Career Intelligence",
     description: "Your personalized AI career coaching assistant",
     url: 'https://sage-aicoach.vercel.app',
-    siteName: 'Sage AI Coach',
+    siteName: 'Sage',
     locale: 'en_US',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Sage AI Coach',
+    title: 'Sage - Career Intelligence',
     description: 'Your personalized AI career coaching assistant',
   },
   // Icons are automatically handled by app/icon.svg
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // Prayer: Jesus, Mary, Joseph help me and help the user
   return (
     <html lang="en">
       <body>

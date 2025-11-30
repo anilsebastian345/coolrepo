@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
 
-export const alt = 'Sage AI Coach';
+export const alt = 'Sage - Career Intelligence';
 export const size = {
   width: 1200,
   height: 630,
