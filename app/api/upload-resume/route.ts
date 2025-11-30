@@ -61,12 +61,12 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
     console.log('File read successfully, size:', bytes.byteLength);
     
-    // Extract text from PDF
+    // Extract text based on file type
     let extractedText = '';
+    
     if (file.type === 'application/pdf') {
       try {
         console.log('Attempting to parse PDF...');
-        // Dynamically import pdf-parse to avoid webpack issues
         const pdfParse = require('pdf-parse/lib/pdf-parse.js');
         const pdfData = await pdfParse(buffer);
         extractedText = pdfData.text;
@@ -78,10 +78,34 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
+    } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+      // DOCX file - use mammoth
+      try {
+        console.log('Attempting to parse DOCX...');
+        const mammoth = require('mammoth');
+        const result = await mammoth.extractRawText({ buffer: buffer });
+        extractedText = result.value;
+        console.log('DOCX text extracted, length:', extractedText.length);
+      } catch (error) {
+        console.error('Error extracting DOCX text:', error);
+        return NextResponse.json(
+          { error: 'Failed to extract text from DOCX. Please ensure the file is not corrupted.' },
+          { status: 400 }
+        );
+      }
+    } else if (file.type === 'application/msword') {
+      // DOC file - not supported, ask for PDF or DOCX
+      console.log('DOC file uploaded - not supported');
+      return NextResponse.json(
+        { error: 'DOC files are not supported. Please convert to DOCX or PDF format.' },
+        { status: 400 }
+      );
     } else {
-      // For DOC/DOCX files, we'll need a different library or just skip text extraction for now
-      console.log('Non-PDF file uploaded - text extraction not implemented for DOC/DOCX yet');
-      extractedText = 'Text extraction not available for DOC/DOCX files. Please upload a PDF for full text extraction.';
+      console.log('Unknown file type:', file.type);
+      return NextResponse.json(
+        { error: 'Unsupported file type. Please upload a PDF or DOCX file.' },
+        { status: 400 }
+      );
     }
     
     // For Vercel deployment, we'll just simulate file storage
