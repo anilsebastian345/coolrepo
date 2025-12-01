@@ -190,18 +190,12 @@ export default function Home() {
 
             {/* Links */}
             <div className="flex flex-wrap justify-center items-center gap-6">
-              <a href="#about" className="text-sm text-[#4A4A4A] hover:text-[#7C9151] transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#7C9151] rounded">
-                About
-              </a>
-              <a href="#services" className="text-sm text-[#4A4A4A] hover:text-[#7C9151] transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#7C9151] rounded">
-                Services
-              </a>
-              <a href="#privacy" className="text-sm text-[#4A4A4A] hover:text-[#7C9151] transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#7C9151] rounded">
+              <Link href="/privacy" className="text-sm text-[#4A4A4A] hover:text-[#7C9151] transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#7C9151] rounded">
                 Privacy
-              </a>
-              <a href="#terms" className="text-sm text-[#4A4A4A] hover:text-[#7C9151] transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#7C9151] rounded">
+              </Link>
+              <Link href="/terms" className="text-sm text-[#4A4A4A] hover:text-[#7C9151] transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#7C9151] rounded">
                 Terms
-              </a>
+              </Link>
             </div>
           </div>
 

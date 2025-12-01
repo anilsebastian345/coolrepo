@@ -1,3 +1,11 @@
+"use client";
+
+import Link from 'next/link';
+
+"use client";
+
+import Link from 'next/link';
+
 export default function TermsPage() {
   return (
     <main className="max-w-3xl mx-auto px-4 py-16">
