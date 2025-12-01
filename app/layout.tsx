@@ -15,11 +15,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Sage - Career Intelligence",
-  description: "Your personalized AI career coaching assistant",
+  description: "Career intelligence for the next chapter",
   metadataBase: new URL('https://sage-aicoach.vercel.app'),
   openGraph: {
     title: "Sage - Career Intelligence",
-    description: "Your personalized AI career coaching assistant",
+    description: "Career intelligence for the next chapter",
     url: 'https://sage-aicoach.vercel.app',
     siteName: 'Sage',
     locale: 'en_US',
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Sage - Career Intelligence',
-    description: 'Your personalized AI career coaching assistant',
+    description: 'Career intelligence for the next chapter',
   },
   // Icons are automatically handled by app/icon.svg
 };
