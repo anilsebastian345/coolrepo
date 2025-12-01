@@ -1,3 +1,10 @@
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy - Sage',
+  description: 'Sage Privacy Policy - Learn about how we collect, use, and protect your data.',
+};
+
 export default function PrivacyPage() {
   return (
     <main className="max-w-3xl mx-auto px-4 py-16">
@@ -30,7 +37,7 @@ export default function PrivacyPage() {
           <p className="mt-3">
             We don&apos;t intentionally collect sensitive personal data beyond what you choose to provide in these inputs.
           </p>
-        </section>
+        </div>
 
         <div className="border-t border-slate-200 pt-8">
           <h2 className="text-xl font-semibold text-slate-900 mb-3">How We Use Your Information</h2>
@@ -45,7 +52,7 @@ export default function PrivacyPage() {
           <p className="mt-3 font-semibold">
             We do not sell your data to third parties.
           </p>
-        </section>
+        </div>
 
         <div className="border-t border-slate-200 pt-8">
           <h2 className="text-xl font-semibold text-slate-900 mb-3">Data Storage & AI Providers</h2>
@@ -58,7 +65,7 @@ export default function PrivacyPage() {
             We make every effort to minimize the data sent to these providers and do not use them for additional 
             tracking or advertising purposes.
           </p>
-        </section>
+        </div>
 
         <div className="border-t border-slate-200 pt-8">
           <h2 className="text-xl font-semibold text-slate-900 mb-3">Analytics</h2>
@@ -67,7 +74,7 @@ export default function PrivacyPage() {
             are being used and how people interact with Sage. This data is aggregated and anonymous—we don&apos;t use 
             it to build individual profiles or track you across other websites.
           </p>
-        </section>
+        </div>
 
         <div className="border-t border-slate-200 pt-8">
           <h2 className="text-xl font-semibold text-slate-900 mb-3">How to Request Deletion</h2>
@@ -81,7 +88,7 @@ export default function PrivacyPage() {
             </a>
             {' '}from the same email address you used to sign in. We&apos;ll process your request as soon as possible.
           </p>
-        </section>
+        </div>
 
         <div className="border-t border-slate-200 pt-8">
           <h2 className="text-xl font-semibold text-slate-900 mb-3">Children&apos;s Privacy</h2>
@@ -96,7 +103,7 @@ export default function PrivacyPage() {
             </a>
             {' '}so we can delete it.
           </p>
-        </section>
+        </div>
 
         <div className="border-t border-slate-200 pt-8">
           <h2 className="text-xl font-semibold text-slate-900 mb-3">Changes to This Policy</h2>
@@ -104,7 +111,7 @@ export default function PrivacyPage() {
             We may update this Privacy Policy from time to time as Sage evolves. When we make changes, 
             we&apos;ll update the &quot;Last updated&quot; date below. We encourage you to review this page periodically.
           </p>
-        </section>
+        </div>
 
         <div className="border-t border-slate-200 pt-8">
           <p className="text-xs text-slate-500">
