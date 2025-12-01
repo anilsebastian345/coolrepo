@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from 'next-auth/react';
+import Link from 'next/link';
 import FeatureShowcase from './components/landing/FeatureShowcase';
 
 export default function Home() {
