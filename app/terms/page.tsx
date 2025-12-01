@@ -1,7 +1,3 @@
-"use client";
-
-import Link from 'next/link';
-
 export default function TermsPage() {
   return (
     <main className="max-w-3xl mx-auto px-4 py-16">
@@ -11,7 +7,6 @@ export default function TermsPage() {
       </div>
 
       <div className="space-y-8 text-sm text-slate-700 leading-relaxed">
-        {/* Intro */}
         <section>
           <p>
             By using Sage, you agree to these Terms of Use. Sage is currently in beta and under active development. 
@@ -28,7 +23,7 @@ export default function TermsPage() {
             more informed career decisions.
           </p>
           <p>
-            While Sage's outputs can be helpful, they are not perfect or definitive. AI-generated insights should be 
+            While Sage&apos;s outputs can be helpful, they are not perfect or definitive. AI-generated insights should be 
             used as guidance, not as the sole basis for important career decisions.
           </p>
         </section>
@@ -44,7 +39,7 @@ export default function TermsPage() {
           </p>
           <p>
             You are solely responsible for your career decisions, job applications, and any actions you take based 
-            on Sage's suggestions.
+            on Sage&apos;s suggestions.
           </p>
         </section>
 
@@ -100,18 +95,18 @@ export default function TermsPage() {
           </ul>
           <p>
             We may update features, pricing (if applicable in the future), and these Terms of Use as the product 
-            evolves. When we make significant changes, we'll update the "Last updated" date below.
+            evolves. When we make significant changes, we&apos;ll update the &quot;Last updated&quot; date below.
           </p>
         </section>
 
         <div className="border-t border-slate-200 pt-8">
           <h2 className="text-xl font-semibold text-slate-900 mb-3">Limitation of Liability</h2>
           <p className="mb-3">
-            We are not liable for decisions you make based on Sage's suggestions or insights. Sage does not guarantee 
+            We are not liable for decisions you make based on Sage&apos;s suggestions or insights. Sage does not guarantee 
             any specific outcomes, such as getting a job, receiving a promotion, or achieving career success.
           </p>
           <p>
-            To the fullest extent permitted by law, Sage is provided "as is" without warranties of any kind, either 
+            To the fullest extent permitted by law, Sage is provided &quot;as is&quot; without warranties of any kind, either 
             express or implied. We are not responsible for any damages or losses arising from your use of the service.
           </p>
         </section>
