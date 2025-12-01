@@ -6,7 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useUserProfile } from '../hooks/useUserProfile';
 
 // Pages that don't require authentication
-const PUBLIC_ROUTES = ['/', '/about/dashboard', '/about/career-map', '/about/resume-intel', '/about/job-match'];
+const PUBLIC_ROUTES = ['/', '/about/dashboard', '/about/career-map', '/about/resume-intel', '/about/job-match', '/privacy', '/terms'];
 
 // Pages that require authentication but not onboarding
 const AUTH_ONLY_ROUTES = ['/onboarding/questions', '/preview-onboarding'];
